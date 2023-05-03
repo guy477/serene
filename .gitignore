@@ -1,0 +1,5 @@
+src/__pycache__/
+src/results/
+src/build/
+ccluster.c*
+.DS_Store
