@@ -1,5 +1,8 @@
 src/__pycache__/
+src/poker/__pycache__/
 src/results/
 src/build/
-ccluster.c*
+*.so
+*.c
+__BAK/
 .DS_Store
