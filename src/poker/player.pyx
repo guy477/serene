@@ -3,11 +3,6 @@
 
 
 cdef class Player:
-    # cdef public int chips
-    # cdef public unsigned long long hand
-    # cdef bint folded
-    # cdef int contributed_to_pot
-
     def __init__(self, int initial_chips):
         self.chips = initial_chips
         self.hand = 0

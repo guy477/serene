@@ -40,11 +40,9 @@ cdef handle_blinds(GameState game_state)
 
 cpdef preflop(GameState game_state, list deck)
 
-cpdef flop(GameState game_state, list deck)
+cpdef postflop(GameState game_state, list deck, str round_name)
 
-cpdef turn(GameState game_state, list deck)
-
-cpdef river(GameState game_state, list deck)
+cpdef int active_players(GameState game_state)
 
 cpdef str format_hand(unsigned long long hand)
 
@@ -52,6 +50,6 @@ cpdef display_game_state(GameState game_state, int player_index)
 
 cpdef player_action(GameState game_state, int player_index, str action, int bet_amount=*)
 
-cpdef process_user_input(GameState game_state, int player_index)
+cpdef bint process_user_input(GameState game_state, int player_index)
 
 cpdef str get_user_input(prompt)

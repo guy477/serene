@@ -195,11 +195,13 @@ cdef class PokerGame:
             self.deck = create_deck()
             fisher_yates_shuffle(self.deck)
 
+
+
             # Betting rounds
             preflop(self.game_state, self.deck)
-            flop(self.game_state, self.deck)
-            turn(self.game_state, self.deck)
-            river(self.game_state, self.deck)
+            postflop(self.game_state, self.deck, "flop")
+            postflop(self.game_state, self.deck, "turn")
+            postflop(self.game_state, self.deck, "river")
 
             # Determine the winner and distribute the pot
             showdown(self.game_state)
@@ -216,6 +218,7 @@ cdef class GameState:
         self.players = [Player(initial_chips) for _ in range(num_players)]
         self.small_blind = small_blind
         self.big_blind = big_blind
+        self.dealer_position = 0
         self.pot = 0
         self.current_bet = 0
         self.board = 0
@@ -311,41 +314,63 @@ cdef handle_blinds(GameState game_state):
     cdef int small_blind_pos = (game_state.dealer_position + 1) % len(game_state.players)
     cdef int big_blind_pos = (game_state.dealer_position + 2) % len(game_state.players)
 
-    player_action(game_state, small_blind_pos, "call", game_state.small_blind)
-    player_action(game_state, big_blind_pos, "call", game_state.big_blind)
+    player_action(game_state, small_blind_pos, "raise", min(game_state.small_blind, game_state.players[small_blind_pos].chips))
+    player_action(game_state, big_blind_pos, "raise", min(game_state.small_blind, game_state.players[big_blind_pos].chips))
 
     # Update the current bet
     # TODO: Handle case where player's chips is less than the small-blind or big blind
     #       Player should still be able to play, but their chip count should not go negative.
-    game_state.current_bet = game_state.small_blind
-    game_state.pot = game_state.small_blind + game_state.big_blind
 
 cpdef preflop(GameState game_state, list deck):
     handle_blinds(game_state)  # Add this line
     deal_cards(deck, game_state)
-    for player_index in range(len(game_state.players)):
-        process_user_input(game_state, player_index)
 
+    starting_player = (game_state.dealer_position + 3) % len(game_state.players)
+    order = list(range(starting_player, len(game_state.players))) + list(range(0, starting_player))
+    last_raiser, num_actions, index, player_index = -1, 0, 0, order[0]
+    while ((num_actions < len(game_state.players)) or last_raiser != player_index) and active_players(game_state) > 1:
+        player_index = order[index % len(game_state.players)]
+        if process_user_input(game_state, player_index):
+            last_raiser = player_index
+        num_actions += 1
+        index += 1
+        player_index = order[index % len(game_state.players)]
+        if(num_actions >= len(game_state.players) and (last_raiser == -1 or last_raiser == player_index)):
+            break
+        
 
-cpdef flop(GameState game_state, list deck):
+cpdef postflop(GameState game_state, list deck, str round_name):
+    # Between rounds, we want reset the current_bet and pot contribution numbers.
     game_state.current_bet = 0
-    for _ in range(3):
+    for i in range(len(game_state.players)):
+        game_state.players[i].contributed_to_pot = 0
+    
+    if round_name == "flop":
+        for _ in range(3):
+            game_state.board |= draw_card(deck)
+    else:
         game_state.board |= draw_card(deck)
-    for player_index in range(len(game_state.players)):
-        process_user_input(game_state, player_index)
 
-cpdef turn(GameState game_state, list deck):
-    game_state.current_bet = 0
-    game_state.board |= draw_card(deck)
-    for player_index in range(len(game_state.players)):
-        process_user_input(game_state, player_index)
+    starting_player = (game_state.dealer_position + 1) % len(game_state.players)
+    order = list(range(starting_player, len(game_state.players))) + list(range(0, starting_player))
+    
+    last_raiser, num_actions, index, player_index = -1, 0, 0, order[0]
+    while ((num_actions < len(game_state.players)) or last_raiser != player_index) and active_players(game_state) > 1:
+        player_index = order[index % len(game_state.players)]
+        if process_user_input(game_state, player_index):
+            last_raiser = player_index
+        num_actions += 1
+        index += 1
+        player_index = order[index % len(game_state.players)]
+        if(num_actions >= len(game_state.players) and (last_raiser == -1 or last_raiser == player_index)):
+            break
 
-cpdef river(GameState game_state, list deck):
-    game_state.current_bet = 0
-    game_state.board |= draw_card(deck)
-    for player_index in range(len(game_state.players)):
-        process_user_input(game_state, player_index)
-
+cpdef int active_players(GameState game_state):
+    cdef int alive = 0
+    for i in range(len(game_state.players)):
+        if not game_state.players[i].folded:
+            alive += 1
+    return alive
 
 cpdef str format_hand(unsigned long long hand):
     cdef list cards = [int_to_card(card) for card in create_deck() if card & hand]
@@ -406,23 +431,25 @@ cpdef player_action(GameState game_state, int player_index, str action, int bet_
         raise ValueError("Invalid action")
 
 
-cpdef process_user_input(GameState game_state, int player_index):
+cpdef bint process_user_input(GameState game_state, int player_index):
     cdef str user_input
     cdef int bet_amount
     cdef bint valid = 0
+    cdef bint raize = 0
     
     while valid == 0:
         if not game_state.players[player_index].folded:
             display_game_state(game_state, player_index)
-            user_input = get_user_input("Enter action (call, raise, fold): ")
-            bet_amount 
 
+            user_input = get_user_input("Enter action (call, raise, fold): ")
+            
             if user_input == "call":
                 player_action(game_state, player_index, "call")
                 valid = 1
             elif user_input == "raise":
                 bet_amount = int(get_user_input("Enter raise amount: "))
                 player_action(game_state, player_index, "raise", bet_amount)
+                raize = 1
                 valid = 1
             elif user_input == "fold":
                 player_action(game_state, player_index, "fold")
@@ -431,6 +458,7 @@ cpdef process_user_input(GameState game_state, int player_index):
                 print("Invalid input. Please enter call, raise, or fold.")
         else:
             valid = 1
+    return raize
 
 
 cpdef str get_user_input(prompt):

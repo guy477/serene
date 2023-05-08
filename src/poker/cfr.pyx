@@ -4,7 +4,7 @@
 from libc.stdlib cimport rand, srand
 from .player cimport Player
 from .ai_player cimport AIPlayer
-from .poker_game cimport PokerGame, GameState, card_to_int, create_deck, fisher_yates_shuffle, draw_card, deal_cards, int_to_card, card_str_to_int, player_action, showdown, get_user_input, preflop, flop, turn, river, format_hand, display_game_state, process_user_input
+from .poker_game cimport PokerGame, GameState, card_to_int, create_deck, fisher_yates_shuffle, draw_card, deal_cards, int_to_card, card_str_to_int, player_action, showdown, get_user_input, preflop, postflop, format_hand, display_game_state, process_user_input
 
 cimport numpy
 cimport cython

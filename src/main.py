@@ -16,7 +16,7 @@ def main():
     cfr_trainer.train()
 
     # Play the game
-    game.play_game(num_hands=10)
+    game.play_game(num_hands=2)
 
 if __name__ == "__main__":
     main()
