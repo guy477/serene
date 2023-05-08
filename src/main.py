@@ -9,7 +9,7 @@ def main():
     small_blind = 5
     big_blind = 10
 
-    game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind)
+    game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, 100)
 
     # Train the AI player using the CFR algorithm
     cfr_trainer = CFRTrainer(iterations=10000)

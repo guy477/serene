@@ -6,19 +6,20 @@ cdef class GameState:
     cdef public int dealer_position
     cdef public int pot
     cdef public int current_bet
-    cdef public int board
+    cdef public unsigned long long board
+    cdef public list deck
+
+    cdef void fisher_yates_shuffle(self)
+
+    cpdef draw_card(self)
+
+    cpdef deal_cards(self)
 
     cpdef reset(self)
 
 cpdef unsigned long long card_to_int(str suit, str value)
 
-cdef void fisher_yates_shuffle(list deck)
-
-cpdef unsigned long long draw_card(list deck)
-
 cpdef public list create_deck()
-
-cpdef deal_cards(list deck, GameState game_state)
 
 cpdef str int_to_card(unsigned long long card)
 

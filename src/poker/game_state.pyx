@@ -16,13 +16,38 @@ cdef class GameState:
         self.pot = 0
         self.current_bet = 0
         self.board = 0
+        self.deck = create_deck()
+        self.fisher_yates_shuffle()
 
     cpdef reset(self):
+        self.deck = create_deck()
+        self.fisher_yates_shuffle()
+
         self.pot = 0
         self.current_bet = 0
         self.board = 0
         for player in self.players:
             player.reset()
+
+    
+    cdef void fisher_yates_shuffle(self):
+        cdef int i, j
+        cdef unsigned long long temp
+        srand(1)
+        for i in range(len(self.deck) - 1, 0, -1):
+            j = rand() % (i + 1)
+            temp = self.deck[i]
+            self.deck[i] = self.deck[j]
+            self.deck[j] = temp
+
+    cpdef draw_card(self):
+        self.board |= self.deck.pop()
+
+    cpdef deal_cards(self):
+        for _ in range(2):
+            for player in self.players:
+                if player.chips > 0:
+                    player.add_card(self.deck.pop())
 
 
 cpdef unsigned long long card_to_int(str suit, str value):
@@ -33,28 +58,9 @@ cpdef unsigned long long card_to_int(str suit, str value):
     return one << bit_position
 
 
-cdef void fisher_yates_shuffle(list deck):
-    cdef int i, j
-    cdef unsigned long long temp
-    srand(1)
-    for i in range(len(deck) - 1, 0, -1):
-        j = rand() % (i + 1)
-        temp = deck[i]
-        deck[i] = deck[j]
-        deck[j] = temp
-
-cpdef unsigned long long draw_card(list deck):
-    return deck.pop()
-
 cpdef public list create_deck():
-    cdef list deck = [card_to_int(suit, value) for suit in SUITS for value in VALUES]
-    return deck
-
-cpdef deal_cards(list deck, GameState game_state):
-    for _ in range(2):
-        for player in game_state.players:
-            if player.chips > 0:
-                player.add_card(draw_card(deck))
+        cdef list deck = [card_to_int(suit, value) for suit in SUITS for value in VALUES]
+        return deck
 
 
 cpdef str int_to_card(unsigned long long card):

@@ -189,16 +189,12 @@ cdef class PokerGame:
     cpdef play_game(self, int num_hands=1):
 
         for _ in range(num_hands):
-            self.deck = create_deck()
-            fisher_yates_shuffle(self.deck)
-
-
-
+            
             # Betting rounds
-            preflop(self.game_state, self.deck)
-            postflop(self.game_state, self.deck, "flop")
-            postflop(self.game_state, self.deck, "turn")
-            postflop(self.game_state, self.deck, "river")
+            preflop(self.game_state)
+            postflop(self.game_state, "flop")
+            postflop(self.game_state, "turn")
+            postflop(self.game_state, "river")
 
             # Determine the winner and distribute the pot
             showdown(self.game_state)
@@ -256,9 +252,9 @@ cdef handle_blinds(GameState game_state):
     # TODO: Handle case where player's chips is less than the small-blind or big blind
     #       Player should still be able to play, but their chip count should not go negative.
 
-cpdef preflop(GameState game_state, list deck):
+cpdef preflop(GameState game_state):
     handle_blinds(game_state)  # Add this line
-    deal_cards(deck, game_state)
+    game_state.deal_cards()
 
     starting_player = (game_state.dealer_position + 3) % len(game_state.players)
     order = list(range(starting_player, len(game_state.players))) + list(range(0, starting_player))
@@ -275,7 +271,7 @@ cpdef preflop(GameState game_state, list deck):
             break
         
 
-cpdef postflop(GameState game_state, list deck, str round_name):
+cpdef postflop(GameState game_state, str round_name):
     # Between rounds, we want reset the current_bet and pot contribution numbers.
     game_state.current_bet = 0
     for i in range(len(game_state.players)):
@@ -283,9 +279,9 @@ cpdef postflop(GameState game_state, list deck, str round_name):
     
     if round_name == "flop":
         for _ in range(3):
-            game_state.board |= draw_card(deck)
+            game_state.draw_card()
     else:
-        game_state.board |= draw_card(deck)
+        game_state.draw_card()
 
     starting_player = (game_state.dealer_position + 1) % len(game_state.players)
     order = list(range(starting_player, len(game_state.players))) + list(range(0, starting_player))
