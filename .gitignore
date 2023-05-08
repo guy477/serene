@@ -4,5 +4,6 @@ src/results/
 src/build/
 *.so
 *.c
+*.h
 __BAK/
 .DS_Store

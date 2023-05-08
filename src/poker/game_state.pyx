@@ -29,6 +29,45 @@ cdef class GameState:
         for player in self.players:
             player.reset()
 
+    cpdef clone(self):
+        cdef GameState new_state = GameState(self.players[:], self.small_blind, self.big_blind)
+        new_state.dealer_position = self.dealer_position
+        new_state.pot = self.pot
+        new_state.current_bet = self.current_bet
+        new_state.board = self.board
+        new_state.deck = self.deck[:]
+        return new_state
+
+    cpdef bint is_terminal(self):
+        cdef int active_players = 0
+        #cdef Player player
+        #cdef int num_active_players = sum([1 for player in self.players if (not player.folded and player.chips > 0)])
+        for player in self.players:
+            if not player.folded and player.chips > 0:
+                active_players += 1
+            if active_players > 1:
+                break
+        
+        # Terminal case: all but one player have folded
+        if active_players == 1:
+            return True
+
+        # Terminal case: all 5 table cards have been dealt and players have acted
+        if self.board_has_five_cards():
+            cdef bint all_acted = True
+            for player in self.players:
+                if not player.folded and player.contributed_to_pot < self.current_bet:
+                    all_acted = False
+                    break
+
+            if all_acted:
+                return True
+
+        return False
+        
+
+    cdef bint board_has_five_cards(self):
+        return bin(self.board).count('1') == 5
     
     cdef void fisher_yates_shuffle(self):
         cdef int i, j

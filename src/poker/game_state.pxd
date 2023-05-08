@@ -17,6 +17,12 @@ cdef class GameState:
 
     cpdef reset(self)
 
+    cpdef clone(self)
+
+    cpdef bint is_terminal(self)
+
+    cdef bint board_has_five_cards(self)
+
 cpdef unsigned long long card_to_int(str suit, str value)
 
 cpdef public list create_deck()

@@ -204,14 +204,6 @@ cdef class PokerGame:
             self.game_state.dealer_position = (self.game_state.dealer_position + 1) % len(self.players)
 
 
-################################################################################
-
-
-
-
-
-
-
 cpdef showdown(GameState game_state):
     cdef Player player
     cdef unsigned long long player_hand
@@ -247,10 +239,6 @@ cdef handle_blinds(GameState game_state):
     
     game_state.players[small_blind_pos].player_action(game_state, small_blind_pos, "raise", min(game_state.small_blind, game_state.players[small_blind_pos].chips))
     game_state.players[big_blind_pos].player_action(game_state, big_blind_pos, "raise", min(game_state.small_blind, game_state.players[big_blind_pos].chips))
-
-    # Update the current bet
-    # TODO: Handle case where player's chips is less than the small-blind or big blind
-    #       Player should still be able to play, but their chip count should not go negative.
 
 cpdef preflop(GameState game_state):
     handle_blinds(game_state)  # Add this line
