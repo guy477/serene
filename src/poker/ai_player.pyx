@@ -6,9 +6,9 @@
 cdef class AIPlayer(Player):
     # AI player-specific methods will be added here
     
-    def __init__(self, int initial_chips, int cfr_iterations):
+    def __init__(self, int initial_chips, int cfr_iterations, int num_players, int small_blind, int big_blind):
         super().__init__(initial_chips)
-        self.cfr_algo = CFRTrainer(cfr_iterations)
+        self.strategy_trainer = CFRTrainer(cfr_iterations, num_players, initial_chips, small_blind, big_blind)
 
     cpdef get_action(self, GameState game_state, int player_index):
         cdef str user_input
@@ -20,7 +20,7 @@ cdef class AIPlayer(Player):
             if not game_state.players[player_index].folded:
                 display_game_state(game_state, player_index)
 
-                user_input = self.cfr_algo.get_best_action(game_state, player_index)
+                user_input = self.strategy_trainer.get_best_action(game_state, player_index)
                 
                 if user_input == "call":
                     self.player_action(game_state, player_index, "call")

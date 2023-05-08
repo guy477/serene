@@ -12,6 +12,7 @@ extensions = [
     Extension("poker.poker_game", ["poker/poker_game.pyx"]),
     Extension("poker.player", ["poker/player.pyx"]),
     Extension("poker.ai_player", ["poker/ai_player.pyx"]),
+    Extension("poker.information_set", ["poker/information_set.pyx"]),
     Extension("poker.cfr", ["poker/cfr.pyx"]),
 ]
 

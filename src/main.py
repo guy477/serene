@@ -5,14 +5,15 @@ from poker.cfr import CFRTrainer
 def main():
     num_players = 6
     initial_chips = 1000
+    num_iterations = 100
     num_ai_players = 5
     small_blind = 5
     big_blind = 10
 
-    game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, 100)
+    game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, num_iterations)
 
     # Train the AI player using the CFR algorithm
-    cfr_trainer = CFRTrainer(iterations=10000)
+    cfr_trainer = CFRTrainer(iterations=num_iterations, num_players = num_players, initial_chips = initial_chips, small_blind=small_blind, big_blind=big_blind)
     cfr_trainer.train()
 
     # Play the game
