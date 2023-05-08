@@ -3,9 +3,9 @@ from poker.poker_game import PokerGame
 from poker.cfr import CFRTrainer
 
 def main():
-    num_players = 2
+    num_players = 6
     initial_chips = 1000
-    num_ai_players = 1
+    num_ai_players = 5
     small_blind = 5
     big_blind = 10
 

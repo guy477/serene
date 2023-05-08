@@ -1,5 +1,6 @@
 from .player cimport Player
 from .ai_player cimport AIPlayer
+from .game_state cimport GameState, card_to_int, fisher_yates_shuffle, draw_card, create_deck, deal_cards, int_to_card, card_str_to_int, format_hand, display_game_state
 
 cdef unsigned int cy_evaluate(unsigned long long cards, unsigned int num_cards) nogil
 cdef class PokerGame:
@@ -9,31 +10,6 @@ cdef class PokerGame:
     cpdef play_game(self, int num_hands=*)
 
 
-cdef class GameState:
-    cdef public int current_bet
-    cdef public unsigned long long board
-    cdef public list players
-    cdef public int pot
-    cdef public int dealer_position
-    cdef public int small_blind
-    cdef public int big_blind
-
-    cpdef reset(self)
-
-cpdef unsigned long long card_to_int(str suit, str value)
-
-cpdef list create_deck()
-
-cdef void fisher_yates_shuffle(list deck)
-
-cpdef unsigned long long draw_card(list deck)
-
-cpdef deal_cards(list deck, GameState game_state)
-
-cpdef str int_to_card(unsigned long long card)
-
-cpdef unsigned long long card_str_to_int(str card_str)
-
 cpdef showdown(GameState game_state)
 
 cdef handle_blinds(GameState game_state)
@@ -41,15 +17,3 @@ cdef handle_blinds(GameState game_state)
 cpdef preflop(GameState game_state, list deck)
 
 cpdef postflop(GameState game_state, list deck, str round_name)
-
-cpdef int active_players(GameState game_state)
-
-cpdef str format_hand(unsigned long long hand)
-
-cpdef display_game_state(GameState game_state, int player_index)
-
-cpdef player_action(GameState game_state, int player_index, str action, int bet_amount=*)
-
-cpdef bint process_user_input(GameState game_state, int player_index)
-
-cpdef str get_user_input(prompt)
