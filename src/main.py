@@ -13,11 +13,11 @@ def main():
     game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, num_iterations)
 
     # Train the AI player using the CFR algorithm
-    cfr_trainer = CFRTrainer(iterations=num_iterations, num_players = num_players, initial_chips = initial_chips, small_blind=small_blind, big_blind=big_blind)
-    cfr_trainer.train()
+    # cfr_trainer = CFRTrainer(iterations=num_iterations, num_players = num_players, initial_chips = initial_chips, small_blind=small_blind, big_blind=big_blind)
+    # cfr_trainer.train()
 
     # Play the game
-    game.play_game(num_hands=2)
+    game.play_game(num_hands=10)
 
 if __name__ == "__main__":
     main()

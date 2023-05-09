@@ -1,5 +1,5 @@
 from .game_state cimport GameState
-from .player cimport Player
+from .ai_player cimport AIPlayer
 from .information_set cimport InformationSet
 
 cdef class CFRTrainer:
@@ -14,8 +14,12 @@ cdef class CFRTrainer:
 
     cpdef train(self)
 
-    cpdef double traverse_game_tree(self, GameState game_state, int player_index, list reach_probabilities)
+    cpdef train_on_game_state(self, GameState game_state, int iterations)
 
-    cpdef list get_strategy(self, str information_set, int player_index, list available_actions)
+    cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth)
 
     cpdef str get_best_action(self, GameState game_state, int player_index)
+    
+    cdef float[:] calculate_utilities(self, GameState game_state, int player)
+
+    cdef get_average_strategy(self, AIPlayer player, GameState game_state)

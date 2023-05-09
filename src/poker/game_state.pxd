@@ -5,6 +5,10 @@ cdef class GameState:
     cdef public int big_blind
     cdef public int dealer_position
     cdef public int player_index
+    cdef public int last_raiser
+    cdef public int winner_index
+    cdef public int num_actions
+    cdef public list order
     cdef public int pot
     cdef public int current_bet
     cdef public unsigned long long board
@@ -22,18 +26,21 @@ cdef class GameState:
     cpdef clone(self)
 
     cpdef handle_blinds(self)
+    
+    # handles the dealing of private cards
+    cpdef setup_preflop(self) 
+    # handles the dealing of cards, resetting player pot contributions and current bet counters.
+    cpdef setup_postflop(self, str round_name)
+    
+    # returns true if gamestate is terminal. false otherwise
+    cpdef bint handle_action(self, str action = *)
 
-    cpdef preflop(self)
-    
-    cpdef postflop(self, str round_name)
-    
     cpdef showdown(self)
 
     cpdef bint is_terminal(self)
+    cpdef bint is_terminal_river(self)
 
     cpdef deal_private_cards(self)
-
-    cpdef deal_public_cards(self)
 
     cdef void fisher_yates_shuffle(self)
 
@@ -41,7 +48,9 @@ cdef class GameState:
     
     cpdef draw_card(self)
 
-    cdef bint board_has_five_cards(self)
+    cpdef bint board_has_five_cards(self)
+
+    cpdef int num_board_cards(self)
 
 
     
