@@ -1,4 +1,4 @@
-from .game_state cimport GameState
+from .game_state cimport GameState, hand_to_cards
 from .ai_player cimport AIPlayer
 from .information_set cimport InformationSet
 
@@ -16,7 +16,7 @@ cdef class CFRTrainer:
 
     cpdef train_on_game_state(self, GameState game_state, int iterations)
 
-    cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth)
+    cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth, bint realtime = *)
 
     cpdef str get_best_action(self, GameState game_state, int player_index)
     

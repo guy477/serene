@@ -64,6 +64,8 @@ cpdef str int_to_card(unsigned long long card)
 
 cpdef unsigned long long card_str_to_int(str card_str)
 
+cpdef list hand_to_cards(unsigned long long hand)
+
 cpdef str format_hand(unsigned long long hand)
 
 cpdef display_game_state(GameState game_state, int player_index)

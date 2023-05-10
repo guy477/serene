@@ -5,12 +5,14 @@ cimport numpy
 cimport cython
 
 
-from libc.stdio cimport FILE, fopen, fwrite, fscanf, fclose, fprintf
+
 # cython: profile=True
 from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.utils import check_array
 
 from libc.stdlib cimport rand, srand
+
+import logging
 
 import time
 srand(time.time())
@@ -18,6 +20,7 @@ srand(time.time())
 
 cdef public list SUITS = ['C', 'D', 'H', 'S']
 cdef public list VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+cdef public list positions = ['D', 'SB', 'BB', 'UTG', 'MP', 'CO']
 
 
 cdef class GameState:
@@ -30,6 +33,7 @@ cdef class GameState:
         self.pot = 0
         self.current_bet = 0
         self.board = 0
+        self.winner_index = -1
         self.deck = create_deck()
         self.fisher_yates_shuffle()
 
@@ -61,18 +65,26 @@ cdef class GameState:
 
     cpdef handle_blinds(self):
         cdef int small_blind_pos = (self.dealer_position + 1) % len(self.players)
-        cdef int big_blind_pos = (self.dealer_position + 2) % len(self.players)
+        cdef int big_blind_pos = 0
+
+        while self.players[small_blind_pos].chips == 0:
+            small_blind_pos = (small_blind_pos + 1) % len(self.players)
+        big_blind_pos = (small_blind_pos + 1) % len(self.players)
+        while self.players[small_blind_pos].chips == 0:
+            big_blind_pos = (big_blind_pos + 1) % len(self.players)
         
+
         self.players[small_blind_pos].take_action(self, small_blind_pos, "raise", min(self.small_blind, self.players[small_blind_pos].chips))
         self.players[big_blind_pos].take_action(self, big_blind_pos, "raise", min(self.small_blind, self.players[big_blind_pos].chips))
 
     cpdef setup_preflop(self):
+        self.reset()
         # Setup blinds
         self.handle_blinds()
         self.deal_private_cards()
         self.winner_index = -1
         self.player_index = (self.dealer_position + 3) % len(self.players)
-        self.last_raiser = -1
+        self.last_raiser = (self.dealer_position + 2) % len(self.players) # this is the big blind index
         self.num_actions = 0
     
     cpdef setup_postflop(self, str round_name):
@@ -92,6 +104,9 @@ cdef class GameState:
     
 
     cpdef bint handle_action(self, str action = None):
+        # if a terminal state persists through every round, all but one player folded.
+        if self.is_terminal():
+            return True
 
         if action:
             if self.players[self.player_index].take_action(self, self.player_index, action):
@@ -110,10 +125,7 @@ cdef class GameState:
         cdef int best_score, player_score
         cdef int remaining_players = sum([not player.folded for player in self.players])
         
-        # if we've called showdown before terminal state, estimate the results...
-        self.fisher_yates_shuffle()
-        while self.num_board_cards() < 5:
-            self.draw_card()
+        
         
         if remaining_players == 1:
             for i, player in enumerate(self.players):
@@ -121,11 +133,24 @@ cdef class GameState:
                     self.winner_index = i
                     break
         else:
-
+            # if we've called showdown before terminal state, estimate the results...
+            self.fisher_yates_shuffle()
+            while self.num_board_cards() < 5:
+                self.draw_card()
             best_score = -1
             self.winner_index = -1
 
             for i, player in enumerate(self.players):
+                # No need to evaluate folded hands
+                if player.folded:
+                    continue
+                
+                # For the realtime search case, we need to provide the player with a new hand.
+                # this logic should be joined with the logic to populate the board during a terminal state.
+                if player.hand == 0:
+                    player.hand |= self.deck.pop()
+                    player.hand |= self.deck.pop()
+
                 player_hand = player.hand | self.board
                 player_score = cy_evaluate(player_hand, 7)
 
@@ -138,18 +163,21 @@ cdef class GameState:
     
 
     cpdef bint is_terminal(self):
-        # we can determine if the current round has reached a terminal state if every player has been given the opportunity to act, the current player index is the prior raiser, or there is only one player left in the hand.
-        return (self.num_actions >= len(self.players) and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or (self.active_players() == 1)
+        # we can determine if the current round has reached a terminal state if every (active) player has been given the opportunity to act, the current player index is the prior raiser, or there is only one player left in the hand.
+        # Do i need to add a HAS_FOLDED variable for the first comparison?
+        return (self.num_actions >= self.active_players() and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or (self.active_players() == 1)
 
     cpdef bint is_terminal_river(self):
         # we can determine if the current round has reached a terminal state if every player has been given the opportunity to act, the current player index is the prior raiser, or there is only one player left in the hand.
-        return self.board_has_five_cards() and ((self.num_actions >= len(self.players) and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or (self.active_players() == 1))
+        return self.board_has_five_cards() and ((self.num_actions >= self.active_players() and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or (self.active_players() == 1))
         
     cpdef deal_private_cards(self):
         for player in self.players:
             if player.chips > 0:
                 player.add_card(self.deck.pop())
                 player.add_card(self.deck.pop())
+            else:
+                player.folded = True
 
     
     cdef void fisher_yates_shuffle(self):
@@ -203,16 +231,27 @@ cpdef str int_to_card(unsigned long long card):
 cpdef unsigned long long card_str_to_int(str card_str):
     return card_to_int(card_str[1], card_str[0])
 
+cpdef list hand_to_cards(unsigned long long hand):
+    cdef list cards = [card for card in create_deck() if card & hand]
+    return cards
+
 cpdef str format_hand(unsigned long long hand):
     cdef list cards = [int_to_card(card) for card in create_deck() if card & hand]
     return " ".join(cards)
 
 cpdef display_game_state(GameState game_state, int player_index):
     print("____________________________________________________________________________________")
-    print(f"Player {player_index + 1}: {format_hand(game_state.players[player_index].hand)}")
+    print(f"({positions[(player_index + game_state.dealer_position)%len(game_state.players)]})Player {player_index + 1}: {format_hand(game_state.players[player_index].hand)}")
     print(f"Board: {format_hand(game_state.board)}")
     print(f"Pot: {game_state.pot}")
     print(f"Chips: {game_state.players[player_index].chips}")
+
+    # print("______GAMESTATE______")
+    # print(f"Active Players: {game_state.active_players()}")
+    # print(f"Current Bet: {game_state.current_bet}")
+    # print(f"Last Raiser: {game_state.last_raiser}")
+    # print(f"Player Index: {game_state.player_index}")
+    # print(f"Player Index Hand: {format_hand(game_state.players[game_state.player_index].hand)}")
 
 
 ctypedef numpy.uint8_t uint8

@@ -3,6 +3,7 @@
 
 from collections import defaultdict
 
+
 cdef class Player:
     def __init__(self, int initial_chips):
         self.chips = initial_chips
@@ -76,8 +77,8 @@ cdef class Player:
             game_state.current_bet += bet_amount
             player.folded = False
 
-            if player.chips <= 0:
-                print(f"Player {player_index + 1} is out of chips.")
+            # if player.chips <= 0:
+            #     print(f"Player {player_index + 1} is out of chips.")
 
         elif action == "fold":
             player.folded = True
@@ -114,7 +115,15 @@ cdef class Player:
         return input(prompt)
 
     cpdef get_available_actions(self, GameState game_state, int player_index):
-        return ['call', 'raise', 'fold']
+        ret = ['call', 'raise', 'fold']
+        cdef Player player = game_state.players[player_index]
+        if player.chips < 0:
+            return []
+        if player.chips <= game_state.current_bet:
+            ret.remove('raise')
+        if game_state.current_bet == 0 or player.contributed_to_pot == game_state.current_bet:
+            ret.remove('fold')
+        return ret
 
     cpdef clone(self):
         cdef Player new_player = Player(self.chips)
@@ -127,5 +136,7 @@ cdef class Player:
     cpdef reset(self):
         self.hand = 0
         self.folded = False
+        if self.chips == 0:
+            self.chips = 1000
         self.contributed_to_pot = 0
         self.tot_contributed_to_pot = 0

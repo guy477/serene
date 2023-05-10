@@ -32,19 +32,28 @@ cdef class CFRTrainer:
         cdef float[:] probs
 
         for _ in range(self.iterations):
-            print(f'iterations: {_}', end = '\r')
+            
             players = [AIPlayer(self.initial_chips, self.iterations, self.num_players, self.small_blind, self.big_blind) for _ in range(self.num_players)]
             game_state = GameState(players, self.small_blind, self.big_blind)
             game_state.setup_preflop()
             probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
             for i in range(len(probs)):
                 probs[i] = 1
-            self.cfr_traverse(game_state, self.num_players, probs, 0, 2)
+            print(f'{self.cfr_traverse(game_state, self.num_players, probs, 0, 2)}', end = '\r')
             game_state.reset()
             
 
     cpdef train_on_game_state(self, GameState game_state, int iterations):
         cdef float[:] probs
+        cdef list hands = []
+        cdef list deck = game_state.deck[:]
+
+        for i in range(len(game_state.players)):
+            if not i == game_state.player_index:
+                hands.append(game_state.players[i].hand)
+                game_state.deck.extend(hand_to_cards(hands[-1]))
+                game_state.players[i].hand = 0
+        
         for _ in range(iterations):
             print(f'iterations: {_}', end = '\r')
             probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
@@ -52,7 +61,18 @@ cdef class CFRTrainer:
                 probs[i] = 1
             self.cfr_traverse(game_state, game_state.player_index, probs, 0, 5)
 
-    cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth):
+
+        for i in range(len(game_state.players)):
+            if not i == game_state.player_index:
+                game_state.players[i].hand = hands.pop(0)
+
+        game_state.deck = deck[:]
+        
+
+
+
+
+    cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth, bint realtime = False):
         cdef int num_players = len(game_state.players)
         cdef float[:] new_probs = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
         cdef float[:] node_util = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")

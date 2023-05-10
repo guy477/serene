@@ -5,6 +5,8 @@ from .game_state cimport GameState, card_to_int, create_deck, int_to_card, card_
 
 cdef class PokerGame:
     cpdef public GameState game_state
+    cpdef public list profit_loss
+    cpdef public list position_pl
     cpdef public list players
     cpdef public list deck
     cpdef play_game(self, int num_hands=*)

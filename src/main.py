@@ -5,8 +5,8 @@ from poker.cfr import CFRTrainer
 def main():
     num_players = 6
     initial_chips = 1000
-    num_iterations = 100
-    num_ai_players = 5
+    num_iterations = 25
+    num_ai_players = 6
     small_blind = 5
     big_blind = 10
 
@@ -17,7 +17,7 @@ def main():
     # cfr_trainer.train()
 
     # Play the game
-    game.play_game(num_hands=10)
+    game.play_game(num_hands=100)
 
 if __name__ == "__main__":
     main()
