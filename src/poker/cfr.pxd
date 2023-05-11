@@ -20,8 +20,6 @@ cdef class CFRTrainer:
 
     cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth)
 
-    cpdef str get_best_action(self, GameState game_state, int player_index)
-    
     cdef float[:] calculate_utilities(self, GameState game_state, int player)
 
     cdef get_average_strategy(self, AIPlayer player, GameState game_state)

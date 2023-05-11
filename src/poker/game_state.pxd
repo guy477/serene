@@ -3,6 +3,8 @@ cdef class GameState:
     cdef public list positions
     cdef public list players
 
+    cdef public int cur_round_index
+
     cdef public int small_blind
     cdef public int big_blind
     
@@ -41,7 +43,7 @@ cdef class GameState:
     cpdef setup_postflop(self, str round_name)
     
     # returns true if gamestate is terminal. false otherwise
-    cpdef bint handle_action(self, str action = *)
+    cpdef bint handle_action(self, object action = *)
 
     cpdef showdown(self)
 

@@ -23,13 +23,6 @@ cdef class CFRTrainer:
         self.regret_sum = <dict>defaultdict(lambda: [0] * num_players)
         self.strategy_sum = <dict>defaultdict(lambda: [0] * num_players)
 
-    cpdef str get_best_action(self, GameState game_state, int player_index):
-        # This method should implement the logic to get the best action based on the game state and CFR algorithm
-        # For now, it returns a random action as a placeholder
-        
-        return random.choice(["call", "raise", "fold"])
-
-
 
     cpdef train(self):
         # Main loop for the training iterations

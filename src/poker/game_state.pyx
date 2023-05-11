@@ -27,6 +27,8 @@ cdef class GameState:
         self.players = players
         self.small_blind = small_blind
         self.big_blind = big_blind
+
+        self.cur_round_index = -1
         
         self.dealer_position = 0
         self.player_index = 3
@@ -47,9 +49,7 @@ cdef class GameState:
         self.deck = create_deck()
         self.fisher_yates_shuffle()
 
-        # rotate dealer left
-        # self.dealer_position = (self.dealer_position + 1) % len(self.players)
-        
+        self.cur_round_index = 0
         
         self.round_active_players = len(self.players)
         self.player_index = 0
@@ -67,6 +67,7 @@ cdef class GameState:
         cdef GameState new_state = GameState(self.players[:], self.small_blind, self.big_blind)
         for i in range(len(self.players)):
             new_state.players[i] = self.players[i].clone()
+        new_state.cur_round_index = self.cur_round_index
         new_state.dealer_position = self.dealer_position
         new_state.player_index = self.player_index
         new_state.num_actions = self.num_actions
@@ -81,8 +82,8 @@ cdef class GameState:
         cdef int small_blind_pos = (self.dealer_position + 1) % len(self.players)
         cdef int big_blind_pos = (self.dealer_position + 2) % len(self.players)
 
-        self.players[small_blind_pos].take_action(self, small_blind_pos, "raise", min(self.small_blind, self.players[small_blind_pos].chips))
-        self.players[big_blind_pos].take_action(self, big_blind_pos, "raise", min(self.small_blind, self.players[big_blind_pos].chips))
+        self.players[small_blind_pos].take_action(self, small_blind_pos, ("blinds", min(self.small_blind, self.players[small_blind_pos].chips)))
+        self.players[big_blind_pos].take_action(self, big_blind_pos, ("blinds", min(self.small_blind, self.players[big_blind_pos].chips)))
 
 
     cpdef assign_positions(self):
@@ -107,6 +108,7 @@ cdef class GameState:
         self.num_actions = 0
     
     cpdef setup_postflop(self, str round_name):
+        self.cur_round_index += 1
         if round_name == "flop":
             for _ in range(3):
                 self.draw_card()
@@ -124,7 +126,7 @@ cdef class GameState:
         self.num_actions = 0
     
 
-    cpdef bint handle_action(self, str action = None):
+    cpdef bint handle_action(self, object action = None):
         # if a terminal state persists through every round, all but one player folded.
         if self.is_terminal():
             return True
@@ -192,7 +194,7 @@ cdef class GameState:
 
     cpdef bint is_terminal_river(self):
         # we can determine if the current round has reached a terminal state if every player has been given the opportunity to act, the current player index is the prior raiser, or there is only one player left in the hand.
-        return self.board_has_five_cards() and ((self.num_actions >= self.round_active_players and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or (self.active_players() == 1))
+        return self.cur_round_index == 4 or self.board_has_five_cards() and ((self.num_actions >= self.round_active_players and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or (self.active_players() == 1))
         
     cpdef deal_private_cards(self):
         for player in self.players:

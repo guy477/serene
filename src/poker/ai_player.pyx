@@ -7,8 +7,8 @@ import random
 cdef class AIPlayer(Player):
     # AI player-specific methods will be added here
     
-    def __init__(self, int initial_chips, int cfr_iterations, int cfr_depth, int cfr_realtime_depth, int num_players, int small_blind, int big_blind):
-        super().__init__(initial_chips)
+    def __init__(self, int initial_chips, list bet_sizing, int cfr_iterations, int cfr_depth, int cfr_realtime_depth, int num_players, int small_blind, int big_blind):
+        super().__init__(initial_chips, bet_sizing)
         self.cfr_depth = cfr_depth
         self.cfr_realtime_depth = cfr_realtime_depth
         self.strategy_trainer = CFRTrainer(cfr_iterations, cfr_depth, num_players, initial_chips, small_blind, big_blind)
@@ -16,7 +16,7 @@ cdef class AIPlayer(Player):
 
 
     cpdef get_action(self, GameState game_state, int player_index):
-        cdef str user_input
+        cdef object user_input
         cdef bint valid = 0
         cdef bint raize = 0
 
@@ -26,7 +26,9 @@ cdef class AIPlayer(Player):
             if not game_state.players[player_index].folded:
                 
                 display_game_state(game_state, player_index)
-
+                
+                # Since we're performing realtime searching, we want to reset the regret/strat mappings for the current state.
+                self.initialize_regret_strategy()
                 self.strategy_trainer.train_realtime(game_state, self.strategy_trainer.iterations, self.cfr_realtime_depth)
 
                 average_strategy = self.strategy_trainer.get_average_strategy(self, game_state)
@@ -43,19 +45,19 @@ cdef class AIPlayer(Player):
                 #####
                 print(user_input)
                 #####
-                
 
-                if user_input == "call":
-                    self.take_action(game_state, player_index, "call")
+
+                if user_input[0] == "call":
+                    self.take_action(game_state, player_index, user_input)
                     valid = 1
 
                 # for the current implementation, we just want to min-raise. 
-                elif user_input == "raise":
-                    self.take_action(game_state, player_index, "raise")
+                elif user_input[0] == "raise":
+                    self.take_action(game_state, player_index, user_input)
                     raize = 1
                     valid = 1
-                elif user_input == "fold":
-                    self.take_action(game_state, player_index, "fold")
+                elif user_input[0] == "fold":
+                    self.take_action(game_state, player_index, user_input)
                     valid = 1
                 else:
                     print("Invalid input. Please enter call, raise, or fold.")
@@ -90,7 +92,7 @@ cdef class AIPlayer(Player):
     cpdef clone(self):
         # there has to be a better way to clone. Currently, im wasting memory by recreating a CFRTrainer object each time i cosntruct a new AIPlayer.
         # Better: I should reconsider how i handle the CFR object. Probably easiest to create this as part of the Poker_Game object and pass clones of it to each AIPlayer before each iteration? Update it after each iteration?
-        cdef AIPlayer new_player = AIPlayer(self.chips, self.strategy_trainer.iterations, self.strategy_trainer.num_players, self.strategy_trainer.small_blind, self.strategy_trainer.big_blind, self.cfr_depth, self.cfr_realtime_depth)
+        cdef AIPlayer new_player = AIPlayer(self.chips, self.bet_sizing, self.strategy_trainer.iterations, self.strategy_trainer.num_players, self.strategy_trainer.small_blind, self.strategy_trainer.big_blind, self.cfr_depth, self.cfr_realtime_depth)
         new_player.hand = self.hand
         new_player.folded = self.folded
 
