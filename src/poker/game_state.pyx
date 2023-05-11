@@ -7,8 +7,6 @@ cimport cython
 
 
 # cython: profile=True
-from sklearn.metrics.pairwise import euclidean_distances
-from sklearn.utils import check_array
 
 from libc.stdlib cimport rand, srand
 
