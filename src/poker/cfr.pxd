@@ -4,6 +4,8 @@ from .information_set cimport InformationSet
 
 cdef class CFRTrainer:
     cdef public int iterations
+    cdef public int cfr_depth
+
     cdef public int num_players
     cdef public int initial_chips
     cdef public int small_blind
@@ -14,9 +16,9 @@ cdef class CFRTrainer:
 
     cpdef train(self)
 
-    cpdef train_on_game_state(self, GameState game_state, int iterations)
+    cpdef train_realtime(self, GameState game_state, int iterations, int cfr_realtime_depth)
 
-    cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth, bint realtime = *)
+    cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth)
 
     cpdef str get_best_action(self, GameState game_state, int player_index)
     

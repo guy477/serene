@@ -9,9 +9,18 @@ cdef class Player:
         self.chips = initial_chips
         self.hand = 0
         self.folded = False
+        self.position = ''
+        self.player_index = 0
+        self.prior_gains = 0
         self.contributed_to_pot = 0
         self.tot_contributed_to_pot = 0
         self.initialize_regret_strategy() 
+
+
+    cpdef assign_position(self, GameState game_state, int player_index):
+        self.player_index = player_index
+        self.position = game_state.positions[player_index]
+
 
     cpdef get_action(self, GameState game_state, int player_index):
         cdef str user_input
@@ -131,6 +140,7 @@ cdef class Player:
         new_player.folded = self.folded
         new_player.contributed_to_pot = self.contributed_to_pot
         new_player.tot_contributed_to_pot = self.contributed_to_pot
+        new_player.prior_gains = self.prior_gains
         return new_player
 
     cpdef reset(self):
@@ -138,5 +148,8 @@ cdef class Player:
         self.folded = False
         if self.chips == 0:
             self.chips = 1000
+        self.position = ''
+        self.player_index = 0
         self.contributed_to_pot = 0
         self.tot_contributed_to_pot = 0
+        self.prior_gains = 0

@@ -1,16 +1,22 @@
 cdef class GameState:
    
+    cdef public list positions
     cdef public list players
+
     cdef public int small_blind
     cdef public int big_blind
-    cdef public int dealer_position
+    
     cdef public int player_index
-    cdef public int last_raiser
-    cdef public int winner_index
+
+    cdef public int round_active_players
     cdef public int num_actions
-    cdef public list order
-    cdef public int pot
+    cdef public int dealer_position
+    cdef public int last_raiser
     cdef public int current_bet
+
+    cdef public int winner_index
+    cdef public int pot
+    
     cdef public unsigned long long board
     cdef public list deck
 
@@ -24,6 +30,8 @@ cdef class GameState:
     cpdef reset(self)
 
     cpdef clone(self)
+
+    cpdef assign_positions(self)
 
     cpdef handle_blinds(self)
     

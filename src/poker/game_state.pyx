@@ -20,26 +20,41 @@ srand(time.time())
 
 cdef public list SUITS = ['C', 'D', 'H', 'S']
 cdef public list VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
-cdef public list positions = ['D', 'SB', 'BB', 'UTG', 'MP', 'CO']
 
 
 cdef class GameState:
     def __init__(self, list players, int small_blind, int big_blind):
+        
+        self.positions = ['D', 'SB', 'BB', 'UTG', 'MP', 'CO']
         self.players = players
         self.small_blind = small_blind
         self.big_blind = big_blind
+        
         self.dealer_position = 0
-        self.player_index = (self.dealer_position + 3) % len(self.players)
-        self.pot = 0
+        self.player_index = 3
+        
+        self.round_active_players = len(players)
+        self.num_actions = 0
+        self.last_raiser = -1
         self.current_bet = 0
-        self.board = 0
+        
         self.winner_index = -1
+        self.pot = 0
+
+        self.board = 0
         self.deck = create_deck()
         self.fisher_yates_shuffle()
 
     cpdef reset(self):
         self.deck = create_deck()
         self.fisher_yates_shuffle()
+
+        # rotate dealer left
+        # self.dealer_position = (self.dealer_position + 1) % len(self.players)
+        
+        
+        self.round_active_players = len(self.players)
+        self.player_index = 0
 
         self.pot = 0
         self.current_bet = 0
@@ -48,6 +63,7 @@ cdef class GameState:
         self.board = 0
         for player in self.players:
             player.reset()
+        self.dealer_position = (self.dealer_position + (self.round_active_players - 1)) % self.round_active_players
 
     cpdef clone(self):
         cdef GameState new_state = GameState(self.players[:], self.small_blind, self.big_blind)
@@ -65,26 +81,31 @@ cdef class GameState:
 
     cpdef handle_blinds(self):
         cdef int small_blind_pos = (self.dealer_position + 1) % len(self.players)
-        cdef int big_blind_pos = 0
-
-        while self.players[small_blind_pos].chips == 0:
-            small_blind_pos = (small_blind_pos + 1) % len(self.players)
-        big_blind_pos = (small_blind_pos + 1) % len(self.players)
-        while self.players[small_blind_pos].chips == 0:
-            big_blind_pos = (big_blind_pos + 1) % len(self.players)
-        
+        cdef int big_blind_pos = (self.dealer_position + 2) % len(self.players)
 
         self.players[small_blind_pos].take_action(self, small_blind_pos, "raise", min(self.small_blind, self.players[small_blind_pos].chips))
         self.players[big_blind_pos].take_action(self, big_blind_pos, "raise", min(self.small_blind, self.players[big_blind_pos].chips))
 
+
+    cpdef assign_positions(self):
+        print(self.dealer_position)
+        for i in range(len(self.players)):
+            print(f"Assigning player {i+1} position " + self.positions[(self.round_active_players + i - self.dealer_position)%self.active_players()])
+            self.players[i].assign_position(self, (self.round_active_players + i - self.dealer_position)%self.active_players())
+
     cpdef setup_preflop(self):
         self.reset()
         # Setup blinds
+        self.assign_positions()
         self.handle_blinds()
         self.deal_private_cards()
+
+        # used to help determine if we've reached a terminal state
+        self.round_active_players = self.active_players()
+        
         self.winner_index = -1
         self.player_index = (self.dealer_position + 3) % len(self.players)
-        self.last_raiser = (self.dealer_position + 2) % len(self.players) # this is the big blind index
+        #self.last_raiser = (self.dealer_position + 2) % len(self.players) # this is the big blind index
         self.num_actions = 0
     
     cpdef setup_postflop(self, str round_name):
@@ -97,6 +118,8 @@ cdef class GameState:
         self.current_bet = 0
         for i in range(len(self.players)):
             self.players[i].contributed_to_pot = 0
+
+        self.round_active_players = self.active_players()
 
         self.player_index = (self.dealer_position + 1) % len(self.players)
         self.last_raiser = -1
@@ -158,18 +181,20 @@ cdef class GameState:
                     best_score = player_score
                     self.winner_index = i
 
-            # Distribute the pot to the winner
+        # distribute winnings (this less tot_contributed to pot is the net_winnings... right? lmao)
+        self.players[self.winner_index].prior_gains = (self.pot)
+        # Distribute the pot to the winner
         self.players[self.winner_index].chips += self.pot
     
 
     cpdef bint is_terminal(self):
         # we can determine if the current round has reached a terminal state if every (active) player has been given the opportunity to act, the current player index is the prior raiser, or there is only one player left in the hand.
         # Do i need to add a HAS_FOLDED variable for the first comparison?
-        return (self.num_actions >= self.active_players() and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or (self.active_players() == 1)
+        return (self.num_actions >= self.round_active_players and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or (self.active_players() == 1)
 
     cpdef bint is_terminal_river(self):
         # we can determine if the current round has reached a terminal state if every player has been given the opportunity to act, the current player index is the prior raiser, or there is only one player left in the hand.
-        return self.board_has_five_cards() and ((self.num_actions >= self.active_players() and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or (self.active_players() == 1))
+        return self.board_has_five_cards() and ((self.num_actions >= self.round_active_players and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or (self.active_players() == 1))
         
     cpdef deal_private_cards(self):
         for player in self.players:
@@ -241,7 +266,7 @@ cpdef str format_hand(unsigned long long hand):
 
 cpdef display_game_state(GameState game_state, int player_index):
     print("____________________________________________________________________________________")
-    print(f"({positions[(player_index + game_state.dealer_position)%len(game_state.players)]})Player {player_index + 1}: {format_hand(game_state.players[player_index].hand)}")
+    print(f"({game_state.players[player_index].position})Player {player_index + 1}: {format_hand(game_state.players[player_index].hand)}")
     print(f"Board: {format_hand(game_state.board)}")
     print(f"Pot: {game_state.pot}")
     print(f"Chips: {game_state.players[player_index].chips}")
