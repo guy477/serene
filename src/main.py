@@ -21,9 +21,9 @@ def main():
     small_blind = 5
     big_blind = 10
 
-    num_iterations = 100
+    num_iterations = 50
     cfr_depth = 8
-    cfr_realtime_depth = 3
+    cfr_realtime_depth = 5
     
 
     game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, num_iterations, cfr_depth, cfr_realtime_depth)
@@ -33,7 +33,7 @@ def main():
     # cfr_trainer.train()
 
     # Play the game
-    game.play_game(num_hands=100)
+    game.play_game(num_hands=1)
     print('\n\n')
 
 def cluster():

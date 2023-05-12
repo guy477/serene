@@ -27,22 +27,27 @@ cdef class PokerGame:
             
             
             # the game is reset as a part of the preflop_setup.
+            print("SETTING UP PREFLOP")
             self.game_state.setup_preflop()
             while(not self.game_state.handle_action()):
                 continue
-    
+
+            print("SETTING UP FLOP")
             self.game_state.setup_postflop("flop")
             while(not self.game_state.handle_action()):
                 continue
 
+            print("SETTING UP TURN")
             self.game_state.setup_postflop("turn")
             while(not self.game_state.handle_action()):
                 continue
 
+            print("SETTING UP RIVER")
             self.game_state.setup_postflop("river")
             while(not self.game_state.handle_action()):
                 continue
 
+            print("Showdown")
             # Determine the winner and distribute the pot
             self.game_state.showdown()
 

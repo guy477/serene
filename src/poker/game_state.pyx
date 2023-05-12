@@ -28,7 +28,7 @@ cdef class GameState:
         self.small_blind = small_blind
         self.big_blind = big_blind
 
-        self.cur_round_index = -1
+        self.cur_round_index = 0
         
         self.dealer_position = 0
         self.player_index = 3
@@ -194,8 +194,8 @@ cdef class GameState:
 
     cpdef bint is_terminal_river(self):
         # we can determine if the current round has reached a terminal state if every player has been given the opportunity to act, the current player index is the prior raiser, or there is only one player left in the hand.
-        return self.cur_round_index == 4 or self.board_has_five_cards() and ((self.num_actions >= self.round_active_players and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or (self.active_players() == 1))
-        
+        return (self.cur_round_index == 4 or self.board_has_five_cards()) and (self.is_terminal())
+
     cpdef deal_private_cards(self):
         for player in self.players:
             if player.chips > 0:
@@ -265,7 +265,7 @@ cpdef str format_hand(unsigned long long hand):
     return " ".join(cards)
 
 cpdef display_game_state(GameState game_state, int player_index):
-    print("____________________________________________________________________________________")
+    print(f"{game_state.cur_round_index}__ Term_Riv: {game_state.is_terminal_river()}__Term: {game_state.is_terminal()}______________________________________________________________________________")
     print(f"({game_state.players[player_index].position})Player {player_index + 1}: {format_hand(game_state.players[player_index].hand)}")
     print(f"Board: {format_hand(game_state.board)}")
     print(f"Pot: {game_state.pot}")
