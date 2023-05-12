@@ -28,7 +28,6 @@ cdef class AIPlayer(Player):
                 display_game_state(game_state, player_index)
                 
                 # Since we're performing realtime searching, we want to reset the regret/strat mappings for the current state.
-                self.initialize_regret_strategy()
                 self.strategy_trainer.train_realtime(game_state, self.strategy_trainer.iterations, self.cfr_realtime_depth)
 
                 average_strategy = self.strategy_trainer.get_average_strategy(self, game_state)
@@ -64,30 +63,6 @@ cdef class AIPlayer(Player):
             else:
                 valid = 1
         return raize
-
-    cdef initialize_regret_strategy(self):
-        self.regret = <dict>defaultdict(lambda: 0)
-        self.strategy_sum = <dict>defaultdict(lambda: 0)
-
-    cpdef get_strategy(self, list available_actions, float[:] probs, int current_player):
-        strategy = {action: max(self.regret.get((current_player, action), 0), 0) for action in available_actions}
-        normalization_sum = sum(strategy.values())
-
-        if normalization_sum > 0:
-            for action in strategy:
-                strategy[action] /= normalization_sum
-                if self.strategy_sum.get((current_player, action), 0) == 0:
-                    self.strategy_sum[(current_player, action)] = 0
-                self.strategy_sum[(current_player, action)] += probs[current_player] * strategy[action]
-        else:
-            num_actions = len(available_actions)
-            for action in strategy:
-                strategy[action] = 1 / num_actions
-                if self.strategy_sum.get((current_player, action), 0) == 0:
-                    self.strategy_sum[(current_player, action)] = 0
-                self.strategy_sum[(current_player, action)] += probs[current_player] * strategy[action]
-
-        return strategy
 
     cpdef clone(self):
         # there has to be a better way to clone. Currently, im wasting memory by recreating a CFRTrainer object each time i cosntruct a new AIPlayer.

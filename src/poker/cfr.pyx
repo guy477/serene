@@ -45,12 +45,15 @@ cdef class CFRTrainer:
         cdef list hands = []
         cdef list deck = game_state.deck[:]
 
+        # Create a copy of the villians' hands and clear their values. During a realtime search we do not know this information.
+        # We also want to re-add the villians' hands to the current game_state deck (while keeping a duplicate of it).
         for i in range(len(game_state.players)):
             if not i == game_state.player_index:
                 hands.append(game_state.players[i].hand)
                 game_state.deck.extend(hand_to_cards(hands[-1]))
                 game_state.players[i].hand = 0
         
+        # Peform an iteration number of searches
         for _ in range(iterations):
             print(f'iterations: {_}', end = '\r')
             probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
@@ -66,9 +69,6 @@ cdef class CFRTrainer:
         game_state.deck = deck[:]
         
 
-
-
-
     cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth):
         cdef int num_players = len(game_state.players)
         cdef float[:] new_probs = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
@@ -83,11 +83,11 @@ cdef class CFRTrainer:
 
         # Otherwise, continue traversing the game tree
         current_player = game_state.player_index
+        player_hash = game_state.players[current_player].hash(game_state)
 
         # Get available actions for the current player
-        # Implement a function to get available actions
         available_actions = game_state.players[current_player].get_available_actions(game_state, current_player)
-        strategy = game_state.players[current_player].get_strategy(available_actions, probs, current_player)
+        strategy = game_state.players[current_player].get_strategy(available_actions, probs, game_state)
         
         util = defaultdict(lambda: cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f", mode="w"))
 
@@ -97,12 +97,14 @@ cdef class CFRTrainer:
             new_game_state = game_state.clone()
             
             # if after the action taken we move to the next game state, go ahead and progress the round.
+            # the handle_action function will return a call to is_terminal
             if (new_game_state.handle_action(action)):
                 if new_game_state.num_board_cards() == 0:
                     new_game_state.setup_postflop('flop')
                 else:
                     new_game_state.setup_postflop('postflop')
 
+            
             # Update the probability distribution for the new game state
             for i in range(num_players):
                 if i == current_player:
@@ -118,7 +120,7 @@ cdef class CFRTrainer:
         if current_player == player:
             for action in available_actions:
                 regret = util[action][player] - node_util[player]
-                game_state.players[current_player].regret[(current_player, action)] += regret
+                game_state.players[current_player].regret[(player_hash, action)] += regret
 
         return node_util
 
@@ -127,7 +129,6 @@ cdef class CFRTrainer:
         cdef float[:] utilities = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
 
         # Get the current pot size
-        # the pot is reset in showdown - need to reconsider this logic. 
         pot = game_state.pot
 
         # Check if there is only one active player (i.e., all other players have folded)
@@ -155,20 +156,21 @@ cdef class CFRTrainer:
     
     cdef get_average_strategy(self, AIPlayer player, GameState game_state):
         average_strategy = {}
+        game_state_hash = player.hash(game_state)
         normalization_sum = 0
 
-        for (player_idx, action), value in player.strategy_sum.items():
-            if player_idx == game_state.player_index:
+        for (hash, action), value in player.strategy_sum.items():
+            if game_state_hash == hash:
                 normalization_sum += value
 
         if normalization_sum > 0:
-            for (player_idx, action), value in player.strategy_sum.items():
-                if player_idx == game_state.player_index:
+            for (hash, action), value in player.strategy_sum.items():
+                if game_state_hash == hash:
                     average_strategy[action] = value / normalization_sum
         else:
             num_actions = len(player.strategy_sum)
-            for (player_idx, action), value in player.strategy_sum.items():
-                if player_idx == game_state.player_index:
+            for (hash, action), value in player.strategy_sum.items():
+                if game_state_hash == hash:
                     average_strategy[action] = 1 / num_actions
 
         return average_strategy

@@ -16,6 +16,7 @@ cdef class Player:
         self.prior_gains = 0
         self.contributed_to_pot = 0
         self.tot_contributed_to_pot = 0
+        self.betting_history = [[],[],[],[]]
         self.initialize_regret_strategy() 
 
 
@@ -60,6 +61,9 @@ cdef class Player:
         bet_amount = max(game_state.big_blind, game_state.current_bet)
         cdef Player player = game_state.players[player_index]
         cdef int call_amount
+
+        # Keep tabs on the betting history for each round.
+        self.betting_history[game_state.cur_round_index].append(action)
 
         if player.folded or player.chips <= 0:
             return
@@ -120,21 +124,26 @@ cdef class Player:
         self.regret = <dict>defaultdict(lambda: 0)
         self.strategy_sum = <dict>defaultdict(lambda: 0)
 
-    cpdef get_strategy(self, list available_actions, float[:] probs, int current_player):
-        strategy = {action: max(self.regret.get((current_player, action), 0), 0) for action in available_actions}
+    cpdef get_strategy(self, list available_actions, float[:] probs, GameState game_state):
+        current_player = game_state.player_index
+        game_state_hash = self.hash(game_state)
+
+        strategy = {action: max(self.regret.get((game_state_hash, action), 0), 0) for action in available_actions}
         normalization_sum = sum(strategy.values())
 
         if normalization_sum > 0:
             for action in strategy:
                 strategy[action] /= normalization_sum
-                self.strategy_sum[(current_player, action)] += probs[current_player] * strategy[action]
+                if self.strategy_sum.get((game_state_hash, action), 0) == 0:
+                    self.strategy_sum[(game_state_hash, action)] = 0
+                self.strategy_sum[(game_state_hash, action)] += probs[current_player] * strategy[action]
         else:
             num_actions = len(available_actions)
             for action in strategy:
                 strategy[action] = 1 / num_actions
-                if self.strategy_sum.get((current_player, action), 0) == 0:
-                    self.strategy_sum[(current_player, action)] = 0
-                self.strategy_sum[(current_player, action)] += probs[current_player] * strategy[action]
+                if self.strategy_sum.get((game_state_hash, action), 0) == 0:
+                    self.strategy_sum[(game_state_hash, action)] = 0
+                self.strategy_sum[(game_state_hash, action)] += probs[current_player] * strategy[action]
 
         return strategy
 
@@ -178,3 +187,8 @@ cdef class Player:
         self.contributed_to_pot = 0
         self.tot_contributed_to_pot = 0
         self.prior_gains = 0
+        self.betting_history = [[],[],[],[]]
+    
+    cpdef hash(self, GameState game_state):
+        hsh = hash((game_state.board | self.hand, game_state.player_index, game_state.cur_round_index, str(self.betting_history)))
+        return hsh

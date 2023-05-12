@@ -14,6 +14,7 @@ extensions = [
     Extension("poker.ai_player", ["poker/ai_player.pyx"]),
     Extension("poker.information_set", ["poker/information_set.pyx"]),
     Extension("poker.cfr", ["poker/cfr.pyx"]),
+    Extension("poker.ccluster", ["poker/ccluster.pyx"])
 ]
 
 setup(

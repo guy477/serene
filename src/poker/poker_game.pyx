@@ -50,7 +50,7 @@ cdef class PokerGame:
             self.profit_loss.append([i.chips for i in self.game_state.players])
             for i in self.game_state.players:
                 self.position_pl[i.position] += i.prior_gains - i.tot_contributed_to_pot
-                i.chips = 1000
+                #i.chips = 1000
             print(f"Player {self.game_state.winner_index + 1} wins the hand.")
             
 
