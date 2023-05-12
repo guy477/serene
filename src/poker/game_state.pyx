@@ -137,7 +137,11 @@ cdef class GameState:
         else:
             if self.players[self.player_index].get_action(self, self.player_index):
                 self.last_raiser = self.player_index
-        self.num_actions += 1
+        
+        if not self.players[self.player_index].folded:
+            self.num_actions += 1
+
+        # need to rotate
         self.player_index = (self.player_index+1) % len(self.players)
 
         return self.is_terminal()
@@ -194,7 +198,7 @@ cdef class GameState:
 
     cpdef bint is_terminal_river(self):
         # we can determine if the current round has reached a terminal state if every player has been given the opportunity to act, the current player index is the prior raiser, or there is only one player left in the hand.
-        return (self.cur_round_index == 4 or self.board_has_five_cards()) and (self.is_terminal())
+        return ((self.cur_round_index >= 4) or (self.board_has_five_cards() and self.is_terminal()))
 
     cpdef deal_private_cards(self):
         for player in self.players:

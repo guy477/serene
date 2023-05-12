@@ -33,7 +33,7 @@ def main():
     # cfr_trainer.train()
 
     # Play the game
-    game.play_game(num_hands=1)
+    game.play_game(num_hands=50)
     print('\n\n')
 
 def cluster():

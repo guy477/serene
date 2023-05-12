@@ -6,6 +6,7 @@ src/poker/*.h
 *.csv
 *.so
 *.c
+*.cpp
 *.h
 __BAK/
 .DS_Store

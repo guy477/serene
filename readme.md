@@ -15,7 +15,7 @@ To install please follow the below steps:
 
 - 2. Create the Anaconda Enviornment:
 ```
-conda create --name Serene python=3.8.8 numpy pandas cython
+conda create --name Serene python=3.8.8 numpy pandas cython scikit-learn
 ```
 - 3. Activate the Anaconda Environment
 ```
