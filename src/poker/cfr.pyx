@@ -10,8 +10,9 @@ from collections import defaultdict
 
 cdef class CFRTrainer:
 
-    def __init__(self, int iterations, int cfr_depth, int num_players, int initial_chips, int small_blind, int big_blind):
+    def __init__(self, int iterations, int cfr_depth, int cfr_realtime_depth, int num_players, int initial_chips, int small_blind, int big_blind, list bet_sizing):
         self.iterations = iterations
+        self.cfr_realtime_depth = cfr_realtime_depth
         self.cfr_depth = cfr_depth
 
         self.num_players = num_players
@@ -20,6 +21,8 @@ cdef class CFRTrainer:
         self.small_blind = small_blind
         self.big_blind = big_blind
         
+        self.bet_sizing = bet_sizing
+
         self.regret_sum = <dict>defaultdict(lambda: [0] * num_players)
         self.strategy_sum = <dict>defaultdict(lambda: [0] * num_players)
 
@@ -30,17 +33,17 @@ cdef class CFRTrainer:
 
         for _ in range(self.iterations):
             
-            players = [AIPlayer(self.initial_chips, self.iterations, self.num_players, self.small_blind, self.big_blind) for _ in range(self.num_players)]
+            players = [AIPlayer(self.initial_chips, self.bet_sizing, self) for _ in range(self.num_players)]
             game_state = GameState(players, self.small_blind, self.big_blind)
             game_state.setup_preflop()
             probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
             for i in range(len(probs)):
                 probs[i] = 1
-            print(f'{self.cfr_traverse(game_state, self.num_players, probs, 0, self.cfr_depth)}', end = '\r')
+            print(f'{np.asarray(self.cfr_traverse(game_state, self.num_players, probs, 0, self.cfr_depth))}', end = '\r')
             game_state.reset()
             
 
-    cpdef train_realtime(self, GameState game_state, int iterations, int cfr_realtime_depth):
+    cpdef train_realtime(self, GameState game_state):
         cdef float[:] probs
         cdef list hands = []
         cdef list deck = game_state.deck[:]
@@ -54,12 +57,12 @@ cdef class CFRTrainer:
                 game_state.players[i].hand = 0
         
         # Peform an iteration number of searches
-        for _ in range(iterations):
+        for _ in range(self.iterations):
             print(f'iterations: {_}', end = '\r')
             probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
             for i in range(len(probs)):
                 probs[i] = 1
-            self.cfr_traverse(game_state, game_state.player_index, probs, 0, cfr_realtime_depth)
+            self.cfr_traverse(game_state, game_state.player_index, probs, 0, self.cfr_realtime_depth)
 
 
         for i in range(len(game_state.players)):

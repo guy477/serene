@@ -7,11 +7,11 @@ import random
 cdef class AIPlayer(Player):
     # AI player-specific methods will be added here
     
-    def __init__(self, int initial_chips, list bet_sizing, int cfr_iterations, int cfr_depth, int cfr_realtime_depth, int num_players, int small_blind, int big_blind):
+    def __init__(self, int initial_chips, list bet_sizing, CFRTrainer cfr_trainer):
         super().__init__(initial_chips, bet_sizing)
-        self.cfr_depth = cfr_depth
-        self.cfr_realtime_depth = cfr_realtime_depth
-        self.strategy_trainer = CFRTrainer(cfr_iterations, cfr_depth, num_players, initial_chips, small_blind, big_blind)
+        
+        self.strategy_trainer = cfr_trainer
+        
         self.initialize_regret_strategy()
 
 
@@ -28,7 +28,7 @@ cdef class AIPlayer(Player):
                 display_game_state(game_state, player_index)
                 
                 # Since we're performing realtime searching, we want to reset the regret/strat mappings for the current state.
-                self.strategy_trainer.train_realtime(game_state, self.strategy_trainer.iterations, self.cfr_realtime_depth)
+                self.strategy_trainer.train_realtime(game_state)
 
                 average_strategy = self.strategy_trainer.get_average_strategy(self, game_state)
                 
@@ -67,7 +67,7 @@ cdef class AIPlayer(Player):
     cpdef clone(self):
         # there has to be a better way to clone. Currently, im wasting memory by recreating a CFRTrainer object each time i cosntruct a new AIPlayer.
         # Better: I should reconsider how i handle the CFR object. Probably easiest to create this as part of the Poker_Game object and pass clones of it to each AIPlayer before each iteration? Update it after each iteration?
-        cdef AIPlayer new_player = AIPlayer(self.chips, self.bet_sizing, self.strategy_trainer.iterations, self.strategy_trainer.num_players, self.strategy_trainer.small_blind, self.strategy_trainer.big_blind, self.cfr_depth, self.cfr_realtime_depth)
+        cdef AIPlayer new_player = AIPlayer(self.chips, self.bet_sizing, self.strategy_trainer)
         new_player.hand = self.hand
         new_player.folded = self.folded
 
@@ -75,5 +75,4 @@ cdef class AIPlayer(Player):
         new_player.tot_contributed_to_pot = self.tot_contributed_to_pot
         new_player.prior_gains = self.prior_gains
 
-        new_player.strategy_trainer = self.strategy_trainer
         return new_player

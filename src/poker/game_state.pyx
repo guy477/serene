@@ -57,6 +57,7 @@ cdef class GameState:
         self.pot = 0
         self.current_bet = 0
         self.winner_index = -1
+        self.last_raiser = -1
 
         self.board = 0
         for player in self.players:
@@ -87,9 +88,8 @@ cdef class GameState:
 
 
     cpdef assign_positions(self):
-        print(self.dealer_position)
         for i in range(len(self.players)):
-            print(f"Assigning player {i+1} position " + self.positions[(self.round_active_players + i - self.dealer_position)%self.active_players()])
+            # print(f"Assigning player {i+1} position " + self.positions[(self.round_active_players + i - self.dealer_position)%self.active_players()])
             self.players[i].assign_position(self, (self.round_active_players + i - self.dealer_position)%self.active_players())
 
     cpdef setup_preflop(self):
@@ -109,6 +109,10 @@ cdef class GameState:
     
     cpdef setup_postflop(self, str round_name):
         self.cur_round_index += 1
+        
+        if self.is_terminal_river():
+            return
+
         if round_name == "flop":
             for _ in range(3):
                 self.draw_card()
@@ -127,9 +131,15 @@ cdef class GameState:
     
 
     cpdef bint handle_action(self, object action = None):
-        # if a terminal state persists through every round, all but one player folded.
-        if self.is_terminal():
-            return True
+
+        # if player is folded, we rotate player_index and check if terminal
+        if self.players[self.player_index].folded:
+            self.player_index = (self.player_index+1) % len(self.players)
+            return self.is_terminal()
+        
+        # if the current player_index == last_raiser; we're at a terminal state. return is_terminal
+        if self.player_index == self.last_raiser:
+            return self.is_terminal()
 
         if action:
             if self.players[self.player_index].take_action(self, self.player_index, action):
@@ -138,8 +148,8 @@ cdef class GameState:
             if self.players[self.player_index].get_action(self, self.player_index):
                 self.last_raiser = self.player_index
         
-        if not self.players[self.player_index].folded:
-            self.num_actions += 1
+        # add 1 to the total actions taken
+        self.num_actions += 1
 
         # need to rotate
         self.player_index = (self.player_index+1) % len(self.players)
@@ -212,6 +222,8 @@ cdef class GameState:
     cdef void fisher_yates_shuffle(self):
         cdef int i, j
         cdef unsigned long long temp
+
+
         for i in range(len(self.deck) - 1, 0, -1):
             j = rand() % (i + 1)
             temp = self.deck[i]
@@ -269,7 +281,7 @@ cpdef str format_hand(unsigned long long hand):
     return " ".join(cards)
 
 cpdef display_game_state(GameState game_state, int player_index):
-    print(f"{game_state.cur_round_index}__ Term_Riv: {game_state.is_terminal_river()}__Term: {game_state.is_terminal()}______________________________________________________________________________")
+    print(f"______________________________________________________________________________")
     print(f"({game_state.players[player_index].position})Player {player_index + 1}: {format_hand(game_state.players[player_index].hand)}")
     print(f"Board: {format_hand(game_state.board)}")
     print(f"Pot: {game_state.pot}")

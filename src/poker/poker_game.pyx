@@ -11,9 +11,9 @@ import pandas as pd
 
 cdef class PokerGame:
 
-    def __init__(self, int num_players, int initial_chips, int num_ai_players, int small_blind, int big_blind, list bet_sizing, int cfr_iterations, int cfr_depth, int cfr_realtime_depth):
+    def __init__(self, int num_players, int initial_chips, int num_ai_players, int small_blind, int big_blind, list bet_sizing, CFRTrainer cfr_trainer):
         
-        self.players = [Player(initial_chips, bet_sizing) for _ in range(num_players - num_ai_players)] + [AIPlayer(initial_chips, bet_sizing, cfr_iterations, cfr_depth, cfr_realtime_depth, num_players, small_blind, big_blind) for _ in range(num_ai_players)]
+        self.players = [Player(initial_chips, bet_sizing) for _ in range(num_players - num_ai_players)] + [AIPlayer(initial_chips, bet_sizing, cfr_trainer) for _ in range(num_ai_players)]
         self.game_state = GameState(self.players, small_blind, big_blind)
         self.profit_loss = []
         
@@ -27,22 +27,18 @@ cdef class PokerGame:
             
             
             # the game is reset as a part of the preflop_setup.
-            print("SETTING UP PREFLOP")
             self.game_state.setup_preflop()
             while(not self.game_state.handle_action()):
                 continue
 
-            print("SETTING UP FLOP")
             self.game_state.setup_postflop("flop")
             while(not self.game_state.handle_action()):
                 continue
 
-            print("SETTING UP TURN")
             self.game_state.setup_postflop("turn")
             while(not self.game_state.handle_action()):
                 continue
 
-            print("SETTING UP RIVER")
             self.game_state.setup_postflop("river")
             while(not self.game_state.handle_action()):
                 continue

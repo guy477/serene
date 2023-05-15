@@ -21,19 +21,19 @@ def main():
     small_blind = 5
     big_blind = 10
 
-    num_iterations = 50
-    cfr_depth = 8
-    cfr_realtime_depth = 5
+    num_iterations = 500
+    cfr_depth = 3
+    cfr_realtime_depth = 4
     
 
-    game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, num_iterations, cfr_depth, cfr_realtime_depth)
-
     # Train the AI player using the CFR algorithm
-    # cfr_trainer = CFRTrainer(iterations=num_iterations, num_players = num_players, initial_chips = initial_chips, small_blind=small_blind, big_blind=big_blind)
-    # cfr_trainer.train()
+    cfr_trainer = CFRTrainer(num_iterations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing)
+    cfr_trainer.train()
+
+    game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer)
 
     # Play the game
-    game.play_game(num_hands=50)
+    game.play_game(num_hands=1)
     print('\n\n')
 
 def cluster():
