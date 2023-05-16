@@ -213,8 +213,15 @@ cdef class GameState:
     cpdef deal_private_cards(self):
         for player in self.players:
             if player.chips > 0:
-                player.add_card(self.deck.pop())
-                player.add_card(self.deck.pop())
+                card1 = self.deck.pop()
+                card2 = self.deck.pop()
+                player.add_card(card1)
+                player.add_card(card2)
+                card1 = int_to_card(card1)
+                card2 = int_to_card(card2)
+                player.abstracted_hand += card1[0] if VALUES.index(card1[0]) > VALUES.index(card2[0]) else card2[0]
+                player.abstracted_hand += card1[0] if VALUES.index(card1[0]) < VALUES.index(card2[0]) else card2[0]
+                player.abstracted_hand += 's' if card1[1] == card2[1] else 'o'
             else:
                 player.folded = True
 

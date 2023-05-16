@@ -6,12 +6,17 @@ import cython
 import numpy as np
 cimport numpy as np
 from libc.math cimport sqrt
+import itertools
 from collections import defaultdict
+
+
+
 
 cdef class CFRTrainer:
 
-    def __init__(self, int iterations, int cfr_depth, int cfr_realtime_depth, int num_players, int initial_chips, int small_blind, int big_blind, list bet_sizing):
+    def __init__(self, int iterations, int realtime_iterations, int cfr_depth, int cfr_realtime_depth, int num_players, int initial_chips, int small_blind, int big_blind, list bet_sizing):
         self.iterations = iterations
+        self.realtime_iterations = realtime_iterations
         self.cfr_realtime_depth = cfr_realtime_depth
         self.cfr_depth = cfr_depth
 
@@ -31,16 +36,46 @@ cdef class CFRTrainer:
         # Main loop for the training iterations
         cdef float[:] probs
 
+        players = [AIPlayer(self.initial_chips, self.bet_sizing, self) for _ in range(self.num_players)]
+        game_state = GameState(players, self.small_blind, self.big_blind)
+        game_state.setup_preflop()
+
         for _ in range(self.iterations):
+            print(f'iterations: {_}', end = '\r')
             
-            players = [AIPlayer(self.initial_chips, self.bet_sizing, self) for _ in range(self.num_players)]
-            game_state = GameState(players, self.small_blind, self.big_blind)
-            game_state.setup_preflop()
             probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
             for i in range(len(probs)):
                 probs[i] = 1
-            print(f'{np.asarray(self.cfr_traverse(game_state, self.num_players, probs, 0, self.cfr_depth))}', end = '\r')
+            self.cfr_traverse(game_state, self.num_players, probs, 0, self.cfr_depth)
             game_state.reset()
+            game_state.setup_preflop()
+        print()
+
+        # Define all possible ranks
+        ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+
+        # Generate all possible 2-card hands
+        all_possible_hands = [(r1 + r2 + 's') if (ranks.index(r1) > ranks.index(r2)) else (r2 + r1 + 's') for r1, r2 in itertools.combinations(ranks, 2)]  # Suited hands
+        all_possible_hands += [(r1 + r2 + 'o') if (ranks.index(r1) > ranks.index(r2)) else (r2 + r1 + 'o') for r1 in ranks for r2 in ranks if r1 != r2]  # Offsuit hands
+        print(all_possible_hands)
+        # extract preflop ranges
+        preflop_range = []
+        for player in players:
+            
+            # print(player.strategy_sum.items())
+            for hand in all_possible_hands:
+                player.abstracted_hand = hand
+                strategy = self.get_average_strategy(player, game_state)
+                print('_________________________')
+                print(player.position)
+                print(hand)
+                print(strategy)
+                preflop_range += [(player.position, hand, strategy)]
+        print(preflop_range)
+
+
+
+
             
 
     cpdef train_realtime(self, GameState game_state):
@@ -57,7 +92,7 @@ cdef class CFRTrainer:
                 game_state.players[i].hand = 0
         
         # Peform an iteration number of searches
-        for _ in range(self.iterations):
+        for _ in range(self.realtime_iterations):
             print(f'iterations: {_}', end = '\r')
             probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
             for i in range(len(probs)):
@@ -161,7 +196,6 @@ cdef class CFRTrainer:
         average_strategy = {}
         game_state_hash = player.hash(game_state)
         normalization_sum = 0
-
         for (hash, action), value in player.strategy_sum.items():
             if game_state_hash == hash:
                 normalization_sum += value

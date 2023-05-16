@@ -15,20 +15,21 @@ def main():
     num_ai_players = 6
 
     # pot relative bet-sizings for preflop, flop, turn, and river
-    bet_sizing = [(1, 3), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
+    bet_sizing = [(1, 2), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
 
     initial_chips = 1000
     small_blind = 5
     big_blind = 10
 
     num_iterations = 500
-    cfr_depth = 6
+    realtime_iterations = 500
+    cfr_depth = 4
     cfr_realtime_depth = 4
     
 
     # Train the AI player using the CFR algorithm
-    cfr_trainer = CFRTrainer(num_iterations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing)
-    #cfr_trainer.train()
+    cfr_trainer = CFRTrainer(num_iterations, realtime_iterations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing)
+    cfr_trainer.train()
 
     game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer)
 

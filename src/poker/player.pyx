@@ -10,6 +10,8 @@ cdef class Player:
         self.bet_sizing = bet_sizing
 
         self.hand = 0
+        self.abstracted_hand = ''
+
         self.folded = False
         self.position = ''
         self.player_index = 0
@@ -17,7 +19,6 @@ cdef class Player:
         self.contributed_to_pot = 0
         self.tot_contributed_to_pot = 0
         self.betting_history = [[],[],[],[]]
-        self.initialize_regret_strategy() 
 
 
     cpdef assign_position(self, GameState game_state, int player_index):
@@ -34,10 +35,10 @@ cdef class Player:
             if not game_state.players[player_index].folded:
                 display_game_state(game_state, player_index)
 
-                user_input = self.get_user_input("Enter action (call, raise, fold): ")
+                user_input = self.get_user_input("Enter action (call, raise, all-in, fold): ")
                 
                 if user_input == "call":
-                    self.take_action(game_state, player_index, ("call"))
+                    self.take_action(game_state, player_index, ("call", 0))
                     valid = 1
                 elif user_input == "raise":
                     user_input = self.get_user_input("Enter sizing: " + str(self.bet_sizing[game_state.cur_round_index]))
@@ -48,8 +49,12 @@ cdef class Player:
                     self.take_action(game_state, player_index, ("raise", user_input))
                     raize = 1
                     valid = 1
+                elif user_input == "all-in":
+                    self.take_action(game_state, player_index, ("all-in", 0))
+                    raize = 1
+                    valid = 1
                 elif user_input == "fold":
-                    self.take_action(game_state, player_index, ("fold"))
+                    self.take_action(game_state, player_index, ("fold", 0))
                     valid = 1
                 else:
                     print("Invalid input. Please enter call, raise, or fold.")
@@ -114,38 +119,29 @@ cdef class Player:
             game_state.current_bet += bet_amount
             player.folded = False
 
+        elif action[0] == "all-in":
+            bet_amount = player.chips
+            if bet_amount < game_state.current_bet:
+                if bet_amount != player.chips:
+                    raise ValueError("Raise amount must be at least equal to the current bet or an all-in.")
+            
+            call_amount = game_state.current_bet - player.contributed_to_pot
+            if call_amount + bet_amount > player.chips:
+                bet_amount = player.chips - call_amount
+
+            player.chips -= (call_amount + bet_amount)
+            game_state.pot += (call_amount + bet_amount)
+            player.contributed_to_pot += (call_amount + bet_amount)
+            player.tot_contributed_to_pot += (call_amount + bet_amount)
+            game_state.current_bet += bet_amount
+            player.folded = False
+
         elif action[0] == "fold":
             player.folded = True
 
         else:
             raise ValueError("Invalid action")
 
-    cdef initialize_regret_strategy(self):
-        self.regret = <dict>defaultdict(lambda: 0)
-        self.strategy_sum = <dict>defaultdict(lambda: 0)
-
-    cpdef get_strategy(self, list available_actions, float[:] probs, GameState game_state):
-        current_player = game_state.player_index
-        game_state_hash = self.hash(game_state)
-
-        strategy = {action: max(self.regret.get((game_state_hash, action), 0), 0) for action in available_actions}
-        normalization_sum = sum(strategy.values())
-
-        if normalization_sum > 0:
-            for action in strategy:
-                strategy[action] /= normalization_sum
-                if self.strategy_sum.get((game_state_hash, action), 0) == 0:
-                    self.strategy_sum[(game_state_hash, action)] = 0
-                self.strategy_sum[(game_state_hash, action)] += probs[current_player] * strategy[action]
-        else:
-            num_actions = len(available_actions)
-            for action in strategy:
-                strategy[action] = 1 / num_actions
-                if self.strategy_sum.get((game_state_hash, action), 0) == 0:
-                    self.strategy_sum[(game_state_hash, action)] = 0
-                self.strategy_sum[(game_state_hash, action)] += probs[current_player] * strategy[action]
-
-        return strategy
 
     cpdef add_card(self, unsigned long long card):
         self.hand |= card
@@ -168,7 +164,7 @@ cdef class Player:
                     ret.append(('raise', i))
 
             # if the current player's chips is greater than the current bet, they can go all-in.
-            ret.append(('raise', player.chips))
+            ret.append(('all-in', 0))
         
 
         if game_state.current_bet == 0 or player.contributed_to_pot == game_state.current_bet:
@@ -179,6 +175,8 @@ cdef class Player:
     cpdef clone(self):
         cdef Player new_player = Player(self.chips, self.bet_sizing)
         new_player.hand = self.hand
+        
+        new_player.abstracted_hand = self.abstracted_hand
         new_player.folded = self.folded
         new_player.contributed_to_pot = self.contributed_to_pot
         new_player.tot_contributed_to_pot = self.contributed_to_pot
@@ -187,9 +185,10 @@ cdef class Player:
 
     cpdef reset(self):
         self.hand = 0
+        self.abstracted_hand = ''
         self.folded = False
-        if self.chips == 0:
-            self.chips = 1000
+        # if self.chips == 0:
+        self.chips = 1000
         self.position = ''
         self.player_index = 0
         self.contributed_to_pot = 0
@@ -198,5 +197,5 @@ cdef class Player:
         self.betting_history = [[],[],[],[]]
     
     cpdef hash(self, GameState game_state):
-        hsh = hash((game_state.board | self.hand, game_state.player_index, game_state.cur_round_index, str(self.betting_history)))
+        hsh = hash((self.abstracted_hand, game_state.board, self.position, game_state.cur_round_index, str(self.betting_history)))
         return hsh

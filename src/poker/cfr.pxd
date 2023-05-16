@@ -4,6 +4,7 @@ from .information_set cimport InformationSet
 
 cdef class CFRTrainer:
     cdef public int iterations
+    cdef public int realtime_iterations
     cdef public int cfr_depth
     cdef public int cfr_realtime_depth
 
