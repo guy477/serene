@@ -49,7 +49,7 @@ cdef class CFRTrainer:
                 probs[i] = 1
             self.cfr_traverse(game_state, game_state.player_index, probs, 0, self.cfr_depth)
             game_state.setup_preflop()
-       
+        
         print()
 
 
@@ -110,14 +110,9 @@ cdef class CFRTrainer:
             game_state.showdown()
             return self.calculate_utilities(game_state, player)
 
-        # Otherwise, continue traversing the game tree
         current_player = game_state.player_index
-        # print(current_player)
         player_hash = game_state.players[current_player].hash(game_state)
-        # print(player_hash)
-        # print(game_state.players[current_player].position)
-        # print('---')
-        # Get available actions for the current player
+
         available_actions = game_state.players[current_player].get_available_actions(game_state, current_player)
         strategy = game_state.players[current_player].get_strategy(available_actions, probs, game_state)
         
@@ -144,23 +139,21 @@ cdef class CFRTrainer:
                 else:
                     new_probs[i] = probs[i]
                 
-
-            # if realtime:
-            #     util[action] = self.cfr_traverse(new_game_state, player, new_probs, depth + 1, max_depth, True)
-            # else:
-            #     util[action] = self.cfr_traverse(new_game_state, new_game_state.player_index, new_probs, depth + 1, max_depth, False)
             util[action] = self.cfr_traverse(new_game_state, current_player, new_probs, depth + 1, max_depth, False)
 
             for i in range(num_players):
                 node_util[i] += strategy[action] * util[action][i]
         
-
-        # if current_player == player:
-        for action in available_actions:
-            regret = util[action][current_player] - node_util[current_player]
-            if self.regret_sum.get((player_hash, action), 0) == 0:
-                self.regret_sum[(player_hash, action)] = 0
-            self.regret_sum[(player_hash, action)] += regret
+        '''
+        I'm not quite sure if the below line is necessary or not; based on my recursive call, It's my intuition that current_player == player for all recursive cases
+            The only adjustment that can be made is if the recursive call recursively passes "player" back to itself, this seems like the appropriate approach for the realtime case...
+        '''
+        if player == current_player:
+            for action in available_actions:
+                regret = util[action][current_player] - node_util[current_player]
+                if self.regret_sum.get((player_hash, action), 0) == 0:
+                    self.regret_sum[(player_hash, action)] = 0
+                self.regret_sum[(player_hash, action)] += regret
             
 
         return node_util
