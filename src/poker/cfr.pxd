@@ -22,7 +22,7 @@ cdef class CFRTrainer:
 
     cpdef train_realtime(self, GameState game_state)
 
-    cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth)
+    cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth, bint realtime = *)
 
     cdef float[:] calculate_utilities(self, GameState game_state, int player)
 

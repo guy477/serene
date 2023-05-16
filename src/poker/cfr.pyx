@@ -28,8 +28,8 @@ cdef class CFRTrainer:
         
         self.bet_sizing = bet_sizing
 
-        self.regret_sum = <dict>defaultdict(lambda: [0] * num_players)
-        self.strategy_sum = <dict>defaultdict(lambda: [0] * num_players)
+        self.regret_sum = <dict>defaultdict(lambda: 0)
+        self.strategy_sum = <dict>defaultdict(lambda: 0)
 
 
     cpdef train(self):
@@ -40,43 +40,34 @@ cdef class CFRTrainer:
         game_state = GameState(players, self.small_blind, self.big_blind)
         game_state.setup_preflop()
 
+        
+
         for _ in range(self.iterations):
             print(f'iterations: {_}', end = '\r')
-            
             probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
             for i in range(len(probs)):
                 probs[i] = 1
-            self.cfr_traverse(game_state, self.num_players, probs, 0, self.cfr_depth)
-            game_state.reset()
+            self.cfr_traverse(game_state, game_state.player_index, probs, 0, self.cfr_depth)
             game_state.setup_preflop()
+       
         print()
+
 
         # Define all possible ranks
         ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 
         # Generate all possible 2-card hands
-        all_possible_hands = [(r1 + r2 + 's') if (ranks.index(r1) > ranks.index(r2)) else (r2 + r1 + 's') for r1, r2 in itertools.combinations(ranks, 2)]  # Suited hands
-        all_possible_hands += [(r1 + r2 + 'o') if (ranks.index(r1) > ranks.index(r2)) else (r2 + r1 + 'o') for r1 in ranks for r2 in ranks if r1 != r2]  # Offsuit hands
-        print(all_possible_hands)
+        all_possible_hands = [(r1 + r2 + 's') if (ranks.index(r1) > ranks.index(r2)) else (r2 + r1 + 's') for r1 in ranks for r2 in ranks if r1 != r2]  # Suited hands
+        all_possible_hands += [(r1 + r2 + 'o') if (ranks.index(r1) > ranks.index(r2)) else (r2 + r1 + 'o') for r1 in ranks for r2 in ranks]  # Offsuit hands
         # extract preflop ranges
         preflop_range = []
         for player in players:
-            
-            # print(player.strategy_sum.items())
             for hand in all_possible_hands:
                 player.abstracted_hand = hand
                 strategy = self.get_average_strategy(player, game_state)
-                print('_________________________')
-                print(player.position)
-                print(hand)
-                print(strategy)
                 preflop_range += [(player.position, hand, strategy)]
         print(preflop_range)
 
-
-
-
-            
 
     cpdef train_realtime(self, GameState game_state):
         cdef float[:] probs
@@ -97,7 +88,7 @@ cdef class CFRTrainer:
             probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
             for i in range(len(probs)):
                 probs[i] = 1
-            self.cfr_traverse(game_state, game_state.player_index, probs, 0, self.cfr_realtime_depth)
+            self.cfr_traverse(game_state, game_state.player_index, probs, 0, self.cfr_realtime_depth, True)
 
 
         for i in range(len(game_state.players)):
@@ -107,7 +98,7 @@ cdef class CFRTrainer:
         game_state.deck = deck[:]
         
 
-    cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth):
+    cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth, bint realtime = False):
         cdef int num_players = len(game_state.players)
         cdef float[:] new_probs = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
         cdef float[:] node_util = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
@@ -121,7 +112,11 @@ cdef class CFRTrainer:
 
         # Otherwise, continue traversing the game tree
         current_player = game_state.player_index
+        # print(current_player)
         player_hash = game_state.players[current_player].hash(game_state)
+        print(player_hash)
+        print(game_state.players[current_player].position)
+        input()
 
         # Get available actions for the current player
         available_actions = game_state.players[current_player].get_available_actions(game_state, current_player)
@@ -149,16 +144,25 @@ cdef class CFRTrainer:
                     new_probs[i] = probs[i] * strategy[action]
                 else:
                     new_probs[i] = probs[i]
+                
 
-            util[action] = self.cfr_traverse(new_game_state, player, new_probs, depth + 1, max_depth)
+            # if realtime:
+            #     util[action] = self.cfr_traverse(new_game_state, player, new_probs, depth + 1, max_depth, True)
+            # else:
+            #     util[action] = self.cfr_traverse(new_game_state, new_game_state.player_index, new_probs, depth + 1, max_depth, False)
+            util[action] = self.cfr_traverse(new_game_state, current_player, new_probs, depth + 1, max_depth, False)
 
             for i in range(num_players):
                 node_util[i] += strategy[action] * util[action][i]
         
+
         if current_player == player:
             for action in available_actions:
-                regret = util[action][player] - node_util[player]
-                game_state.players[current_player].regret[(player_hash, action)] += regret
+                regret = util[action][current_player] - node_util[current_player]
+                if self.regret_sum.get((player_hash, action), 0) == 0:
+                    self.regret_sum[(player_hash, action)] = 0
+                self.regret_sum[(player_hash, action)] += regret
+                
 
         return node_util
 
@@ -196,17 +200,17 @@ cdef class CFRTrainer:
         average_strategy = {}
         game_state_hash = player.hash(game_state)
         normalization_sum = 0
-        for (hash, action), value in player.strategy_sum.items():
+        for (hash, action), value in self.strategy_sum.items():
             if game_state_hash == hash:
                 normalization_sum += value
 
         if normalization_sum > 0:
-            for (hash, action), value in player.strategy_sum.items():
+            for (hash, action), value in self.strategy_sum.items():
                 if game_state_hash == hash:
                     average_strategy[action] = value / normalization_sum
         else:
-            num_actions = len(player.strategy_sum)
-            for (hash, action), value in player.strategy_sum.items():
+            num_actions = len(self.strategy_sum)
+            for (hash, action), value in self.strategy_sum.items():
                 if game_state_hash == hash:
                     average_strategy[action] = 1 / num_actions
 

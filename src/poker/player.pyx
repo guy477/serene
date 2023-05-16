@@ -21,9 +21,9 @@ cdef class Player:
         self.betting_history = [[],[],[],[]]
 
 
-    cpdef assign_position(self, GameState game_state, int player_index):
+    cpdef assign_position(self, str position, int player_index):
         self.player_index = player_index
-        self.position = game_state.positions[player_index]
+        self.position = position
 
 
     cpdef get_action(self, GameState game_state, int player_index):
@@ -67,11 +67,13 @@ cdef class Player:
         cdef Player player = game_state.players[player_index]
         cdef int call_amount
 
-        # Keep tabs on the betting history for each round.
-        self.betting_history[game_state.cur_round_index].append(action)
-
         if player.folded or player.chips <= 0:
             return
+
+
+        # Keep tabs on the betting history for each round.        
+        self.betting_history[game_state.cur_round_index].append(action)
+        
         if action[0] == "call":
             call_amount = game_state.current_bet - player.contributed_to_pot
             if call_amount > player.chips:
@@ -154,7 +156,7 @@ cdef class Player:
         cdef Player player = game_state.players[player_index]
         
 
-        if player.chips < 0:
+        if player.chips < 0 or player.folded:
             return []
 
         if player.chips > game_state.current_bet:
@@ -176,6 +178,11 @@ cdef class Player:
         cdef Player new_player = Player(self.chips, self.bet_sizing)
         new_player.hand = self.hand
         
+        new_player.position = self.position
+        new_player.player_index = self.player_index
+
+        new_player.betting_history = self.betting_history[:]
+
         new_player.abstracted_hand = self.abstracted_hand
         new_player.folded = self.folded
         new_player.contributed_to_pot = self.contributed_to_pot
@@ -197,5 +204,6 @@ cdef class Player:
         self.betting_history = [[],[],[],[]]
     
     cpdef hash(self, GameState game_state):
-        hsh = hash((self.abstracted_hand, game_state.board, self.position, game_state.cur_round_index, str(self.betting_history)))
+        # hsh = hash((self.abstracted_hand, game_state.board, self.position, game_state.cur_round_index, str(self.betting_history)))
+        hsh = (self.abstracted_hand, game_state.board, self.position, game_state.cur_round_index, str(self.betting_history))
         return hsh

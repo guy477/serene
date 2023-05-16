@@ -12,8 +12,6 @@ cdef class AIPlayer(Player):
         
         self.strategy_trainer = cfr_trainer
 
-        self.initialize_regret_strategy()
-
 
     cpdef get_action(self, GameState game_state, int player_index):
         cdef object user_input
@@ -60,30 +58,26 @@ cdef class AIPlayer(Player):
                 valid = 1
         return raize
 
-    cdef initialize_regret_strategy(self):
-        self.regret = <dict>defaultdict(lambda: 0)
-        self.strategy_sum = <dict>defaultdict(lambda: 0)
-
     cpdef get_strategy(self, list available_actions, float[:] probs, GameState game_state):
         current_player = game_state.player_index
-        game_state_hash = self.hash(game_state)
+        player_hash = self.hash(game_state)
 
-        strategy = {action: max(self.regret.get((game_state_hash, action), 0), 0) for action in available_actions}
+        strategy = {action: max(self.strategy_trainer.regret_sum.get((player_hash, action), 0), 0) for action in available_actions}
         normalization_sum = sum(strategy.values())
 
         if normalization_sum > 0:
             for action in strategy:
                 strategy[action] /= normalization_sum
-                if self.strategy_sum.get((game_state_hash, action), 0) == 0:
-                    self.strategy_sum[(game_state_hash, action)] = 0
-                self.strategy_sum[(game_state_hash, action)] += probs[current_player] * strategy[action]
+                if self.strategy_trainer.strategy_sum.get((player_hash, action), 0) == 0:
+                    self.strategy_trainer.strategy_sum[(player_hash, action)] = 0
+                self.strategy_trainer.strategy_sum[(player_hash, action)] += probs[current_player] * strategy[action]
         else:
             num_actions = len(available_actions)
             for action in strategy:
                 strategy[action] = 1 / num_actions
-                if self.strategy_sum.get((game_state_hash, action), 0) == 0:
-                    self.strategy_sum[(game_state_hash, action)] = 0
-                self.strategy_sum[(game_state_hash, action)] += probs[current_player] * strategy[action]
+                if self.strategy_trainer.strategy_sum.get((player_hash, action), 0) == 0:
+                    self.strategy_trainer.strategy_sum[(player_hash, action)] = 0
+                self.strategy_trainer.strategy_sum[(player_hash, action)] += probs[current_player] * strategy[action]
 
         return strategy
 
@@ -94,8 +88,10 @@ cdef class AIPlayer(Player):
         new_player.hand = self.hand
         new_player.abstracted_hand = self.abstracted_hand
 
-        new_player.regret = self.regret
-        new_player.strategy_sum = self.strategy_sum
+        new_player.betting_history = self.betting_history[:]
+
+        new_player.position = self.position
+        new_player.player_index = self.player_index
 
         new_player.folded = self.folded
         new_player.contributed_to_pot = self.contributed_to_pot

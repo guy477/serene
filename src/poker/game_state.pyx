@@ -90,7 +90,7 @@ cdef class GameState:
     cpdef assign_positions(self):
         for i in range(len(self.players)):
             # print(f"Assigning player {i+1} position " + self.positions[(self.round_active_players + i - self.dealer_position)%self.active_players()])
-            self.players[i].assign_position(self, (self.round_active_players + i - self.dealer_position)%self.active_players())
+            self.players[i].assign_position(self.positions[(self.round_active_players + i - self.dealer_position)%self.active_players()], (self.round_active_players + i - self.dealer_position)%self.active_players())
 
     cpdef setup_preflop(self):
         self.reset()
