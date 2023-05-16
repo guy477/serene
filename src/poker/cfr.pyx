@@ -116,8 +116,7 @@ cdef class CFRTrainer:
         player_hash = game_state.players[current_player].hash(game_state)
         print(player_hash)
         print(game_state.players[current_player].position)
-        input()
-
+        print('---')
         # Get available actions for the current player
         available_actions = game_state.players[current_player].get_available_actions(game_state, current_player)
         strategy = game_state.players[current_player].get_strategy(available_actions, probs, game_state)

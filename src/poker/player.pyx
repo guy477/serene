@@ -181,12 +181,12 @@ cdef class Player:
         new_player.position = self.position
         new_player.player_index = self.player_index
 
-        new_player.betting_history = self.betting_history[:]
+        new_player.betting_history = [sublist[:] for sublist in self.betting_history]
 
         new_player.abstracted_hand = self.abstracted_hand
         new_player.folded = self.folded
         new_player.contributed_to_pot = self.contributed_to_pot
-        new_player.tot_contributed_to_pot = self.contributed_to_pot
+        new_player.tot_contributed_to_pot = self.tot_contributed_to_pot
         new_player.prior_gains = self.prior_gains
         return new_player
 

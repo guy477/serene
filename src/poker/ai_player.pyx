@@ -88,7 +88,7 @@ cdef class AIPlayer(Player):
         new_player.hand = self.hand
         new_player.abstracted_hand = self.abstracted_hand
 
-        new_player.betting_history = self.betting_history[:]
+        new_player.betting_history = [sublist[:] for sublist in self.betting_history]
 
         new_player.position = self.position
         new_player.player_index = self.player_index
