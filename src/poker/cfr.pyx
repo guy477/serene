@@ -88,7 +88,7 @@ cdef class CFRTrainer:
             probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
             for i in range(len(probs)):
                 probs[i] = 1
-            self.cfr_traverse(game_state, game_state.player_index, probs, 0, self.cfr_realtime_depth, True)
+            self.cfr_traverse(game_state.clone(), game_state.player_index, probs, 0, self.cfr_realtime_depth, True)
 
 
         for i in range(len(game_state.players)):
@@ -114,9 +114,9 @@ cdef class CFRTrainer:
         current_player = game_state.player_index
         # print(current_player)
         player_hash = game_state.players[current_player].hash(game_state)
-        print(player_hash)
-        print(game_state.players[current_player].position)
-        print('---')
+        # print(player_hash)
+        # print(game_state.players[current_player].position)
+        # print('---')
         # Get available actions for the current player
         available_actions = game_state.players[current_player].get_available_actions(game_state, current_player)
         strategy = game_state.players[current_player].get_strategy(available_actions, probs, game_state)
@@ -155,13 +155,13 @@ cdef class CFRTrainer:
                 node_util[i] += strategy[action] * util[action][i]
         
 
-        if current_player == player:
-            for action in available_actions:
-                regret = util[action][current_player] - node_util[current_player]
-                if self.regret_sum.get((player_hash, action), 0) == 0:
-                    self.regret_sum[(player_hash, action)] = 0
-                self.regret_sum[(player_hash, action)] += regret
-                
+        # if current_player == player:
+        for action in available_actions:
+            regret = util[action][current_player] - node_util[current_player]
+            if self.regret_sum.get((player_hash, action), 0) == 0:
+                self.regret_sum[(player_hash, action)] = 0
+            self.regret_sum[(player_hash, action)] += regret
+            
 
         return node_util
 
