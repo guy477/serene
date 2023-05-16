@@ -22,13 +22,13 @@ def main():
     big_blind = 10
 
     num_iterations = 500
-    cfr_depth = 3
+    cfr_depth = 6
     cfr_realtime_depth = 4
     
 
     # Train the AI player using the CFR algorithm
     cfr_trainer = CFRTrainer(num_iterations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing)
-    cfr_trainer.train()
+    #cfr_trainer.train()
 
     game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer)
 

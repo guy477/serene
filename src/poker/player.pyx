@@ -156,16 +156,24 @@ cdef class Player:
     cpdef get_available_actions(self, GameState game_state, int player_index):
         ret = [('call', 0), ('fold', 0)]
         cdef Player player = game_state.players[player_index]
+        
+
         if player.chips < 0:
             return []
+
         if player.chips > game_state.current_bet:
             for i in self.bet_sizing[game_state.cur_round_index]:
                 if player.chips > game_state.pot * i and game_state.pot * i > game_state.current_bet:
                     # we dont want to represent the raise as the actual amount, that way the CFR mapping knows what it's looking at.
                     ret.append(('raise', i))
 
+            # if the current player's chips is greater than the current bet, they can go all-in.
+            ret.append(('raise', player.chips))
+        
+
         if game_state.current_bet == 0 or player.contributed_to_pot == game_state.current_bet:
             ret.remove(('fold', 0))
+
         return ret
 
     cpdef clone(self):
