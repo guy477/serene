@@ -42,6 +42,7 @@ cdef class GameState:
         self.pot = 0
 
         self.board = 0
+        self.betting_history = [[],[],[],[]]
         self.deck = create_deck()
         self.fisher_yates_shuffle()
 
@@ -58,6 +59,8 @@ cdef class GameState:
         self.current_bet = 0
         self.winner_index = -1
         self.last_raiser = -1
+
+        self.betting_history = [[],[],[],[]]
 
         self.board = 0
         for player in self.players:
@@ -77,6 +80,7 @@ cdef class GameState:
         new_state.current_bet = self.current_bet
         new_state.board = self.board
         new_state.deck = self.deck[:]
+        new_state.betting_history = [sublist[:] for sublist in self.betting_history]
         return new_state
 
     cpdef handle_blinds(self):
@@ -84,7 +88,7 @@ cdef class GameState:
         cdef int big_blind_pos = (self.dealer_position + 2) % len(self.players)
 
         self.players[small_blind_pos].take_action(self, small_blind_pos, ("blinds", min(self.small_blind, self.players[small_blind_pos].chips)))
-        self.players[big_blind_pos].take_action(self, big_blind_pos, ("blinds", min(self.small_blind, self.players[big_blind_pos].chips)))
+        self.players[big_blind_pos].take_action(self, big_blind_pos, ("blinds", min(self.big_blind, self.players[big_blind_pos].chips)))
 
 
     cpdef assign_positions(self):
@@ -140,8 +144,9 @@ cdef class GameState:
         # if the current player_index == last_raiser; we're at a terminal state. return is_terminal
         if self.player_index == self.last_raiser:
             return self.is_terminal()
-
+        
         if action:
+            self.betting_history[self.cur_round_index].append(action)
             if self.players[self.player_index].take_action(self, self.player_index, action):
                 self.last_raiser = self.player_index
         else:

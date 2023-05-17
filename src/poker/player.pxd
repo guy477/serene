@@ -12,7 +12,6 @@ cdef class Player:
     cdef public int contributed_to_pot
     cdef public int tot_contributed_to_pot
     cdef public int prior_gains
-    cdef public list betting_history
     
     cpdef assign_position(self, str position, int player_index)
     cpdef get_action(self, GameState game_state, int player_index)

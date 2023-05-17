@@ -115,7 +115,9 @@ cdef class CFRTrainer:
 
         available_actions = game_state.players[current_player].get_available_actions(game_state, current_player)
         strategy = game_state.players[current_player].get_strategy(available_actions, probs, game_state)
-        
+
+        # print(game_state.betting_history)
+
         util = defaultdict(lambda: cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f", mode="w"))
 
         # Iterate through available actions
@@ -188,6 +190,7 @@ cdef class CFRTrainer:
                     
         return utilities
     
+
     cdef get_average_strategy(self, AIPlayer player, GameState game_state):
         average_strategy = {}
         game_state_hash = player.hash(game_state)

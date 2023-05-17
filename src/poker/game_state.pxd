@@ -22,6 +22,7 @@ cdef class GameState:
     cdef public unsigned long long board
     cdef public list deck
 
+    cdef public list betting_history
 
     # cdef get_current_player(self)
 

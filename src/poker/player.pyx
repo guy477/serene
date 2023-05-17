@@ -18,7 +18,7 @@ cdef class Player:
         self.prior_gains = 0
         self.contributed_to_pot = 0
         self.tot_contributed_to_pot = 0
-        self.betting_history = [[],[],[],[]]
+        
 
 
     cpdef assign_position(self, str position, int player_index):
@@ -69,10 +69,6 @@ cdef class Player:
 
         if player.folded or player.chips <= 0:
             return
-
-
-        # Keep tabs on the betting history for each round.        
-        self.betting_history[game_state.cur_round_index].append(action)
         
         if action[0] == "call":
             call_amount = game_state.current_bet - player.contributed_to_pot
@@ -181,7 +177,6 @@ cdef class Player:
         new_player.position = self.position
         new_player.player_index = self.player_index
 
-        new_player.betting_history = [sublist[:] for sublist in self.betting_history]
 
         new_player.abstracted_hand = self.abstracted_hand
         new_player.folded = self.folded
@@ -201,9 +196,8 @@ cdef class Player:
         self.contributed_to_pot = 0
         self.tot_contributed_to_pot = 0
         self.prior_gains = 0
-        self.betting_history = [[],[],[],[]]
     
     cpdef hash(self, GameState game_state):
         # hsh = hash((self.abstracted_hand, game_state.board, self.position, game_state.cur_round_index, str(self.betting_history)))
-        hsh = (self.abstracted_hand, game_state.board, self.position, game_state.cur_round_index, str(self.betting_history))
+        hsh = (self.abstracted_hand, game_state.board, self.position, game_state.cur_round_index, str(game_state.betting_history))
         return hsh
