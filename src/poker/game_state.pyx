@@ -146,7 +146,9 @@ cdef class GameState:
             return self.is_terminal()
         
         if action:
-            self.betting_history[self.cur_round_index].append(action)
+            # We want the current betting history to have the player's position as well.
+            # this can probably be restricted to the first round if complexity in future states becomes too much of an issue.
+            self.betting_history[self.cur_round_index].append((self.players[self.player_index].position, action))
             if self.players[self.player_index].take_action(self, self.player_index, action):
                 self.last_raiser = self.player_index
         else:
