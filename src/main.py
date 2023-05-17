@@ -21,9 +21,9 @@ def main():
     small_blind = 5
     big_blind = 10
 
-    num_iterations = 10000
+    num_iterations = 500
     realtime_iterations = 500
-    cfr_depth = 4
+    cfr_depth = 6
     cfr_realtime_depth = 4
     
 

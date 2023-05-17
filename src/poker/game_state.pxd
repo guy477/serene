@@ -32,6 +32,8 @@ cdef class GameState:
 
     cpdef reset(self)
 
+    cpdef load_custom_betting_history(self, int round, object history)
+
     cpdef clone(self)
 
     cpdef assign_positions(self)

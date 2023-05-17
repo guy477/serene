@@ -53,6 +53,10 @@ cdef class CFRTrainer:
         print()
 
 
+        # reset the dealer position so that player index 0 is UTG
+        game_state.dealer_position = 4
+        game_state.setup_preflop()
+
         # Define all possible ranks
         ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 
@@ -61,7 +65,14 @@ cdef class CFRTrainer:
         all_possible_hands += [(r1 + r2 + 'o') if (ranks.index(r1) > ranks.index(r2)) else (r2 + r1 + 'o') for r1 in ranks for r2 in ranks]  # Offsuit hands
         # extract preflop ranges
         preflop_range = []
-        for player in players:
+        for player_idx in range(len(players)):
+            player = players[player_idx]
+            print(player.position)
+            if player_idx > 0:
+                last_player = players[player_idx - 1]
+                game_state.load_custom_betting_history(0, (last_player.position, ('fold', 0)))
+            print(game_state.betting_history)
+
             for hand in all_possible_hands:
                 player.abstracted_hand = hand
                 strategy = self.get_average_strategy(player, game_state)

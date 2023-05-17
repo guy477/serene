@@ -67,6 +67,10 @@ cdef class Player:
         cdef Player player = game_state.players[player_index]
         cdef int call_amount
 
+        # We want the current betting history to have the player's position as well.
+        # this can probably be restricted to the first round if complexity in future states becomes too much of an issue.
+        game_state.betting_history[game_state.cur_round_index].append((self.position, action))
+
         if player.folded or player.chips <= 0:
             return
         

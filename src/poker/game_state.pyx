@@ -53,7 +53,6 @@ cdef class GameState:
         self.cur_round_index = 0
         
         self.round_active_players = len(self.players)
-        self.player_index = 0
 
         self.pot = 0
         self.current_bet = 0
@@ -66,6 +65,10 @@ cdef class GameState:
         for player in self.players:
             player.reset()
         self.dealer_position = (self.dealer_position + (self.round_active_players - 1)) % self.round_active_players
+
+        self.player_index = (self.dealer_position + 3) % len(self.players)
+        #self.last_raiser = (self.dealer_position + 2) % len(self.players) # this is the big blind index
+        self.num_actions = 0
 
     cpdef clone(self):
         cdef GameState new_state = GameState(self.players[:], self.small_blind, self.big_blind)
@@ -82,6 +85,9 @@ cdef class GameState:
         new_state.deck = self.deck[:]
         new_state.betting_history = [sublist[:] for sublist in self.betting_history]
         return new_state
+
+    cpdef load_custom_betting_history(self, int round, object history):
+        self.betting_history[round].append(history)
 
     cpdef handle_blinds(self):
         cdef int small_blind_pos = (self.dealer_position + 1) % len(self.players)
@@ -105,11 +111,6 @@ cdef class GameState:
 
         # used to help determine if we've reached a terminal state
         self.round_active_players = self.active_players()
-        
-        self.winner_index = -1
-        self.player_index = (self.dealer_position + 3) % len(self.players)
-        #self.last_raiser = (self.dealer_position + 2) % len(self.players) # this is the big blind index
-        self.num_actions = 0
     
     cpdef setup_postflop(self, str round_name):
         self.cur_round_index += 1
@@ -146,9 +147,6 @@ cdef class GameState:
             return self.is_terminal()
         
         if action:
-            # We want the current betting history to have the player's position as well.
-            # this can probably be restricted to the first round if complexity in future states becomes too much of an issue.
-            self.betting_history[self.cur_round_index].append((self.players[self.player_index].position, action))
             if self.players[self.player_index].take_action(self, self.player_index, action):
                 self.last_raiser = self.player_index
         else:
