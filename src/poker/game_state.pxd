@@ -7,6 +7,8 @@ cdef class GameState:
 
     cdef public int small_blind
     cdef public int big_blind
+
+    cdef public int num_simulations
     
     cdef public int player_index
 
@@ -41,7 +43,7 @@ cdef class GameState:
     cpdef handle_blinds(self)
     
     # handles the dealing of private cards
-    cpdef setup_preflop(self) 
+    cpdef setup_preflop(self, object hand = *)
     # handles the dealing of cards, resetting player pot contributions and current bet counters.
     cpdef setup_postflop(self, str round_name)
     
@@ -53,7 +55,7 @@ cdef class GameState:
     cpdef bint is_terminal(self)
     cpdef bint is_terminal_river(self)
 
-    cpdef deal_private_cards(self)
+    cpdef deal_private_cards(self, object hand = *)
 
     cdef void fisher_yates_shuffle(self)
 

@@ -8,6 +8,8 @@ cdef class CFRTrainer:
     cdef public int cfr_depth
     cdef public int cfr_realtime_depth
 
+    cdef public int num_simulations
+
     cdef public int num_players
     cdef public int initial_chips
     cdef public int small_blind

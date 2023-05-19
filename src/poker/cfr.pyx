@@ -14,9 +14,10 @@ from collections import defaultdict
 
 cdef class CFRTrainer:
 
-    def __init__(self, int iterations, int realtime_iterations, int cfr_depth, int cfr_realtime_depth, int num_players, int initial_chips, int small_blind, int big_blind, list bet_sizing):
+    def __init__(self, int iterations, int realtime_iterations, int num_simulations, int cfr_depth, int cfr_realtime_depth, int num_players, int initial_chips, int small_blind, int big_blind, list bet_sizing):
         self.iterations = iterations
         self.realtime_iterations = realtime_iterations
+        self.num_simulations = num_simulations
         self.cfr_realtime_depth = cfr_realtime_depth
         self.cfr_depth = cfr_depth
 
@@ -36,19 +37,34 @@ cdef class CFRTrainer:
         # Main loop for the training iterations
         cdef float[:] probs
 
-        players = [AIPlayer(self.initial_chips, self.bet_sizing, self) for _ in range(self.num_players)]
-        game_state = GameState(players, self.small_blind, self.big_blind)
-        game_state.setup_preflop()
+        # just two suits
+        suits = ['C', 'S']
+        # Define all possible ranks
+        ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 
-        
+        # Generate all possible cards
+        cards = [r + s for r in reversed(ranks) for s in suits]
+
+        # Generate all possible hands
+        hands = list(itertools.combinations(cards, 2))
+
+        players = [AIPlayer(self.initial_chips, self.bet_sizing, self) for _ in range(self.num_players)]
+        game_state = GameState(players, self.small_blind, self.big_blind, self.num_simulations)
+
+        # there should be a way to do a guided train - that is, we dont need to randomly set up the preflop positions each time when we could preload the abstracted positions
 
         for _ in range(self.iterations):
-            print(f'iterations: {_}', end = '\r')
-            probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
-            for i in range(len(probs)):
-                probs[i] = 1
-            self.cfr_traverse(game_state, game_state.player_index, probs, 0, self.cfr_depth)
-            game_state.setup_preflop()
+            
+            for hand in hands:
+                print(f'iterations: {_}; Hand {hand}', end = '\r')
+                
+                game_state.setup_preflop(hand)
+
+                probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
+                for i in range(len(probs)):
+                    probs[i] = 1
+                self.cfr_traverse(game_state, game_state.player_index, probs, 0, self.cfr_depth)
+                
         
         print()
 
@@ -57,27 +73,22 @@ cdef class CFRTrainer:
         game_state.dealer_position = 4
         game_state.setup_preflop()
 
-        # Define all possible ranks
-        ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
-
         # Generate all possible 2-card hands
         all_possible_hands = [(r1 + r2 + 's') if (ranks.index(r1) > ranks.index(r2)) else (r2 + r1 + 's') for r1 in ranks for r2 in ranks if r1 != r2]  # Suited hands
         all_possible_hands += [(r1 + r2 + 'o') if (ranks.index(r1) > ranks.index(r2)) else (r2 + r1 + 'o') for r1 in ranks for r2 in ranks]  # Offsuit hands
-        # extract preflop ranges
+        # extract up-opened preflop ranges
         preflop_range = []
         for player_idx in range(len(players)):
             player = players[player_idx]
-            print(player.position)
             if player_idx > 0:
                 last_player = players[player_idx - 1]
                 game_state.load_custom_betting_history(0, (last_player.position, ('fold', 0)))
-            print(game_state.betting_history)
 
             for hand in all_possible_hands:
                 player.abstracted_hand = hand
                 strategy = self.get_average_strategy(player, game_state)
                 preflop_range += [(player.position, hand, strategy)]
-        print(preflop_range)
+        return preflop_range
 
 
     cpdef train_realtime(self, GameState game_state):
@@ -161,17 +172,17 @@ cdef class CFRTrainer:
         I'm not quite sure if the below line is necessary or not; based on my recursive call, It's my intuition that current_player == player for all recursive cases
             The only adjustment that can be made is if the recursive call recursively passes "player" back to itself, this seems like the appropriate approach for the realtime case...
         '''
-        #if player == current_player:
+        #
         if self.regret_sum.get(player_hash, {}) == {}:
             self.regret_sum[player_hash] = {}
-
-        for action in available_actions:
-            regret = util[action][current_player] - node_util[current_player]
-            # sort of hacky; defaultdicts are not respected in cython.
-            # if the key has not been seen before, the uninitialized mapping will have a value 0.
-            if self.regret_sum[player_hash].get(action, 0) == 0:
-                self.regret_sum[player_hash][action] = 0
-            self.regret_sum[player_hash][action] += regret
+        if player == current_player:
+            for action in available_actions:
+                regret = util[action][current_player] - node_util[current_player]
+                # sort of hacky; defaultdicts are not respected in cython.
+                # if the key has not been seen before, the uninitialized mapping will have a value 0.
+                if self.regret_sum[player_hash].get(action, 0) == 0:
+                    self.regret_sum[player_hash][action] = 0
+                self.regret_sum[player_hash][action] += regret
             
 
         return node_util
@@ -211,17 +222,17 @@ cdef class CFRTrainer:
         average_strategy = {}
         game_state_hash = player.hash(game_state)
         normalization_sum = 0
-        cur_gamestate_strategy = self.strategy_sum.get(game_state_hash, {})
+        cur_gamestate_strategy = self.strategy_sum.get(game_state_hash, {}).items()
 
-        for action, value in cur_gamestate_strategy.items():
+        for action, value in cur_gamestate_strategy:
             normalization_sum += value
 
         if normalization_sum > 0:
-            for action, value in cur_gamestate_strategy.items():
+            for action, value in cur_gamestate_strategy:
                 average_strategy[action] = value / normalization_sum
         else:
-            num_actions = len(self.strategy_sum)
-            for action, value in cur_gamestate_strategy.items():
+            num_actions = len(cur_gamestate_strategy)
+            for action, value in cur_gamestate_strategy:
                 average_strategy[action] = 1 / num_actions
 
         return average_strategy

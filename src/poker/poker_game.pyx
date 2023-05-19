@@ -14,7 +14,7 @@ cdef class PokerGame:
     def __init__(self, int num_players, int initial_chips, int num_ai_players, int small_blind, int big_blind, list bet_sizing, CFRTrainer cfr_trainer):
         
         self.players = [Player(initial_chips, bet_sizing) for _ in range(num_players - num_ai_players)] + [AIPlayer(initial_chips, bet_sizing, cfr_trainer) for _ in range(num_ai_players)]
-        self.game_state = GameState(self.players, small_blind, big_blind)
+        self.game_state = GameState(self.players, small_blind, big_blind, cfr_trainer.num_simulations)
         self.profit_loss = []
         
         self.position_pl = {'D':0, 'SB':0, 'BB':0, 'UTG':0, 'MP':0, 'CO':0}

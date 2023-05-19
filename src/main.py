@@ -6,13 +6,15 @@ import poker.ccluster as ccluster
 import time
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
 from scipy.special import comb
 from sklearn.cluster import MiniBatchKMeans
 
 def main():
-    num_players = 6
-    num_ai_players = 6
+    num_players = 2
+    num_ai_players = 2
 
     # pot relative bet-sizings for preflop, flop, turn, and river
     bet_sizing = [(1, 2), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
@@ -21,15 +23,18 @@ def main():
     small_blind = 5
     big_blind = 10
 
-    num_iterations = 150
+    num_simulations = 100
+
+    num_iterations = 50
     realtime_iterations = 500
-    cfr_depth = 6
+    cfr_depth = 4
     cfr_realtime_depth = 4
     
 
     # Train the AI player using the CFR algorithm
-    cfr_trainer = CFRTrainer(num_iterations, realtime_iterations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing)
-    cfr_trainer.train()
+    cfr_trainer = CFRTrainer(num_iterations, realtime_iterations, num_simulations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing)
+    strategy_list = cfr_trainer.train()
+    plot_hands(strategy_list)
 
     game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer)
 
@@ -246,6 +251,74 @@ def cluster():
     # pd.DataFrame(list(map(lambda x: adjcntrs[x], lbls[:int(comb(n, k-2)) - dupes]))).to_csv('flop_prob_dist_clst_23s.csv')
     # print("saved")
     #########################################################################################################
+
+
+def plot_hands(strategy_list):
+    strategy_df = pd.DataFrame(strategy_list)
+
+    
+
+    # Rename the columns for clarity
+    strategy_df.columns = ['Position', 'Hand', 'Strategy']
+    strategy_df = strategy_df[(strategy_df['Position'] == 'SB') & (strategy_df['Strategy']!={})]
+    strategy_df.reset_index(inplace = True)
+    # Create a new DataFrame to store the individual strategy proportions
+    strategy_proportions = pd.DataFrame()
+
+    # Split the Strategy dictionary into separate columns in strategy_proportions
+    print(strategy_df)
+    
+    for index, row in strategy_df.iterrows():
+        for action, value in row.Strategy.items():
+            strategy_proportions.at[index, str(action)] = value
+    
+    # Fill any missing values with 0
+    strategy_proportions.fillna(0, inplace=True)
+    
+    # Reset the index to make it easier to plot
+    strategy_proportions.reset_index(drop=True, inplace=True)
+    
+    
+    subplot_size = np.array([.5, .5])
+    # Number of columns for subplot grid
+    ncols = int(np.sqrt(len(strategy_df)))+1
+    # Number of rows for subplot grid
+    nrows = int(np.sqrt(len(strategy_df)))+1
+
+    figsize = subplot_size * [ncols, nrows]
+
+    fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize)
+    axes = axes.flatten()
+
+    # Set up colors for the actions. You can adjust this to your liking.
+    colors = plt.cm.get_cmap('tab10', len(strategy_df['Strategy'].iloc[0]))
+
+    for i, (idx, row) in enumerate(strategy_proportions.iterrows()):
+        ax = axes[i]
+        ax.set_title(strategy_df.loc[idx, 'Hand'], size=5, pad=-500)
+        ax.set_ylim([0, 1]) # since they are proportions
+        ax.get_xaxis().set_visible(False)  # remove the x-axis
+        ax.get_yaxis().set_visible(False)  # remove the y-axis
+
+        bottom = 0 # Initialize the bottom of the bars to 0
+        for j in range(len(row.index)):
+            ax.bar(i, row.values[j], bottom=bottom, color=colors(j))
+            bottom += row.values[j]  # Add the height of the bar to the bottom for the next bar
+
+
+    # Remove the unused subplot, if any
+    if len(strategy_proportions.index) % ncols != 0:
+        for j in range(i+1, ncols * nrows):
+            fig.delaxes(axes[j])
+
+    # Create legend for the whole figure
+    patches = [mpatches.Patch(color=colors(i), label=strategy_proportions.columns[i]) for i in range(len(strategy_proportions.columns))]
+    plt.legend(handles=patches, loc='upper left')
+
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.2, hspace=0.4)  # adjust the space between plots
+    plt.show()
+
 
 if __name__ == "__main__":
     # cluster()
