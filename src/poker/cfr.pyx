@@ -28,8 +28,8 @@ cdef class CFRTrainer:
         
         self.bet_sizing = bet_sizing
 
-        self.regret_sum = <dict>defaultdict(lambda: 0)
-        self.strategy_sum = <dict>defaultdict(lambda: 0)
+        self.regret_sum = {}
+        self.strategy_sum = {}
 
 
     cpdef train(self):
@@ -161,12 +161,17 @@ cdef class CFRTrainer:
         I'm not quite sure if the below line is necessary or not; based on my recursive call, It's my intuition that current_player == player for all recursive cases
             The only adjustment that can be made is if the recursive call recursively passes "player" back to itself, this seems like the appropriate approach for the realtime case...
         '''
-        if player == current_player:
-            for action in available_actions:
-                regret = util[action][current_player] - node_util[current_player]
-                if self.regret_sum.get((player_hash, action), 0) == 0:
-                    self.regret_sum[(player_hash, action)] = 0
-                self.regret_sum[(player_hash, action)] += regret
+        #if player == current_player:
+        if self.regret_sum.get(player_hash, {}) == {}:
+            self.regret_sum[player_hash] = {}
+
+        for action in available_actions:
+            regret = util[action][current_player] - node_util[current_player]
+            # sort of hacky; defaultdicts are not respected in cython.
+            # if the key has not been seen before, the uninitialized mapping will have a value 0.
+            if self.regret_sum[player_hash].get(action, 0) == 0:
+                self.regret_sum[player_hash][action] = 0
+            self.regret_sum[player_hash][action] += regret
             
 
         return node_util
@@ -206,18 +211,17 @@ cdef class CFRTrainer:
         average_strategy = {}
         game_state_hash = player.hash(game_state)
         normalization_sum = 0
-        for (hash, action), value in self.strategy_sum.items():
-            if game_state_hash == hash:
-                normalization_sum += value
+        cur_gamestate_strategy = self.strategy_sum.get(game_state_hash, {})
+
+        for action, value in cur_gamestate_strategy.items():
+            normalization_sum += value
 
         if normalization_sum > 0:
-            for (hash, action), value in self.strategy_sum.items():
-                if game_state_hash == hash:
-                    average_strategy[action] = value / normalization_sum
+            for action, value in cur_gamestate_strategy.items():
+                average_strategy[action] = value / normalization_sum
         else:
             num_actions = len(self.strategy_sum)
-            for (hash, action), value in self.strategy_sum.items():
-                if game_state_hash == hash:
-                    average_strategy[action] = 1 / num_actions
+            for action, value in cur_gamestate_strategy.items():
+                average_strategy[action] = 1 / num_actions
 
         return average_strategy
