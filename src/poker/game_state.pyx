@@ -207,6 +207,7 @@ cdef class GameState:
     cpdef showdown(self):
         cdef unsigned long long player_hand
         cdef int best_score, player_score
+        cdef unsigned long long zero = 0
         cdef int remaining_players = sum([not player.folded for player in self.players])
         
         cdef unsigned long long board_dupe = self.board
@@ -222,14 +223,8 @@ cdef class GameState:
                     self.winner_index = i
                     break
 
-            # distribute winnings (this less tot_contributed to pot is the net_winnings... right? lmao)
-            self.players[self.winner_index].prior_gains = (self.pot)
-            # Distribute the pot to the winner
-            self.players[self.winner_index].chips += self.pot
-
-
         else:
-
+            win_rate = [0 for i in self.players]
             # if we've called showdown before terminal state, estimate the results...
             for i in range(self.num_simulations):
                 # reset player hands
@@ -247,6 +242,7 @@ cdef class GameState:
                 while self.num_board_cards() < 5:
                     self.draw_card()
                 
+                # reset best_score and self.winner_index
                 best_score = -1
                 self.winner_index = -1
 
@@ -257,7 +253,7 @@ cdef class GameState:
                     
                     # For the realtime search case, we need to provide the player with a new hand.
                     # this logic should be joined with the logic to populate the board during a terminal state.
-                    if player.hand == 0:
+                    if player.hand == zero:
                         player.hand |= self.deck.pop()
                         player.hand |= self.deck.pop()
 
@@ -268,16 +264,15 @@ cdef class GameState:
                         best_score = player_score
                         self.winner_index = i
 
+                    win_rate[self.winner_index] += 1
 
-                    # distribute winnings (this less tot_contributed to pot is the net_winnings... right? lmao)
-                    self.players[self.winner_index].prior_gains += (self.pot)
-                    # Distribute the pot to the winner
-                    self.players[self.winner_index].chips += self.pot
+            max_value = max(win_rate)
+            self.winner_index = win_rate.index(max_value)
 
-            # normalize the results based on the number of simulations performed:
-            for i, player in enumerate(self.players):
-                player.prior_gains //= self.num_simulations
-                player.chips //= self.num_simulations
+        # distribute winnings (this less tot_contributed to pot is the net_winnings... right? lmao)
+        self.players[self.winner_index].prior_gains += (self.pot)
+        # Distribute the pot to the winner
+        self.players[self.winner_index].chips += self.pot
         
     
 
@@ -330,8 +325,8 @@ cpdef public list create_deck():
         return deck
 
 cpdef str int_to_card(unsigned long long card):
-    cdef int bit_position = 0
-    while card > 1:
+    cdef int bit_position = -1
+    while card > 0:
         card >>= 1
         bit_position += 1
     cdef int suit_index = bit_position // 13

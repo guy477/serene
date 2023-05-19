@@ -23,11 +23,11 @@ def main():
     small_blind = 5
     big_blind = 10
 
-    num_simulations = 100
+    num_simulations = 1
 
-    num_iterations = 50
+    num_iterations = 5000
     realtime_iterations = 500
-    cfr_depth = 4
+    cfr_depth = 16
     cfr_realtime_depth = 4
     
 
@@ -256,10 +256,9 @@ def cluster():
 def plot_hands(strategy_list):
     strategy_df = pd.DataFrame(strategy_list)
 
-    
-
     # Rename the columns for clarity
     strategy_df.columns = ['Position', 'Hand', 'Strategy']
+    strategy_df.sort_values(by = 'Hand')
     strategy_df = strategy_df[(strategy_df['Position'] == 'SB') & (strategy_df['Strategy']!={})]
     strategy_df.reset_index(inplace = True)
     # Create a new DataFrame to store the individual strategy proportions
@@ -281,9 +280,9 @@ def plot_hands(strategy_list):
     
     subplot_size = np.array([.5, .5])
     # Number of columns for subplot grid
-    ncols = int(np.sqrt(len(strategy_df)))+1
+    ncols = 13
     # Number of rows for subplot grid
-    nrows = int(np.sqrt(len(strategy_df)))+1
+    nrows = 13
 
     figsize = subplot_size * [ncols, nrows]
 

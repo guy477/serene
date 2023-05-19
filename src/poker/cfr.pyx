@@ -46,7 +46,7 @@ cdef class CFRTrainer:
         cards = [r + s for r in reversed(ranks) for s in suits]
 
         # Generate all possible hands
-        hands = list(itertools.combinations(cards, 2))
+        hands = list(sorted(itertools.combinations(cards, 2)))
 
         players = [AIPlayer(self.initial_chips, self.bet_sizing, self) for _ in range(self.num_players)]
         game_state = GameState(players, self.small_blind, self.big_blind, self.num_simulations)
@@ -54,8 +54,9 @@ cdef class CFRTrainer:
         # there should be a way to do a guided train - that is, we dont need to randomly set up the preflop positions each time when we could preload the abstracted positions
 
         for _ in range(self.iterations):
-            
+            alpha = .1
             for hand in hands:
+
                 print(f'iterations: {_}; Hand {hand}', end = '\r')
                 
                 game_state.setup_preflop(hand)
@@ -63,7 +64,7 @@ cdef class CFRTrainer:
                 probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
                 for i in range(len(probs)):
                     probs[i] = 1
-                self.cfr_traverse(game_state, game_state.player_index, probs, 0, self.cfr_depth)
+                self.cfr_traverse(game_state, game_state.player_index, probs, 0, self.cfr_depth, alpha)
                 
         
         print()
@@ -74,8 +75,10 @@ cdef class CFRTrainer:
         game_state.setup_preflop()
 
         # Generate all possible 2-card hands
-        all_possible_hands = [(r1 + r2 + 's') if (ranks.index(r1) > ranks.index(r2)) else (r2 + r1 + 's') for r1 in ranks for r2 in ranks if r1 != r2]  # Suited hands
-        all_possible_hands += [(r1 + r2 + 'o') if (ranks.index(r1) > ranks.index(r2)) else (r2 + r1 + 'o') for r1 in ranks for r2 in ranks]  # Offsuit hands
+        all_possible_hands = [(r1 + r2 + 's') for r1 in ranks for r2 in ranks if r1 != r2 and (ranks.index(r1) > ranks.index(r2))]  # Suited hands
+        all_possible_hands += [(r1 + r2 + 'o')  for r1 in ranks for r2 in ranks if (ranks.index(r1) >= ranks.index(r2))]  # Offsuit hands
+        all_possible_hands = sorted(all_possible_hands)
+        print(len(all_possible_hands))
         # extract up-opened preflop ranges
         preflop_range = []
         for player_idx in range(len(players)):
@@ -120,7 +123,7 @@ cdef class CFRTrainer:
         game_state.deck = deck[:]
         
 
-    cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth, bint realtime = False):
+    cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth, float epsilon = 0):
         cdef int num_players = len(game_state.players)
         cdef float[:] new_probs = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
         cdef float[:] node_util = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
@@ -130,7 +133,7 @@ cdef class CFRTrainer:
             # Calculate and return the utility for each player
             
             game_state.showdown()
-            return self.calculate_utilities(game_state, player)
+            return self.calculate_utilities(game_state, game_state.winner_index)
 
         current_player = game_state.player_index
         player_hash = game_state.players[current_player].hash(game_state)
@@ -140,8 +143,28 @@ cdef class CFRTrainer:
 
         # print(game_state.betting_history)
 
-        util = defaultdict(lambda: cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f", mode="w"))
+        util = defaultdict(lambda: cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f"))
 
+        monte_carlo = True
+
+        # when using monte_carlo simulation, we want to sample the action space.
+        if monte_carlo:
+            if not available_actions == []:  # Only sample actions for the traversing player
+                if np.random.rand() < epsilon:
+                    # Randomly choose an action
+                    strategy_list = [1 / len(available_actions) for _ in available_actions]
+                else:
+                    strategy_list = [strategy[a] for a in available_actions]
+
+                # Now sample an index instead of an action
+                action_index = np.random.choice(range(len(available_actions)), p=strategy_list)
+
+                # And retrieve the action from the list
+                action = available_actions[action_index]
+                # action = np.random.choice(available_actions, p=[strategy[a] for a in available_actions])
+                available_actions = [action]
+
+    
         # Iterate through available actions
         for action in available_actions:
             # Create a copy of the game state and apply the action
@@ -162,32 +185,35 @@ cdef class CFRTrainer:
                     new_probs[i] = probs[i] * strategy[action]
                 else:
                     new_probs[i] = probs[i]
-                
+                    
             util[action] = self.cfr_traverse(new_game_state, current_player, new_probs, depth + 1, max_depth, False)
 
             for i in range(num_players):
                 node_util[i] += strategy[action] * util[action][i]
-        
+    
+
+        if self.regret_sum.get(player_hash, {}) == {}:
+            self.regret_sum[player_hash] = {}
+
+
         '''
         I'm not quite sure if the below line is necessary or not; based on my recursive call, It's my intuition that current_player == player for all recursive cases
             The only adjustment that can be made is if the recursive call recursively passes "player" back to itself, this seems like the appropriate approach for the realtime case...
         '''
-        #
-        if self.regret_sum.get(player_hash, {}) == {}:
-            self.regret_sum[player_hash] = {}
-        if player == current_player:
-            for action in available_actions:
-                regret = util[action][current_player] - node_util[current_player]
-                # sort of hacky; defaultdicts are not respected in cython.
-                # if the key has not been seen before, the uninitialized mapping will have a value 0.
-                if self.regret_sum[player_hash].get(action, 0) == 0:
-                    self.regret_sum[player_hash][action] = 0
-                self.regret_sum[player_hash][action] += regret
+        # if player == current_player:
+        for action in available_actions:
+            regret = util[action][current_player] - node_util[current_player]
+            # sort of hacky; defaultdicts are not respected in cython.
+            # if the key has not been seen before, the uninitialized mapping will have a value 0.
+            if self.regret_sum[player_hash].get(action, 0) == 0:
+                self.regret_sum[player_hash][action] = 0
+            self.regret_sum[player_hash][action] += regret
+            # self.regret_sum[player_hash][action] = (1-alpha) * self.regret_sum[player_hash][action] + alpha * regret
             
 
         return node_util
 
-    cdef float[:] calculate_utilities(self, GameState game_state, int player):
+    cdef float[:] calculate_utilities(self, GameState game_state, int winner_index):
         cdef int num_players = len(game_state.players)
         cdef float[:] utilities = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
 
@@ -208,13 +234,13 @@ cdef class CFRTrainer:
         else:
     
             for i, p in enumerate(game_state.players):
-                if i == game_state.winner_index:
+                if i == winner_index:
                     # The winner gains the pot minus their contributed chips
                     utilities[i] = pot - p.tot_contributed_to_pot
                 else:
                     # Non-winning players lose their contributed chips
                     utilities[i] = -p.tot_contributed_to_pot
-                    
+        
         return utilities
     
 
@@ -223,7 +249,6 @@ cdef class CFRTrainer:
         game_state_hash = player.hash(game_state)
         normalization_sum = 0
         cur_gamestate_strategy = self.strategy_sum.get(game_state_hash, {}).items()
-
         for action, value in cur_gamestate_strategy:
             normalization_sum += value
 

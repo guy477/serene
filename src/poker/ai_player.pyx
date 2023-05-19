@@ -1,8 +1,8 @@
 #!python
 #cython: language_level=3
 
-from collections import defaultdict
 import random
+
 
 cdef class AIPlayer(Player):
     # AI player-specific methods will be added here
@@ -58,18 +58,15 @@ cdef class AIPlayer(Player):
                 valid = 1
         return raize
 
+
     cpdef get_strategy(self, list available_actions, float[:] probs, GameState game_state):
         current_player = game_state.player_index
         player_hash = self.hash(game_state)
         if self.strategy_trainer.strategy_sum.get(player_hash, {}) == {}:
-            self.strategy_trainer.strategy_sum[player_hash] = {}
-
-        
-        
+            self.strategy_trainer.strategy_sum[player_hash] = {}     
 
         strategy = {action: max(self.strategy_trainer.regret_sum.get(player_hash, {}).get(action, 0), 0) for action in available_actions}
         normalization_sum = sum(strategy.values())
-
         if normalization_sum > 0:
             for action in strategy:
                 # initialize nested mapping if necessary
@@ -78,6 +75,8 @@ cdef class AIPlayer(Player):
 
                 strategy[action] /= normalization_sum
                 self.strategy_trainer.strategy_sum[player_hash][action] += probs[current_player] * strategy[action]
+            
+
         else:
             num_actions = len(available_actions)
             for action in strategy:
@@ -87,6 +86,7 @@ cdef class AIPlayer(Player):
                 
                 strategy[action] = 1 / num_actions
                 self.strategy_trainer.strategy_sum[player_hash][action] += probs[current_player] * strategy[action]
+
 
         return strategy
 
