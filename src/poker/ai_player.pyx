@@ -34,6 +34,10 @@ cdef class AIPlayer(Player):
                 print(average_strategy)
                 #####
                 
+                if average_strategy == {}:
+                    valid = 1
+                    break
+
                 actions, probabilities = zip(*average_strategy.items())
 
                 # Choose an action based on the probability distribution
@@ -57,38 +61,7 @@ cdef class AIPlayer(Player):
             else:
                 valid = 1
         return raize
-
-
-    cpdef get_strategy(self, list available_actions, float[:] probs, GameState game_state):
-        current_player = game_state.player_index
-        player_hash = self.hash(game_state)
-        if self.strategy_trainer.strategy_sum.get(player_hash, {}) == {}:
-            self.strategy_trainer.strategy_sum[player_hash] = {}     
-
-        strategy = {action: max(self.strategy_trainer.regret_sum.get(player_hash, {}).get(action, 0), 0) for action in available_actions}
-        normalization_sum = sum(strategy.values())
-        if normalization_sum > 0:
-            for action in strategy:
-                # initialize nested mapping if necessary
-                if self.strategy_trainer.strategy_sum[player_hash].get(action, 0) == 0:
-                    self.strategy_trainer.strategy_sum[player_hash][action] = 0
-
-                strategy[action] /= normalization_sum
-                self.strategy_trainer.strategy_sum[player_hash][action] += probs[current_player] * strategy[action]
-            
-
-        else:
-            num_actions = len(available_actions)
-            for action in strategy:
-                # initialize nested mapping if necessary
-                if self.strategy_trainer.strategy_sum[player_hash].get(action, 0) == 0:
-                    self.strategy_trainer.strategy_sum[player_hash][action] = 0
-                
-                strategy[action] = 1 / num_actions
-                self.strategy_trainer.strategy_sum[player_hash][action] += probs[current_player] * strategy[action]
-
-
-        return strategy
+        
 
     cpdef clone(self):
         # there has to be a better way to clone. Currently, im wasting memory by recreating a CFRTrainer object each time i cosntruct a new AIPlayer.

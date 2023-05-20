@@ -6,5 +6,4 @@ cdef class AIPlayer(Player):
 
     cdef CFRTrainer strategy_trainer
 
-    cpdef get_strategy(self, list available_actions, float[:] probs, GameState game_state)
     cpdef clone(self)

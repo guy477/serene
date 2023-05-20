@@ -1,5 +1,5 @@
 from .game_state cimport GameState, hand_to_cards
-from .ai_player cimport AIPlayer
+from .ai_player cimport AIPlayer, Player
 from .information_set cimport InformationSet
 
 cdef class CFRTrainer:
@@ -29,3 +29,6 @@ cdef class CFRTrainer:
     cdef float[:] calculate_utilities(self, GameState game_state, int player)
 
     cdef get_average_strategy(self, AIPlayer player, GameState game_state)
+    
+    cpdef get_strategy(self, list available_actions, float[:] probs, GameState game_state, Player player)
+    

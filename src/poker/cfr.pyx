@@ -113,7 +113,7 @@ cdef class CFRTrainer:
             probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
             for i in range(len(probs)):
                 probs[i] = 1
-            self.cfr_traverse(game_state.clone(), game_state.player_index, probs, 0, self.cfr_realtime_depth, True)
+            self.cfr_traverse(game_state.clone(), game_state.player_index, probs, 0, self.cfr_realtime_depth, .1)
 
 
         for i in range(len(game_state.players)):
@@ -139,7 +139,8 @@ cdef class CFRTrainer:
         player_hash = game_state.players[current_player].hash(game_state)
 
         available_actions = game_state.players[current_player].get_available_actions(game_state, current_player)
-        strategy = game_state.players[current_player].get_strategy(available_actions, probs, game_state)
+        
+        strategy = self.get_strategy(available_actions, probs, game_state, game_state.players[current_player])
 
         # print(game_state.betting_history)
 
@@ -155,7 +156,14 @@ cdef class CFRTrainer:
                     strategy_list = [1 / len(available_actions) for _ in available_actions]
                 else:
                     strategy_list = [strategy[a] for a in available_actions]
-
+                    # for i in reversed(game_state.betting_history):
+                    #     if i == []: 
+                    #         continue
+                    #     if[i[-1][0] == 'all-in']:
+                    #         print()
+                    #         print(game_state.players[current_player].abstracted_hand)
+                    #         print(available_actions)
+                    #         print(strategy_list)
                 # Now sample an index instead of an action
                 action_index = np.random.choice(range(len(available_actions)), p=strategy_list)
 
@@ -186,7 +194,7 @@ cdef class CFRTrainer:
                 else:
                     new_probs[i] = probs[i]
                     
-            util[action] = self.cfr_traverse(new_game_state, current_player, new_probs, depth + 1, max_depth, False)
+            util[action] = self.cfr_traverse(new_game_state, current_player, new_probs, depth + 1, max_depth, epsilon)
 
             for i in range(num_players):
                 node_util[i] += strategy[action] * util[action][i]
@@ -242,13 +250,50 @@ cdef class CFRTrainer:
                     utilities[i] = -p.tot_contributed_to_pot
         
         return utilities
-    
+
+    cpdef get_strategy(self, list available_actions, float[:] probs, GameState game_state, Player player):
+        current_player = game_state.player_index
+        player_hash = player.hash(game_state)
+        if self.strategy_sum.get(player_hash, {}) == {}:
+            self.strategy_sum[player_hash] = {}     
+
+        strategy = {action: max(self.regret_sum.get(player_hash, {}).get(action, 0), 0) for action in available_actions}
+        normalization_sum = sum(strategy.values())
+        if normalization_sum > 0:
+            for action in strategy:
+                # initialize nested mapping if necessary
+                if self.strategy_sum[player_hash].get(action, 0) == 0:
+                    self.strategy_sum[player_hash][action] = 0
+
+                strategy[action] /= normalization_sum
+                self.strategy_sum[player_hash][action] += probs[current_player] * strategy[action]
+            
+
+        else:
+            num_actions = len(available_actions)
+            for action in strategy:
+                # initialize nested mapping if necessary
+                if self.strategy_sum[player_hash].get(action, 0) == 0:
+                    self.strategy_sum[player_hash][action] = 0
+                
+                strategy[action] = 1 / num_actions
+                self.strategy_sum[player_hash][action] += probs[current_player] * strategy[action]
+
+
+        return strategy    
 
     cdef get_average_strategy(self, AIPlayer player, GameState game_state):
         average_strategy = {}
         game_state_hash = player.hash(game_state)
         normalization_sum = 0
-        cur_gamestate_strategy = self.strategy_sum.get(game_state_hash, {}).items()
+        cur_gamestate_strategy = self.strategy_sum.get(game_state_hash, {})
+
+        if cur_gamestate_strategy == {}:
+            print("gamestate not seen yet")
+            actions = player.get_available_actions(game_state, player.player_index)
+            cur_gamestate_strategy = {action: 1/len(actions) for action in actions}
+        cur_gamestate_strategy = cur_gamestate_strategy.items()
+
         for action, value in cur_gamestate_strategy:
             normalization_sum += value
 

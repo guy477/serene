@@ -28,6 +28,7 @@ cdef class Player:
 
     cpdef get_action(self, GameState game_state, int player_index):
         cdef str user_input
+        cdef float raise_amount
         cdef bint valid = 0
         cdef bint raize = 0
         
@@ -41,12 +42,13 @@ cdef class Player:
                     self.take_action(game_state, player_index, ("call", 0))
                     valid = 1
                 elif user_input == "raise":
-                    user_input = self.get_user_input("Enter sizing: " + str(self.bet_sizing[game_state.cur_round_index]))
+                    user_input = self.get_user_input("Enter sizing: " + str(self.bet_sizing[game_state.cur_round_index]) + " : ")
                     try:
-                        user_input = float(user_input)
+                        raise_amount = float(user_input)
                     except Exception as e:
+                        print(str(e))
                         continue
-                    self.take_action(game_state, player_index, ("raise", user_input))
+                    self.take_action(game_state, player_index, ("raise", raise_amount))
                     raize = 1
                     valid = 1
                 elif user_input == "all-in":
@@ -66,13 +68,11 @@ cdef class Player:
         bet_amount = max(game_state.big_blind, game_state.current_bet)
         cdef Player player = game_state.players[player_index]
         cdef int call_amount
+        cdef bint raize = False
 
         # We want the current betting history to have the player's position as well.
         # this can probably be restricted to the first round if complexity in future states becomes too much of an issue.
         game_state.betting_history[game_state.cur_round_index].append((self.position, action))
-
-        if player.folded or player.chips <= 0:
-            return
         
         if action[0] == "call":
             call_amount = game_state.current_bet - player.contributed_to_pot
@@ -85,44 +85,15 @@ cdef class Player:
             player.tot_contributed_to_pot += call_amount
             player.folded = False
 
-        elif action[0] == "raise":
-            bet_amount = (action[1]) * game_state.pot
-            if bet_amount < game_state.current_bet:
-                if bet_amount != player.chips:
-                    raise ValueError("Raise amount must be at least equal to the current bet or an all-in.")
+        elif action[0] == "raise" or action[0] == "blinds" or action[0] == "all-in":
+            if action[0] == "blinds":
+                bet_amount = action[1]
+            elif action[0] == "raise":
+                bet_amount = int((action[1]) * game_state.pot)
+                raize = True
+            else:
+                bet_amount = player.chips
             
-            call_amount = game_state.current_bet - player.contributed_to_pot
-            if call_amount + bet_amount > player.chips:
-                bet_amount = player.chips - call_amount
-
-            player.chips -= (call_amount + bet_amount)
-            game_state.pot += (call_amount + bet_amount)
-            player.contributed_to_pot += (call_amount + bet_amount)
-            player.tot_contributed_to_pot += (call_amount + bet_amount)
-            game_state.current_bet += bet_amount
-            player.folded = False
-
-            # if player.chips <= 0:
-            #     print(f"Player {player_index + 1} is out of chips.")
-        elif action[0] == "blinds":
-            bet_amount = action[1]
-            if bet_amount < game_state.current_bet:
-                if bet_amount != player.chips:
-                    raise ValueError("Raise amount must be at least equal to the current bet or an all-in.")
-            
-            call_amount = game_state.current_bet - player.contributed_to_pot
-            if call_amount + bet_amount > player.chips:
-                bet_amount = player.chips - call_amount
-
-            player.chips -= (call_amount + bet_amount)
-            game_state.pot += (call_amount + bet_amount)
-            player.contributed_to_pot += (call_amount + bet_amount)
-            player.tot_contributed_to_pot += (call_amount + bet_amount)
-            game_state.current_bet += bet_amount
-            player.folded = False
-
-        elif action[0] == "all-in":
-            bet_amount = player.chips
             if bet_amount < game_state.current_bet:
                 if bet_amount != player.chips:
                     raise ValueError("Raise amount must be at least equal to the current bet or an all-in.")
@@ -144,6 +115,8 @@ cdef class Player:
         else:
             raise ValueError("Invalid action")
 
+        return raize
+
 
     cpdef add_card(self, unsigned long long card):
         self.hand |= card
@@ -152,21 +125,23 @@ cdef class Player:
         return input(prompt)
 
     cpdef get_available_actions(self, GameState game_state, int player_index):
-        ret = [('call', 0), ('fold', 0)]
+        ret = [('call', 0), ('fold', 0), ('all-in', 0)]
         cdef Player player = game_state.players[player_index]
         
-
-        if player.chips < 0 or player.folded:
+        if player.folded or player.chips <= 0:
             return []
+            
+        if player.chips < game_state.current_bet:
+            ret.remove(('call', 0))
+        
+        if player.chips == game_state.pot + game_state.current_bet:
+            ret.remove(('all-in', 0))
 
         if player.chips > game_state.current_bet:
             for i in self.bet_sizing[game_state.cur_round_index]:
-                if player.chips > game_state.pot * i and game_state.pot * i > game_state.current_bet:
+                if player.chips >= (game_state.current_bet + int(game_state.pot * i)) and int(game_state.pot * i) > game_state.current_bet and player.chips > int(game_state.pot * i):
                     # we dont want to represent the raise as the actual amount, that way the CFR mapping knows what it's looking at.
                     ret.append(('raise', i))
-
-            # if the current player's chips is greater than the current bet, they can go all-in.
-            ret.append(('all-in', 0))
         
 
         if game_state.current_bet == 0 or player.contributed_to_pot == game_state.current_bet:

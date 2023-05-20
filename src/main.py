@@ -14,7 +14,7 @@ from sklearn.cluster import MiniBatchKMeans
 
 def main():
     num_players = 2
-    num_ai_players = 2
+    num_ai_players = 1
 
     # pot relative bet-sizings for preflop, flop, turn, and river
     bet_sizing = [(1, 2), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
@@ -23,9 +23,9 @@ def main():
     small_blind = 5
     big_blind = 10
 
-    num_simulations = 1
+    num_simulations = 50
 
-    num_iterations = 5000
+    num_iterations = 50
     realtime_iterations = 500
     cfr_depth = 16
     cfr_realtime_depth = 4
@@ -39,7 +39,7 @@ def main():
     game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer)
 
     # Play the game
-    # game.play_game(num_hands=1)
+    game.play_game(num_hands=1)
     print('\n\n')
 
 def cluster():
