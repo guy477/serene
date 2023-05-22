@@ -13,6 +13,8 @@ from libc.stdlib cimport rand, srand
 import logging
 
 import time
+
+# Seed random
 srand(time.time())
 
 
@@ -30,11 +32,14 @@ cdef class GameState:
 
         self.num_simulations = num_simulations
 
+        # Keep track of the current round. 0 = preflop, 1 = flop, etc.
         self.cur_round_index = 0
         
+        # Index of dealer and current, acting player.
         self.dealer_position = 0
         self.player_index = (self.dealer_position + 3) % len(self.players)
         
+        # Terminal state depends on the number of active players at the start of a given round.
         self.round_active_players = len(players)
         self.num_actions = 0
         self.last_raiser = -1
@@ -48,46 +53,7 @@ cdef class GameState:
         self.deck = create_deck()
         self.fisher_yates_shuffle()
 
-    cpdef reset(self):
-        self.deck = create_deck()
-        self.fisher_yates_shuffle()
-
-        self.cur_round_index = 0
-        
-        self.round_active_players = len(self.players)
-
-        self.pot = 0
-        self.current_bet = 0
-        self.winner_index = -1
-        self.last_raiser = -1
-
-        self.betting_history = [[],[],[],[]]
-
-        self.board = 0
-        for player in self.players:
-            player.reset()
-        self.dealer_position = (self.dealer_position + (self.round_active_players - 1)) % self.round_active_players
-
-        self.player_index = (self.dealer_position + 3) % len(self.players)
-        #self.last_raiser = (self.dealer_position + 2) % len(self.players) # this is the big blind index
-        self.num_actions = 0
-
-    cpdef clone(self):
-        cdef GameState new_state = GameState(self.players[:], self.small_blind, self.big_blind, self.num_simulations)
-        for i in range(len(self.players)):
-            new_state.players[i] = self.players[i].clone()
-        new_state.cur_round_index = self.cur_round_index
-        new_state.dealer_position = self.dealer_position
-        new_state.player_index = self.player_index
-        new_state.num_actions = self.num_actions
-        new_state.last_raiser = self.last_raiser
-        new_state.pot = self.pot
-        new_state.current_bet = self.current_bet
-        new_state.board = self.board
-        new_state.deck = self.deck[:]
-        new_state.betting_history = [sublist[:] for sublist in self.betting_history]
-        return new_state
-
+    
     cpdef load_custom_betting_history(self, int round, object history):
         self.betting_history[round].append(history)
 
@@ -152,6 +118,9 @@ cdef class GameState:
             self.deal_private_cards(hand)
         else:
             self.deal_private_cards()
+        
+        # dont want to count posting blinds as actions
+        self.num_actions = 0
         # used to help determine if we've reached a terminal state
         self.round_active_players = self.active_players()
     
@@ -275,12 +244,12 @@ cdef class GameState:
     cpdef bint is_terminal(self):
         # we can determine if the current round has reached a terminal state if every (active) player has been given the opportunity to act, the current player index is the prior raiser, or there is only one player left in the hand.
         # Do i need to add a HAS_FOLDED variable for the first comparison?
-        return ((self.num_actions) >= self.round_active_players and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or (self.active_players() <= 1)
+        return ((self.num_actions) >= self.round_active_players and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or (self.active_players() == 1) or (self.allin_players() == (self.active_players()))
 
     cpdef bint is_terminal_river(self):
         # we can determine if the current round has reached a terminal state if every player has been given the opportunity to act, the current player index is the prior raiser, or there is only one player left in the hand.
-        return ((self.cur_round_index >= 4) or (self.board_has_five_cards() and self.is_terminal()))
-    
+        return ((self.cur_round_index >= 4) or (self.board_has_five_cards() and self.is_terminal())) or (self.active_players() == 1) or (self.allin_players() == (self.active_players()))
+
     cdef void fisher_yates_shuffle(self):
         cdef int i, j
         cdef unsigned long long temp
@@ -291,6 +260,13 @@ cdef class GameState:
             temp = self.deck[i]
             self.deck[i] = self.deck[j]
             self.deck[j] = temp
+
+    cpdef int allin_players(self):
+        cdef int allin = 0
+        for i in range(len(self.players)):
+            if (not self.players[i].chips):
+                allin += 1
+        return allin
 
     cpdef int active_players(self):
         cdef int alive = 0
@@ -307,6 +283,70 @@ cdef class GameState:
 
     cpdef int num_board_cards(self):
         return bin(self.board).count('1')
+
+    cpdef reset(self):
+        self.deck = create_deck()
+        self.fisher_yates_shuffle()
+
+        self.cur_round_index = 0
+        
+        self.round_active_players = len(self.players)
+
+        self.pot = 0
+        self.current_bet = 0
+        self.winner_index = -1
+        self.last_raiser = -1
+
+        self.betting_history = [[],[],[],[]]
+
+        self.board = 0
+        for player in self.players:
+            player.reset()
+        self.dealer_position = (self.dealer_position + (self.round_active_players - 1)) % self.round_active_players
+
+        self.player_index = (self.dealer_position + 3) % len(self.players)
+        #self.last_raiser = (self.dealer_position + 2) % len(self.players) # this is the big blind index
+        self.num_actions = 0
+
+    cpdef clone(self):
+        cdef GameState new_state = GameState(self.players[:], self.small_blind, self.big_blind, self.num_simulations)
+        for i in range(len(self.players)):
+            new_state.players[i] = self.players[i].clone()
+        new_state.cur_round_index = self.cur_round_index
+        new_state.dealer_position = self.dealer_position
+        new_state.player_index = self.player_index
+        new_state.num_actions = self.num_actions
+        new_state.last_raiser = self.last_raiser
+        new_state.pot = self.pot
+        new_state.current_bet = self.current_bet
+        new_state.board = self.board
+        new_state.deck = self.deck[:]
+        new_state.betting_history = [sublist[:] for sublist in self.betting_history]
+        return new_state
+
+
+    cpdef debug_output(self):
+        print(f"is_terminal(): {self.is_terminal()}" )
+        print(f"is_terminal_river(): {self.is_terminal_river()}")
+        print(f"cur_round_index: {self.cur_round_index}")
+        print(f"cur_pot: {self.pot}")
+        print(f"cur_bet: {self.current_bet}")
+        print(f"num_actions: {self.num_actions}")
+        print(f"last_raiser: {self.last_raiser}")
+        print(f"player_index: {self.player_index}")
+        print(f"dealer_position: {self.dealer_position}")
+        print(f"BOARD: {format_hand(self.board)}")
+        print(f"___________")
+        for i in self.players:
+            print(f"Player {i.player_index}")
+            print(f"Player {i.player_index} position: {i.position}")
+            print(f"Player {i.player_index} chips: {i.chips}")
+            print(f"Player {i.player_index} folded: {i.folded}")
+            print(f"Player {i.player_index} abstracted: {i.abstracted_hand}")
+            print(f"Player {i.player_index} numeric hnd: {format_hand(i.hand)}")
+            print(f"Player {i.player_index} contributed: {i.contributed_to_pot}")
+            print(f"Player {i.player_index} tot contrib: {i.tot_contributed_to_pot}")
+            continue
 
 cpdef unsigned long long card_to_int(str suit, str value):
     cdef unsigned long long one = 1

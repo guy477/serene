@@ -14,21 +14,23 @@ from sklearn.cluster import MiniBatchKMeans
 
 def main():
     num_players = 2
-    num_ai_players = 1
+    num_ai_players = 2
 
     # pot relative bet-sizings for preflop, flop, turn, and river
-    bet_sizing = [(1, 2), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
+    bet_sizing = [(2.5, 8), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
 
     initial_chips = 1000
     small_blind = 5
     big_blind = 10
 
+    num_hands = 5
+
     num_simulations = 50
 
-    num_iterations = 50
+    num_iterations = 5
     realtime_iterations = 500
-    cfr_depth = 16
-    cfr_realtime_depth = 4
+    cfr_depth = 500
+    cfr_realtime_depth = 500
     
 
     # Train the AI player using the CFR algorithm
@@ -39,7 +41,7 @@ def main():
     game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer)
 
     # Play the game
-    game.play_game(num_hands=1)
+    game.play_game(num_hands)
     print('\n\n')
 
 def cluster():

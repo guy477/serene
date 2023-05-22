@@ -39,8 +39,14 @@ cdef class CFRTrainer:
 
         # just two suits
         suits = ['C', 'S']
+
         # Define all possible ranks
         ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+
+        # Generate all possible 2-card hands
+        all_possible_hands = [(r1 + r2 + 's') for r1 in ranks for r2 in ranks if r1 != r2 and (ranks.index(r1) > ranks.index(r2))]  # Suited hands
+        all_possible_hands += [(r1 + r2 + 'o')  for r1 in ranks for r2 in ranks if (ranks.index(r1) >= ranks.index(r2))]  # Offsuit hands
+        all_possible_hands = sorted(all_possible_hands)
 
         # Generate all possible cards
         cards = [r + s for r in reversed(ranks) for s in suits]
@@ -48,15 +54,16 @@ cdef class CFRTrainer:
         # Generate all possible hands
         hands = list(sorted(itertools.combinations(cards, 2)))
 
+        # Define the a new gamestate for training.
         players = [AIPlayer(self.initial_chips, self.bet_sizing, self) for _ in range(self.num_players)]
         game_state = GameState(players, self.small_blind, self.big_blind, self.num_simulations)
 
-        # there should be a way to do a guided train - that is, we dont need to randomly set up the preflop positions each time when we could preload the abstracted positions
-
         for _ in range(self.iterations):
-            alpha = .1
-            for hand in hands:
+            # define exploitation parameter; 10% of the time we explore regardless of the strategy values.
+            epsilon = .1
 
+            # Guided Training; for each iteration we consider all abstracted preflop positions.
+            for hand in hands:
                 print(f'iterations: {_}; Hand {hand}', end = '\r')
                 
                 game_state.setup_preflop(hand)
@@ -64,22 +71,15 @@ cdef class CFRTrainer:
                 probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
                 for i in range(len(probs)):
                     probs[i] = 1
-                self.cfr_traverse(game_state, game_state.player_index, probs, 0, self.cfr_depth, alpha)
                 
-        
-        print()
+                self.cfr_traverse(game_state, probs, 0, self.cfr_depth, epsilon)
 
-
-        # reset the dealer position so that player index 0 is UTG
+        # reset the dealer position so that player index 0 is first to act.
         game_state.dealer_position = 4
         game_state.setup_preflop()
 
-        # Generate all possible 2-card hands
-        all_possible_hands = [(r1 + r2 + 's') for r1 in ranks for r2 in ranks if r1 != r2 and (ranks.index(r1) > ranks.index(r2))]  # Suited hands
-        all_possible_hands += [(r1 + r2 + 'o')  for r1 in ranks for r2 in ranks if (ranks.index(r1) >= ranks.index(r2))]  # Offsuit hands
-        all_possible_hands = sorted(all_possible_hands)
-        print(len(all_possible_hands))
-        # extract up-opened preflop ranges
+
+        # extract un-opened preflop ranges
         preflop_range = []
         for player_idx in range(len(players)):
             player = players[player_idx]
@@ -91,6 +91,7 @@ cdef class CFRTrainer:
                 player.abstracted_hand = hand
                 strategy = self.get_average_strategy(player, game_state)
                 preflop_range += [(player.position, hand, strategy)]
+        
         return preflop_range
 
 
@@ -107,69 +108,75 @@ cdef class CFRTrainer:
                 game_state.deck.extend(hand_to_cards(hands[-1]))
                 game_state.players[i].hand = 0
         
-        # Peform an iteration number of searches
+        # Traverse the gametree for however many iterations are specified
         for _ in range(self.realtime_iterations):
             print(f'iterations: {_}', end = '\r')
+
             probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
             for i in range(len(probs)):
                 probs[i] = 1
-            self.cfr_traverse(game_state.clone(), game_state.player_index, probs, 0, self.cfr_realtime_depth, .1)
+            
+            self.cfr_traverse(game_state.clone(), probs, 0, self.cfr_realtime_depth, .1)
 
-
+        # reassign private information.
         for i in range(len(game_state.players)):
             if not i == game_state.player_index:
                 game_state.players[i].hand = hands.pop(0)
 
+        # reset potential public information
         game_state.deck = deck[:]
         
 
-    cdef cfr_traverse(self, GameState game_state, int player, float[:] probs, int depth, int max_depth, float epsilon = 0):
+    cdef cfr_traverse(self, GameState game_state, float[:] probs, int depth, int max_depth, float epsilon = 0):
         cdef int num_players = len(game_state.players)
         cdef float[:] new_probs = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
         cdef float[:] node_util = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
-
+        
         # Base case: Check if the game has reached a terminal state
         if game_state.is_terminal_river() or depth >= max_depth:
             # Calculate and return the utility for each player
-            
             game_state.showdown()
             return self.calculate_utilities(game_state, game_state.winner_index)
 
+        # Determine the current traversing player and get their relative game_state hash.
+        # NOTE: For the realtime search, the hash will not map to any trained position since the private information is unavailable.
+        #           Still trying to figure a way to deal with this.
         current_player = game_state.player_index
         player_hash = game_state.players[current_player].hash(game_state)
 
-        available_actions = game_state.players[current_player].get_available_actions(game_state, current_player)
-        
-        strategy = self.get_strategy(available_actions, probs, game_state, game_state.players[current_player])
+        if self.regret_sum.get(player_hash, {}) == {}:
+            self.regret_sum[player_hash] = {}
 
-        # print(game_state.betting_history)
+        # Get the traversing player's available actions.
+        available_actions = game_state.players[current_player].get_available_actions(game_state, current_player)
+        strategy = self.get_strategy(available_actions, probs, game_state, game_state.players[current_player])
+        print('____________________________')
+        print(game_state.debug_output())
+        print(strategy)
 
         util = defaultdict(lambda: cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f"))
 
+        # should be a global parameter
         monte_carlo = True
 
-        # when using monte_carlo simulation, we want to sample the action space.
+        # Take sample of the action space.
         if monte_carlo:
-            if not available_actions == []:  # Only sample actions for the traversing player
+            if not available_actions == []:
                 if np.random.rand() < epsilon:
-                    # Randomly choose an action
+                    # Explore
+                    strategy = {action: 1/len(available_actions) for action in available_actions}
                     strategy_list = [1 / len(available_actions) for _ in available_actions]
+
                 else:
+                    # Choose based on current probability space
                     strategy_list = [strategy[a] for a in available_actions]
-                    # for i in reversed(game_state.betting_history):
-                    #     if i == []: 
-                    #         continue
-                    #     if[i[-1][0] == 'all-in']:
-                    #         print()
-                    #         print(game_state.players[current_player].abstracted_hand)
-                    #         print(available_actions)
-                    #         print(strategy_list)
-                # Now sample an index instead of an action
+
+                # Choose action
                 action_index = np.random.choice(range(len(available_actions)), p=strategy_list)
 
-                # And retrieve the action from the list
+                # Retrieve the action from the list
                 action = available_actions[action_index]
-                # action = np.random.choice(available_actions, p=[strategy[a] for a in available_actions])
+                
                 available_actions = [action]
 
     
@@ -186,29 +193,23 @@ cdef class CFRTrainer:
                 else:
                     new_game_state.setup_postflop('postflop')
 
-            
             # Update the probability distribution for the new game state
             for i in range(num_players):
                 if i == current_player:
                     new_probs[i] = probs[i] * strategy[action]
                 else:
                     new_probs[i] = probs[i]
-                    
-            util[action] = self.cfr_traverse(new_game_state, current_player, new_probs, depth + 1, max_depth, epsilon)
+            
+            # Recursively call this function with current_player as the traversing player. 
+            util[action] = self.cfr_traverse(new_game_state, new_probs, depth + 1, max_depth, epsilon)
 
-            for i in range(num_players):
-                node_util[i] += strategy[action] * util[action][i]
-    
+            
 
-        if self.regret_sum.get(player_hash, {}) == {}:
-            self.regret_sum[player_hash] = {}
+        
+        # Update node util based on recursive results.
+        for i in range(num_players):
+            node_util[i] = sum(strategy[action] * util[action][i] for action in available_actions)
 
-
-        '''
-        I'm not quite sure if the below line is necessary or not; based on my recursive call, It's my intuition that current_player == player for all recursive cases
-            The only adjustment that can be made is if the recursive call recursively passes "player" back to itself, this seems like the appropriate approach for the realtime case...
-        '''
-        # if player == current_player:
         for action in available_actions:
             regret = util[action][current_player] - node_util[current_player]
             # sort of hacky; defaultdicts are not respected in cython.
@@ -216,8 +217,8 @@ cdef class CFRTrainer:
             if self.regret_sum[player_hash].get(action, 0) == 0:
                 self.regret_sum[player_hash][action] = 0
             self.regret_sum[player_hash][action] += regret
-            # self.regret_sum[player_hash][action] = (1-alpha) * self.regret_sum[player_hash][action] + alpha * regret
-            
+
+
 
         return node_util
 
@@ -231,6 +232,8 @@ cdef class CFRTrainer:
         # Check if there is only one active player (i.e., all other players have folded)
         remaining_players = sum([not p.folded for p in game_state.players])
         
+        # TODO: add simulation code from ccluster to estimate hand probs based on player's hand range based on 
+        #       preflop ranges 
         if remaining_players == 1:
             for i, p in enumerate(game_state.players):
                 if not p.folded:
@@ -246,7 +249,7 @@ cdef class CFRTrainer:
                     # The winner gains the pot minus their contributed chips
                     utilities[i] = pot - p.tot_contributed_to_pot
                 else:
-                    # Non-winning players lose their contributed chips
+                    # Non-winning players lose their contributed chips;;;  + (p.chips if p.folded else 0)
                     utilities[i] = -p.tot_contributed_to_pot
         
         return utilities
@@ -257,8 +260,13 @@ cdef class CFRTrainer:
         if self.strategy_sum.get(player_hash, {}) == {}:
             self.strategy_sum[player_hash] = {}     
 
+        if available_actions == []:
+            return {}
+
         strategy = {action: max(self.regret_sum.get(player_hash, {}).get(action, 0), 0) for action in available_actions}
         normalization_sum = sum(strategy.values())
+        
+        
         if normalization_sum > 0:
             for action in strategy:
                 # initialize nested mapping if necessary
@@ -268,16 +276,33 @@ cdef class CFRTrainer:
                 strategy[action] /= normalization_sum
                 self.strategy_sum[player_hash][action] += probs[current_player] * strategy[action]
             
-
+        # either the regrets are all zero, or there are no regrets. In the case the regrets are all zero, we want to distribute the probabilities accordingly.
         else:
-            num_actions = len(available_actions)
+            strategy = {action: self.regret_sum.get(player_hash, {}).get(action, 0) for action in available_actions}
+            min_regret = min(strategy.values())
+        
             for action in strategy:
-                # initialize nested mapping if necessary
-                if self.strategy_sum[player_hash].get(action, 0) == 0:
-                    self.strategy_sum[player_hash][action] = 0
-                
-                strategy[action] = 1 / num_actions
-                self.strategy_sum[player_hash][action] += probs[current_player] * strategy[action]
+                strategy[action] -= min_regret
+
+            normalization_sum = sum(strategy.values())
+
+            # regrets are negative
+            if normalization_sum > 0:
+                for action in strategy:
+                    if self.strategy_sum[player_hash].get(action, 0) == 0:
+                        self.strategy_sum[player_hash][action] = 0
+                    strategy[action] /= normalization_sum
+                    self.strategy_sum[player_hash][action] += probs[current_player] * strategy[action]
+            # regrets are all zero
+            else:
+                num_actions = len(available_actions)
+                for action in strategy:
+                    # initialize nested mapping if necessary
+                    if self.strategy_sum[player_hash].get(action, 0) == 0:
+                        self.strategy_sum[player_hash][action] = 0
+                    
+                    strategy[action] = 1 / num_actions
+                    self.strategy_sum[player_hash][action] += probs[current_player] * strategy[action]
 
 
         return strategy    

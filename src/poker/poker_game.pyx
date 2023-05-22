@@ -28,28 +28,38 @@ cdef class PokerGame:
             
             # the game is reset as a part of the preflop_setup.
             print('dealing preflop')
+            print(self.game_state.debug_output())
             self.game_state.setup_preflop()
+            print(self.game_state.debug_output())
             while(not self.game_state.handle_action()):
+                print(self.game_state.debug_output())
                 continue
         
             print('dealing flop')
             self.game_state.setup_postflop("flop")
+            print(self.game_state.debug_output())
             while(not self.game_state.handle_action()):
+                print(self.game_state.debug_output())
                 continue
 
             print('dealing turn')
             self.game_state.setup_postflop("turn")
+            print(self.game_state.debug_output())
             while(not self.game_state.handle_action()):
+                print(self.game_state.debug_output())
                 continue
 
             print('dealing river')
             self.game_state.setup_postflop("river")
+            print(self.game_state.debug_output())
             while(not self.game_state.handle_action()):
+                print(self.game_state.debug_output())
                 continue
 
             print("Showdown")
             # Determine the winner and distribute the pot
             self.game_state.showdown()
+            print(self.game_state.debug_output())
 
             # Log some statistics for debugging/analysis
             self.profit_loss.append([i.chips for i in self.game_state.players])
@@ -57,7 +67,7 @@ cdef class PokerGame:
                 self.position_pl[i.position] += i.prior_gains - i.tot_contributed_to_pot
                 #i.chips = 1000
             print(f"Player {self.game_state.winner_index + 1} wins the hand.")
-            
+            input("Press enter to continue to next hand.")
 
         pd.DataFrame(self.profit_loss).to_csv("results/profit_loss.csv")
         

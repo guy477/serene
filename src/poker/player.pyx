@@ -87,18 +87,21 @@ cdef class Player:
 
         elif action[0] == "raise" or action[0] == "blinds" or action[0] == "all-in":
             if action[0] == "blinds":
+                call_amount = 0
                 bet_amount = action[1]
             elif action[0] == "raise":
                 bet_amount = int((action[1]) * game_state.pot)
+                call_amount = game_state.current_bet - player.contributed_to_pot
                 raize = True
             else:
+                call_amount = game_state.current_bet - player.contributed_to_pot
                 bet_amount = player.chips
             
             if bet_amount < game_state.current_bet:
                 if bet_amount != player.chips:
                     raise ValueError("Raise amount must be at least equal to the current bet or an all-in.")
             
-            call_amount = game_state.current_bet - player.contributed_to_pot
+            
             if call_amount + bet_amount > player.chips:
                 bet_amount = player.chips - call_amount
 
@@ -106,7 +109,7 @@ cdef class Player:
             game_state.pot += (call_amount + bet_amount)
             player.contributed_to_pot += (call_amount + bet_amount)
             player.tot_contributed_to_pot += (call_amount + bet_amount)
-            game_state.current_bet += bet_amount
+            game_state.current_bet = bet_amount
             player.folded = False
 
         elif action[0] == "fold":
@@ -127,26 +130,19 @@ cdef class Player:
     cpdef get_available_actions(self, GameState game_state, int player_index):
         ret = [('call', 0), ('fold', 0), ('all-in', 0)]
         cdef Player player = game_state.players[player_index]
-        
+    
         if player.folded or player.chips <= 0:
             return []
-            
-        if player.chips < game_state.current_bet:
-            ret.remove(('call', 0))
-        
-        if player.chips == game_state.pot + game_state.current_bet:
-            ret.remove(('all-in', 0))
 
-        if player.chips > game_state.current_bet:
+        if player.chips >= game_state.current_bet:
             for i in self.bet_sizing[game_state.cur_round_index]:
                 if player.chips >= (game_state.current_bet + int(game_state.pot * i)) and int(game_state.pot * i) > game_state.current_bet and player.chips > int(game_state.pot * i):
                     # we dont want to represent the raise as the actual amount, that way the CFR mapping knows what it's looking at.
                     ret.append(('raise', i))
+
+        else:
+            ret.remove(('call', 0))
         
-
-        if game_state.current_bet == 0 or player.contributed_to_pot == game_state.current_bet:
-            ret.remove(('fold', 0))
-
         return ret
 
     cpdef clone(self):
@@ -178,5 +174,6 @@ cdef class Player:
     
     cpdef hash(self, GameState game_state):
         # hsh = hash((self.abstracted_hand, game_state.board, self.position, game_state.cur_round_index, str(self.betting_history)))
+        #hsh = (self.abstracted_hand, self.position, game_state.cur_round_index, str(game_state.betting_history[0]))
         hsh = (self.abstracted_hand, game_state.board, self.position, game_state.cur_round_index, str(game_state.betting_history))
         return hsh

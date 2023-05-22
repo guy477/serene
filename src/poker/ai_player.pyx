@@ -31,17 +31,22 @@ cdef class AIPlayer(Player):
                 average_strategy = self.strategy_trainer.get_average_strategy(self, game_state)
                 
                 #####
+                print(self.strategy_trainer.regret_sum[self.hash(game_state)])
                 print(average_strategy)
                 #####
                 
+                # if there are no moves, but not folded; we're all in
                 if average_strategy == {}:
                     valid = 1
                     break
 
+                # otherwise choose a random action based on the current strategy probabilities
                 actions, probabilities = zip(*average_strategy.items())
+
 
                 # Choose an action based on the probability distribution
                 user_input = random.choices(actions, probabilities, k=1)[0]
+
 
                 #####
                 print(user_input)
@@ -69,8 +74,6 @@ cdef class AIPlayer(Player):
         cdef AIPlayer new_player = AIPlayer(self.chips, self.bet_sizing, self.strategy_trainer)
         new_player.hand = self.hand
         new_player.abstracted_hand = self.abstracted_hand
-
-        
 
         new_player.position = self.position
         new_player.player_index = self.player_index
