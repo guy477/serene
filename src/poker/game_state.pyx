@@ -126,9 +126,6 @@ cdef class GameState:
     
     cpdef setup_postflop(self, str round_name):
         self.cur_round_index += 1
-        
-        if self.is_terminal_river():
-            return
 
         if round_name == "flop":
             for _ in range(3):
@@ -229,11 +226,13 @@ cdef class GameState:
                         best_score = player_score
                         self.winner_index = i
 
-                    win_rate[self.winner_index] += 1
+                win_rate[self.winner_index] += 1
 
             max_value = max(win_rate)
             self.winner_index = win_rate.index(max_value)
-
+            for i, p in enumerate(self.players):
+                p.expected_hand_strength = win_rate[i] / self.num_simulations
+            
         # distribute winnings (this less tot_contributed to pot is the net_winnings... right? lmao)
         self.players[self.winner_index].prior_gains += (self.pot)
         # Distribute the pot to the winner

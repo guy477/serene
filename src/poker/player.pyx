@@ -16,6 +16,7 @@ cdef class Player:
         self.position = ''
         self.player_index = 0
         self.prior_gains = 0
+        self.expected_hand_strength = 1
         self.contributed_to_pot = 0
         self.tot_contributed_to_pot = 0
         
@@ -65,7 +66,7 @@ cdef class Player:
         return raize
 
     cpdef take_action(self, GameState game_state, int player_index, object action):
-        bet_amount = max(game_state.big_blind, game_state.current_bet)
+        
         cdef Player player = game_state.players[player_index]
         cdef int call_amount
         cdef bint raize = False
@@ -83,7 +84,6 @@ cdef class Player:
             game_state.pot += call_amount
             player.contributed_to_pot += call_amount
             player.tot_contributed_to_pot += call_amount
-            player.folded = False
 
         elif action[0] == "raise" or action[0] == "blinds" or action[0] == "all-in":
             if action[0] == "blinds":
@@ -94,7 +94,7 @@ cdef class Player:
                 call_amount = game_state.current_bet - player.contributed_to_pot
                 raize = True
             else:
-                call_amount = game_state.current_bet - player.contributed_to_pot
+                call_amount = 0
                 bet_amount = player.chips
             
             if bet_amount < game_state.current_bet:
@@ -110,7 +110,6 @@ cdef class Player:
             player.contributed_to_pot += (call_amount + bet_amount)
             player.tot_contributed_to_pot += (call_amount + bet_amount)
             game_state.current_bet = bet_amount
-            player.folded = False
 
         elif action[0] == "fold":
             player.folded = True
@@ -152,7 +151,7 @@ cdef class Player:
         new_player.position = self.position
         new_player.player_index = self.player_index
 
-
+        new_player.expected_hand_strength = self.expected_hand_strength
         new_player.abstracted_hand = self.abstracted_hand
         new_player.folded = self.folded
         new_player.contributed_to_pot = self.contributed_to_pot
@@ -165,6 +164,7 @@ cdef class Player:
         self.abstracted_hand = ''
         self.folded = False
         # if self.chips == 0:
+        self.expected_hand_strength = 1
         self.chips = 1000
         self.position = ''
         self.player_index = 0

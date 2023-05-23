@@ -8,6 +8,7 @@ cdef class Player:
     cdef public str abstracted_hand
     cdef public str position
     cdef public int player_index
+    cdef public float expected_hand_strength
     cdef public bint folded
     cdef public int contributed_to_pot
     cdef public int tot_contributed_to_pot

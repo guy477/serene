@@ -25,12 +25,12 @@ def main():
 
     num_hands = 5
 
-    num_simulations = 50
+    num_simulations = 250
 
-    num_iterations = 5
-    realtime_iterations = 500
-    cfr_depth = 500
-    cfr_realtime_depth = 500
+    num_iterations = 10
+    realtime_iterations = 50
+    cfr_depth = 1000
+    cfr_realtime_depth = 1000
     
 
     # Train the AI player using the CFR algorithm

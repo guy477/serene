@@ -31,7 +31,7 @@ cdef class AIPlayer(Player):
                 average_strategy = self.strategy_trainer.get_average_strategy(self, game_state)
                 
                 #####
-                print(self.strategy_trainer.regret_sum[self.hash(game_state)])
+                print(self.strategy_trainer.regret_sum.get(self.hash(game_state), "no regret"))
                 print(average_strategy)
                 #####
                 
@@ -42,12 +42,13 @@ cdef class AIPlayer(Player):
 
                 # otherwise choose a random action based on the current strategy probabilities
                 actions, probabilities = zip(*average_strategy.items())
+                
 
 
                 # Choose an action based on the probability distribution
                 user_input = random.choices(actions, probabilities, k=1)[0]
 
-
+                user_input = actions[probabilities.index(max(probabilities))]
                 #####
                 print(user_input)
                 #####
@@ -77,7 +78,7 @@ cdef class AIPlayer(Player):
 
         new_player.position = self.position
         new_player.player_index = self.player_index
-
+        new_player.expected_hand_strength = self.expected_hand_strength
         new_player.folded = self.folded
         new_player.contributed_to_pot = self.contributed_to_pot
         new_player.tot_contributed_to_pot = self.tot_contributed_to_pot

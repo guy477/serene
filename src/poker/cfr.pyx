@@ -51,7 +51,7 @@ cdef class CFRTrainer:
         # Generate all possible cards
         cards = [r + s for r in reversed(ranks) for s in suits]
 
-        # Generate all possible hands
+        # Generate all possible hands (for testing, we can sample this to focus on the first n to maximize iteration potential)
         hands = list(sorted(itertools.combinations(cards, 2)))
 
         # Define the a new gamestate for training.
@@ -150,14 +150,11 @@ cdef class CFRTrainer:
         # Get the traversing player's available actions.
         available_actions = game_state.players[current_player].get_available_actions(game_state, current_player)
         strategy = self.get_strategy(available_actions, probs, game_state, game_state.players[current_player])
-        print('____________________________')
-        print(game_state.debug_output())
-        print(strategy)
 
         util = defaultdict(lambda: cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f"))
 
-        # should be a global parameter
-        monte_carlo = True
+        # Brain blast idea: use vanilla CFR up to a depth of n; then switch to MCCFR to evaluate to the end of the decision space
+        monte_carlo = depth > 4
 
         # Take sample of the action space.
         if monte_carlo:
@@ -165,7 +162,7 @@ cdef class CFRTrainer:
                 if np.random.rand() < epsilon:
                     # Explore
                     strategy = {action: 1/len(available_actions) for action in available_actions}
-                    strategy_list = [1 / len(available_actions) for _ in available_actions]
+                    strategy_list = [1/len(available_actions) for _ in available_actions]
 
                 else:
                     # Choose based on current probability space
@@ -202,7 +199,6 @@ cdef class CFRTrainer:
             
             # Recursively call this function with current_player as the traversing player. 
             util[action] = self.cfr_traverse(new_game_state, new_probs, depth + 1, max_depth, epsilon)
-
             
 
         
@@ -238,19 +234,19 @@ cdef class CFRTrainer:
             for i, p in enumerate(game_state.players):
                 if not p.folded:
                     # The remaining player wins the pot
-                    utilities[i] = pot - p.tot_contributed_to_pot
+                    utilities[i] = (pot * p.expected_hand_strength - p.tot_contributed_to_pot) 
                 else:
                     # Players who folded lose their contributed chips
-                    utilities[i] = -p.tot_contributed_to_pot
+                    utilities[i] = -p.tot_contributed_to_pot * (p.expected_hand_strength)
         else:
     
             for i, p in enumerate(game_state.players):
-                if i == winner_index:
+                #if i == winner_index:
                     # The winner gains the pot minus their contributed chips
-                    utilities[i] = pot - p.tot_contributed_to_pot
-                else:
-                    # Non-winning players lose their contributed chips;;;  + (p.chips if p.folded else 0)
-                    utilities[i] = -p.tot_contributed_to_pot
+                    utilities[i] = (pot * p.expected_hand_strength - p.tot_contributed_to_pot)
+                # else:
+                #     # Non-winning players lose their contributed chips;;;  + (p.chips if p.folded else 0)
+                #     utilities[i] = -p.tot_contributed_to_pot
         
         return utilities
 
@@ -314,7 +310,6 @@ cdef class CFRTrainer:
         cur_gamestate_strategy = self.strategy_sum.get(game_state_hash, {})
 
         if cur_gamestate_strategy == {}:
-            print("gamestate not seen yet")
             actions = player.get_available_actions(game_state, player.player_index)
             cur_gamestate_strategy = {action: 1/len(actions) for action in actions}
         cur_gamestate_strategy = cur_gamestate_strategy.items()
