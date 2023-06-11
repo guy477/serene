@@ -27,7 +27,7 @@ def main():
 
     num_simulations = 250
 
-    num_iterations = 10
+    num_iterations = 25
     realtime_iterations = 50
     cfr_depth = 1000
     cfr_realtime_depth = 1000
