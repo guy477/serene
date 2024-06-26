@@ -1,87 +1,31 @@
-Hand #4 - Holdem (No Limit) - 2024/06/25 19:53:34 UTC
+Hand #1 - Holdem (No Limit) - 2024/06/26 14:31:36 UTC
 Firestone 6-max Seat #1 is the button
-Seat 1: D ($1010.00)
-Seat 2: SB ($990.00)
+Seat 1: D ($1234.00)
+Seat 2: SB ($766.00)
 SB posts the small blind $5.00
 D posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to D [8D JD]
-Dealt to SB [7C 8C]
+Dealt to D [AC TD]
+Dealt to SB [6C KD]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('D', ('blinds', 10))
-('SB', ('call', 0))
+('SB', ('raise', 2.5))
 ('D', ('call', 0))
 *** FLOP ***
 ('SB', ('call', 0))
-('D', ('call', 0))
+('D', ('raise', 0.33000001311302185))
+('SB', ('call', 0))
 *** TURN ***
 ('SB', ('call', 0))
 ('D', ('call', 0))
 *** RIVER ***
-('SB', ('call', 0))
+('SB', ('raise', 1.2000000476837158))
 ('D', ('call', 0))
-Board 6C JC AC 7D QD
+Board 8C 9C TC QC 6D
 *** SHOW DOWN ***
-D shows [8D JD] (player.hand_description())
-SB shows [7C 8C] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-Hand #0 - Holdem (No Limit) - 2024/06/26 11:43:43 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($990.00)
-Seat 2: SB ($1010.00)
-SB posts the small blind $5.00
-D posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [TC AC]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('D', ('blinds', 10))
-('SB', ('raise', 2.5))
-('D', ('fold', 0))
-Board 7C 9C 7D QD KD
-*** SHOW DOWN ***
-SB shows [TC AC] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-Hand #2 - Holdem (No Limit) - 2024/06/26 11:43:43 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($990.00)
-Seat 2: SB ($1010.00)
-SB posts the small blind $5.00
-D posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [TC AC]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('D', ('blinds', 10))
-('SB', ('raise', 2.5))
-('D', ('fold', 0))
-Board 7C 9C 7D QD KD
-*** SHOW DOWN ***
-SB shows [TC AC] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-Hand #4 - Holdem (No Limit) - 2024/06/26 11:43:43 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($990.00)
-Seat 2: SB ($1010.00)
-SB posts the small blind $5.00
-D posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [TC AC]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('D', ('blinds', 10))
-('SB', ('raise', 2.5))
-('D', ('fold', 0))
-Board 7C 9C 7D QD KD
-*** SHOW DOWN ***
-SB shows [TC AC] (player.hand_description())
+D shows [AC TD] (player.hand_description())
+SB shows [6C KD] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()

@@ -271,12 +271,13 @@ cdef class GameState:
         self.players[self.winner_index].prior_gains += self.pot
         self.players[self.winner_index].chips += self.pot
 
+        self.log_current_hand(terminal = True)  # Log the hand here if terminal at river
+
         
 
     cpdef bint is_terminal(self):
         if ((self.num_actions >= self.round_active_players and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or
             self.active_players() == 1 or self.allin_players() == self.active_players()):
-            self.log_current_hand()  # Log the hand here if terminal
             return True
         return False
 
@@ -284,7 +285,6 @@ cdef class GameState:
         if (self.cur_round_index >= 4 or
             (self.board_has_five_cards() and self.is_terminal()) or
             self.active_players() == 1 or self.allin_players() == self.active_players()):
-            self.log_current_hand(terminal = True)  # Log the hand here if terminal at river
             return True
         return False
 
