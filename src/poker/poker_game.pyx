@@ -1,84 +1,61 @@
 #!python
 #cython: language_level=3
 
-
+import logging
 import pandas as pd
 
 
 ################################################################################################################
 ############################ POKER GAME ########################################################################
 ################################################################################################################
+cdef public list SUITS = ['C', 'D', 'H', 'S']
+cdef public list VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+
 
 cdef class PokerGame:
-
-    def __init__(self, int num_players, int initial_chips, int num_ai_players, int small_blind, int big_blind, list bet_sizing, CFRTrainer cfr_trainer):
-        
+    def __init__(self, int num_players, int initial_chips, int num_ai_players, int small_blind, int big_blind, list bet_sizing, CFRTrainer cfr_trainer, list suits=SUITS, list values=VALUES):
         self.players = [Player(initial_chips, bet_sizing) for _ in range(num_players - num_ai_players)] + [AIPlayer(initial_chips, bet_sizing, cfr_trainer) for _ in range(num_ai_players)]
-        self.game_state = GameState(self.players, small_blind, big_blind, cfr_trainer.num_simulations)
+        self.game_state = GameState(self.players, small_blind, big_blind, cfr_trainer.num_simulations, suits, values)
         self.profit_loss = []
-        
-        self.position_pl = {'D':0, 'SB':0, 'BB':0, 'UTG':0, 'MP':0, 'CO':0}
+        self.position_pl = {position: 0 for position in self.game_state.positions}
+        self.logger = logging.getLogger('PokerGame')
+        self.logger.setLevel(logging.DEBUG)
 
     cpdef play_game(self, int num_hands=1):
-
-        self.profit_loss.append([i.chips for i in self.game_state.players])
+        self.profit_loss.append([player.chips for player in self.game_state.players])
 
         for _ in range(num_hands):
-            
-            
-            # the game is reset as a part of the preflop_setup.
-            print('dealing preflop')
-            print(self.game_state.debug_output())
+            self.logger.debug('Dealing preflop')
             self.game_state.setup_preflop()
-            print(self.game_state.debug_output())
-            while(not self.game_state.handle_action()):
-                print(self.game_state.debug_output())
-                continue
-        
-            print('dealing flop')
+            self._play_round()
+            
+            self.logger.debug('Dealing flop')
             self.game_state.setup_postflop("flop")
-            print(self.game_state.debug_output())
-            while(not self.game_state.handle_action()):
-                print(self.game_state.debug_output())
-                continue
-
-            print('dealing turn')
+            self._play_round()
+            
+            self.logger.debug('Dealing turn')
             self.game_state.setup_postflop("turn")
-            print(self.game_state.debug_output())
-            while(not self.game_state.handle_action()):
-                print(self.game_state.debug_output())
-                continue
-
-            print('dealing river')
+            self._play_round()
+            
+            self.logger.debug('Dealing river')
             self.game_state.setup_postflop("river")
-            print(self.game_state.debug_output())
-            while(not self.game_state.handle_action()):
-                print(self.game_state.debug_output())
-                continue
-
-            print("Showdown")
-            # Determine the winner and distribute the pot
+            self._play_round()
+            
+            self.logger.debug("Showdown")
             self.game_state.showdown()
-            print(self.game_state.debug_output())
-
-            # Log some statistics for debugging/analysis
-            self.profit_loss.append([i.chips for i in self.game_state.players])
-            for i in self.game_state.players:
-                self.position_pl[i.position] += i.prior_gains - i.tot_contributed_to_pot
-                #i.chips = 1000
-            print(f"Player {self.game_state.winner_index + 1} wins the hand.")
+            
+            self.profit_loss.append([player.chips for player in self.game_state.players])
+            for player in self.game_state.players:
+                self.position_pl[player.position] += player.prior_gains - player.tot_contributed_to_pot
+            
+            print(f"Player {self.game_state.winner_index} wins the hand.")
             input("Press enter to continue to next hand.")
-
-        pd.DataFrame(self.profit_loss).to_csv("results/profit_loss.csv")
         
-        print(pd.DataFrame.from_dict(self.position_pl, orient='index', columns=['values'])/num_hands)
+        # pd.DataFrame(self.profit_loss).to_csv("profit_loss.csv")
+        print(pd.DataFrame.from_dict(self.position_pl, orient='index', columns=['values']) / num_hands)
 
-################################################################################
-
-
-
-
-
-
+    cpdef _play_round(self):
+        while not self.game_state.handle_action():
+            self.logger.debug(self.game_state.debug_output())
 
 

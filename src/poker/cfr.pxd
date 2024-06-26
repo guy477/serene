@@ -3,6 +3,8 @@ from .ai_player cimport AIPlayer, Player
 from .information_set cimport InformationSet
 
 cdef class CFRTrainer:
+    cdef public list suits
+    cdef public list values
     cdef public int iterations
     cdef public int realtime_iterations
     cdef public int cfr_depth

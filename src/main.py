@@ -14,10 +14,14 @@ from sklearn.cluster import MiniBatchKMeans
 
 def main():
     num_players = 2
-    num_ai_players = 2
+    num_ai_players = 0
 
     # pot relative bet-sizings for preflop, flop, turn, and river
     bet_sizing = [(2.5, 8), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
+
+    # set the deck
+    SUITS = ['C', 'D'] # , 'H', 'S'
+    VALUES = [ '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'] # '2', '3', '4', '5',
 
     initial_chips = 1000
     small_blind = 5
@@ -27,18 +31,18 @@ def main():
 
     num_simulations = 250
 
-    num_iterations = 25
-    realtime_iterations = 50
+    num_iterations = 0
+    realtime_iterations = 200
     cfr_depth = 1000
-    cfr_realtime_depth = 1000
+    cfr_realtime_depth = 6
     
 
     # Train the AI player using the CFR algorithm
-    cfr_trainer = CFRTrainer(num_iterations, realtime_iterations, num_simulations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing)
+    cfr_trainer = CFRTrainer(num_iterations, realtime_iterations, num_simulations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES)
     strategy_list = cfr_trainer.train()
-    plot_hands(strategy_list)
+    ### plot_hands(strategy_list)
 
-    game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer)
+    game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer, SUITS, VALUES)
 
     # Play the game
     game.play_game(num_hands)

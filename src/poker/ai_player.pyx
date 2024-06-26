@@ -25,14 +25,18 @@ cdef class AIPlayer(Player):
                 
                 display_game_state(game_state, player_index)
                 
+                cloned_game_state = game_state.clone()
+
+
+
                 # Since we're performing realtime searching, we want to reset the regret/strat mappings for the current state.
                 self.strategy_trainer.train_realtime(game_state)
 
                 average_strategy = self.strategy_trainer.get_average_strategy(self, game_state)
                 
                 #####
-                print(self.strategy_trainer.regret_sum.get(self.hash(game_state), "no regret"))
-                print(average_strategy)
+                # print(self.strategy_trainer.regret_sum.get(self.hash(game_state), "no regret"))
+                # print(average_strategy)
                 #####
                 
                 # if there are no moves, but not folded; we're all in
@@ -42,7 +46,7 @@ cdef class AIPlayer(Player):
 
                 # otherwise choose a random action based on the current strategy probabilities
                 actions, probabilities = zip(*average_strategy.items())
-                
+               
 
 
                 # Choose an action based on the probability distribution
@@ -50,12 +54,11 @@ cdef class AIPlayer(Player):
 
                 user_input = actions[probabilities.index(max(probabilities))]
                 #####
-                print(user_input)
                 #####
 
 
                 # for the current implementation, we just want to min-raise. 
-                if user_input[0] == "raise" or user_input[0] == "all-in":
+                if user_input[0] == "raise":
                     self.take_action(game_state, player_index, user_input)
                     raize = 1
                     valid = 1
@@ -75,7 +78,6 @@ cdef class AIPlayer(Player):
         cdef AIPlayer new_player = AIPlayer(self.chips, self.bet_sizing, self.strategy_trainer)
         new_player.hand = self.hand
         new_player.abstracted_hand = self.abstracted_hand
-
         new_player.position = self.position
         new_player.player_index = self.player_index
         new_player.expected_hand_strength = self.expected_hand_strength

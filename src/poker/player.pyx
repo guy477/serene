@@ -66,15 +66,14 @@ cdef class Player:
         return raize
 
     cpdef take_action(self, GameState game_state, int player_index, object action):
-        
         cdef Player player = game_state.players[player_index]
         cdef int call_amount
         cdef bint raize = False
 
         # We want the current betting history to have the player's position as well.
-        # this can probably be restricted to the first round if complexity in future states becomes too much of an issue.
+        # This can probably be restricted to the first round if complexity in future states becomes too much of an issue.
         game_state.betting_history[game_state.cur_round_index].append((self.position, action))
-        
+
         if action[0] == "call":
             call_amount = game_state.current_bet - player.contributed_to_pot
             if call_amount > player.chips:
@@ -85,30 +84,37 @@ cdef class Player:
             player.contributed_to_pot += call_amount
             player.tot_contributed_to_pot += call_amount
 
-        elif action[0] == "raise" or action[0] == "blinds" or action[0] == "all-in":
-            if action[0] == "blinds":
-                call_amount = 0
-                bet_amount = action[1]
-            elif action[0] == "raise":
-                bet_amount = int((action[1]) * game_state.pot)
-                call_amount = game_state.current_bet - player.contributed_to_pot
+        elif action[0] == "raise" or action[0] == "all-in":
+            if action[0] == "raise":
+                bet_amount = int((action[1]) * (game_state.pot))
                 raize = True
             else:
-                call_amount = 0
                 bet_amount = player.chips
-            
+
             if bet_amount < game_state.current_bet:
                 if bet_amount != player.chips:
                     raise ValueError("Raise amount must be at least equal to the current bet or an all-in.")
-            
-            
-            if call_amount + bet_amount > player.chips:
-                bet_amount = player.chips - call_amount
 
-            player.chips -= (call_amount + bet_amount)
-            game_state.pot += (call_amount + bet_amount)
-            player.contributed_to_pot += (call_amount + bet_amount)
-            player.tot_contributed_to_pot += (call_amount + bet_amount)
+            if bet_amount > player.chips:
+                bet_amount = player.chips
+
+            player.chips -= (bet_amount)
+            game_state.pot += (bet_amount)
+            game_state.current_bet = (bet_amount + player.contributed_to_pot)
+            player.contributed_to_pot += (bet_amount)
+            player.tot_contributed_to_pot += (bet_amount)
+            
+
+        elif action[0] == "blinds":
+            bet_amount = action[1]
+
+            if bet_amount > player.chips:
+                bet_amount = player.chips
+
+            player.chips -= (bet_amount)
+            game_state.pot += (bet_amount)
+            player.contributed_to_pot += (bet_amount)
+            player.tot_contributed_to_pot += (bet_amount)
             game_state.current_bet = bet_amount
 
         elif action[0] == "fold":
@@ -130,6 +136,10 @@ cdef class Player:
         ret = [('call', 0), ('fold', 0), ('all-in', 0)]
         cdef Player player = game_state.players[player_index]
     
+        # If there is no action, dissallow folding.
+        if game_state.current_bet - player.contributed_to_pot == 0:
+            ret.remove(('fold', 0))
+
         if player.folded or player.chips <= 0:
             return []
 

@@ -1,259 +1,296 @@
 #!python
-#cython: language_level=3
+# cython: language_level=3
 
 cimport numpy
 cimport cython
 
-
-
-# cython: profile=True
-
 from libc.stdlib cimport rand, srand
 
 import logging
-
 import time
 
 # Seed random
 srand(time.time())
 
-
 cdef public list SUITS = ['C', 'D', 'H', 'S']
-cdef public list VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+cdef public list VALUES = ['2', '3', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 
+class PokerHandLogger:
+    def __init__(self, log_file):
+        self.logger = logging.getLogger('PokerHandLogger')
+        self.logger.setLevel(logging.DEBUG)
+        handler = logging.FileHandler(log_file)
+        handler.setFormatter(logging.Formatter('%(message)s'))
+        self.logger.addHandler(handler)
+        self.hand_count = 0
+
+    def log_hand(self, hand_data):
+        self.hand_count += 1
+        self.logger.info(hand_data)
+
+    def generate_hand_log(self, hand_id, game_type, limit, date_time, dealer_position, seats, blinds, hole_cards, actions, board, showdown, summary):
+        hand_log = []
+        hand_log.append(f"Hand #{hand_id} - {game_type} ({limit}) - {date_time} UTC")
+        hand_log.append(f"Firestone 6-max Seat #{dealer_position} is the button")
+        for seat, (player, chips) in enumerate(seats):
+            hand_log.append(f"Seat {seat + 1}: {player} (${chips:.2f})")
+        for blind, (player, amount) in blinds.items():
+            hand_log.append(f"{player} posts the {blind} ${amount:.2f}")
+        hand_log.append("*** HOLE CARDS ***")
+        for player, cards in hole_cards.items():
+            if cards:
+                hand_log.append(f"Dealt to {player} [{cards[0]} {cards[1]}]")
+            else:
+                hand_log.append(f"Dealt to {player} [XX XX]")
+        for round_name, round_actions in actions.items():
+            if round_actions:
+                hand_log.append(f"*** {round_name.upper()} ***")
+                for action in round_actions:
+                    hand_log.append(f"{action}")
+        if board:
+            hand_log.append(f"Board {' '.join(board)}")
+        if showdown:
+            hand_log.append("*** SHOW DOWN ***")
+            for player, cards, description in showdown:
+                if cards:
+                    hand_log.append(f"{player} shows [{cards[0]} {cards[1]}] ({description})")
+                else:
+                    hand_log.append(f"{player} shows [XX XX] ({description})")
+        hand_log.append("*** SUMMARY ***")
+        for player, result in summary.items():
+            hand_log.append(result)
+        return '\n'.join(hand_log)
+
+poker_logger = PokerHandLogger("poker_hand_history.log")
 
 cdef class GameState:
-    def __init__(self, list players, int small_blind, int big_blind, int num_simulations):
-        
-        self.positions = ['D', 'SB', 'BB', 'UTG', 'MP', 'CO']
+    def __init__(self, list players, int small_blind, int big_blind, int num_simulations, list suits=SUITS, list values=VALUES):
         self.players = players
         self.small_blind = small_blind
         self.big_blind = big_blind
-
         self.num_simulations = num_simulations
+        self.positions = self.generate_positions(len(players))
+        self.suits = suits
+        self.values = values
+        self.reset()
+        self.hand_id = 0
 
-        # Keep track of the current round. 0 = preflop, 1 = flop, etc.
+    cpdef reset(self):
         self.cur_round_index = 0
-        
-        # Index of dealer and current, acting player.
         self.dealer_position = 0
         self.player_index = (self.dealer_position + 3) % len(self.players)
-        
-        # Terminal state depends on the number of active players at the start of a given round.
-        self.round_active_players = len(players)
+        self.round_active_players = len(self.players)
         self.num_actions = 0
         self.last_raiser = -1
         self.current_bet = 0
-        
         self.winner_index = -1
         self.pot = 0
-
         self.board = 0
-        self.betting_history = [[],[],[],[]]
-        self.deck = create_deck()
+        self.betting_history = [[], [], [], []]
+        self.deck = self.create_deck(self.suits, self.values)
         self.fisher_yates_shuffle()
+        for player in self.players:
+            player.reset()
 
-    
+    cpdef log_current_hand(self, terminal=False):
+        seats = [(player.position, player.chips) for player in self.players]
+        blinds = {
+            "small blind": (self.players[(self.dealer_position + 1) % len(self.players)].position, self.small_blind),
+            "big blind": (self.players[(self.dealer_position + 2) % len(self.players)].position, self.big_blind)
+        }
+        hole_cards = {player.position: [int_to_card(card) for card in hand_to_cards(player.hand)] for player in self.players if not player.folded}
+        actions = {
+            "pre-flop": self.betting_history[0],
+            "flop": self.betting_history[1],
+            "turn": self.betting_history[2],
+            "river": self.betting_history[3]
+        }
+        board = [int_to_card(card) for card in hand_to_cards(self.board)]
+        showdown = [(player.position, [int_to_card(card) for card in hand_to_cards(player.hand)], 'player.hand_description()') for player in self.players if not player.folded]
+        summary = {player.position: 'player.result_description()' for player in self.players}
+        hand_log = poker_logger.generate_hand_log(self.hand_id, "Holdem", "No Limit", time.strftime('%Y/%m/%d %H:%M:%S'), self.dealer_position + 1, seats, blinds, hole_cards, actions, board, showdown, summary)
+        
+        if terminal:
+            poker_logger.log_hand(hand_log)
+        
+        self.hand_id += 1
+
     cpdef load_custom_betting_history(self, int round, object history):
         self.betting_history[round].append(history)
 
     cpdef handle_blinds(self):
         cdef int small_blind_pos = (self.dealer_position + 1) % len(self.players)
         cdef int big_blind_pos = (self.dealer_position + 2) % len(self.players)
-
         self.players[small_blind_pos].take_action(self, small_blind_pos, ("blinds", min(self.small_blind, self.players[small_blind_pos].chips)))
         self.players[big_blind_pos].take_action(self, big_blind_pos, ("blinds", min(self.big_blind, self.players[big_blind_pos].chips)))
 
-
     cpdef assign_positions(self):
         for i in range(len(self.players)):
-            # print(f"Assigning player {i+1} position " + self.positions[(self.round_active_players + i - self.dealer_position)%self.active_players()])
-            self.players[i].assign_position(self.positions[(self.round_active_players + i - self.dealer_position)%self.active_players()], (self.round_active_players + i - self.dealer_position)%self.active_players())
+            self.players[i].assign_position(self.positions[i], i)
 
-
-    cpdef deal_private_cards(self, object hand = None):
+    cpdef deal_private_cards(self, object hand=None):
         if hand:
-
             card1 = card_str_to_int(hand[0])
             card2 = card_str_to_int(hand[1])
             self.deck.remove(card1)
             self.deck.remove(card2)
             self.players[self.player_index].add_card(card1)
             self.players[self.player_index].add_card(card2)
-            card1 = int_to_card(card1)
-            card2 = int_to_card(card2)
-            self.players[self.player_index].abstracted_hand += card1[0] if VALUES.index(card1[0]) > VALUES.index(card2[0]) else card2[0]
-            self.players[self.player_index].abstracted_hand += card1[0] if VALUES.index(card1[0]) < VALUES.index(card2[0]) else card2[0]
-            self.players[self.player_index].abstracted_hand += 's' if card1[1] == card2[1] else 'o'
-            # print(self.players[self.player_index].abstracted_hand, end = '')
+            self.players[self.player_index].abstracted_hand = self.abstract_hand(card1, card2)
         for i, player in enumerate(self.players):
-
             if hand and i == self.player_index:
                 continue
-
             if player.chips > 0:
-                
-                
                 card1 = self.deck.pop()
                 card2 = self.deck.pop()
-                
                 player.add_card(card1)
                 player.add_card(card2)
-
-                card1 = int_to_card(card1)
-                card2 = int_to_card(card2)
-                player.abstracted_hand += card1[0] if VALUES.index(card1[0]) > VALUES.index(card2[0]) else card2[0]
-                player.abstracted_hand += card1[0] if VALUES.index(card1[0]) < VALUES.index(card2[0]) else card2[0]
-                player.abstracted_hand += 's' if card1[1] == card2[1] else 'o'
-                # print(player.abstracted_hand)
+                player.abstracted_hand = self.abstract_hand(card1, card2)
             else:
                 player.folded = True
 
-    cpdef setup_preflop(self, object hand = None):
+    cpdef str abstract_hand(self, unsigned long long card1, unsigned long long card2):
+        cdef str card1_str = int_to_card(card1)
+        cdef str card2_str = int_to_card(card2)
+
+        # Temporary variables for the card values
+        cdef str card1_val = card1_str[0]
+        cdef str card2_val = card2_str[0]
+
+        # Now use the temporary variables in your comparison
+        cdef str high_card = card1_val if VALUES.index(card1_val) > VALUES.index(card2_val) else card2_val
+        cdef str low_card = card1_val if VALUES.index(card1_val) < VALUES.index(card2_val) else card2_val
+        cdef str suited = 's' if card1_str[1] == card2_str[1] else 'o'
+        
+        return high_card + low_card + suited
+
+    cpdef setup_preflop(self, object hand=None):
         self.reset()
-        # Setup blinds
         self.assign_positions()
         self.handle_blinds()
-        if hand:
-            self.deal_private_cards(hand)
-        else:
-            self.deal_private_cards()
-        
-        # dont want to count posting blinds as actions
+        self.deal_private_cards(hand)
         self.num_actions = 0
-        # used to help determine if we've reached a terminal state
         self.round_active_players = self.active_players()
-    
-    cpdef setup_postflop(self, str round_name):
-        self.cur_round_index += 1
 
+    cpdef setup_postflop(self, str round_name):
+        if self.is_terminal_river():
+            return
+
+        self.cur_round_index += 1
         if round_name == "flop":
             for _ in range(3):
                 self.draw_card()
         else:
             self.draw_card()
-
         self.current_bet = 0
-        for i in range(len(self.players)):
-            self.players[i].contributed_to_pot = 0
-
+        for player in self.players:
+            player.contributed_to_pot = 0
         self.round_active_players = self.active_players()
-
         self.player_index = (self.dealer_position + 1) % len(self.players)
         self.last_raiser = -1
         self.num_actions = 0
-    
 
-    cpdef bint handle_action(self, object action = None):
-        # if player is folded, we rotate player_index and check if terminal
-        if self.players[self.player_index].folded or self.is_terminal():
-            self.player_index = (self.player_index+1) % len(self.players)
+    cpdef bint handle_action(self, object action=None):
+        if self.is_terminal() or self.is_terminal_river():
+            return True
+
+        if self.players[self.player_index].folded or self.players[self.player_index].chips == 0:
+            self.player_index = (self.player_index + 1) % len(self.players)
             return self.is_terminal()
-            
+
         if action:
             if self.players[self.player_index].take_action(self, self.player_index, action):
                 self.last_raiser = self.player_index
         else:
             if self.players[self.player_index].get_action(self, self.player_index):
                 self.last_raiser = self.player_index
-        
-        # add 1 to the total actions taken
-        self.num_actions += 1
 
-        # need to rotate
-        self.player_index = (self.player_index+1) % len(self.players)
+        self.num_actions += 1
+        self.player_index = (self.player_index + 1) % len(self.players)
+
+        if self.active_players() == self.allin_players() + self.folded_players():
+            self.progress_to_showdown()
+            return True
 
         return self.is_terminal()
 
+    cpdef progress_to_showdown(self):
+        while self.num_board_cards() < 5:
+            self.draw_card()
+        self.cur_round_index = 4
+        self.showdown()
 
     cpdef showdown(self):
         cdef unsigned long long player_hand
         cdef int best_score, player_score
         cdef unsigned long long zero = 0
         cdef int remaining_players = sum([not player.folded for player in self.players])
-        
         cdef unsigned long long board_dupe = self.board
         cdef list deck_dupe = self.deck[:]
-        cdef list hands = []
-        for i, player in enumerate(self.players):
-            hands.append(player.hand)
-        
-        
-        if remaining_players == 1:
+        cdef list hands = [player.hand for player in self.players]
+
+        if self.winner_index != -1:
+            # we've already called showdown for this iteration
+            # if we reach a terminal node before all cards have been dealt (e.g. all-in situation or all fold)
+            # then we only want to perform the showdown during the "handle_action" call - not during the game loop (poker_game.pyx)
+            return 
+
+        if remaining_players != 1:
             for i, player in enumerate(self.players):
                 if not player.folded:
                     self.winner_index = i
                     break
-
         else:
-            win_rate = [0 for i in self.players]
-            # if we've called showdown before terminal state, estimate the results...
-            for i in range(self.num_simulations):
-                # reset player hands
+            win_rate = [0 for _ in self.players]
+            for _ in range(self.num_simulations):
                 for i, player in enumerate(self.players):
                     player.hand = hands[i]
-
-                # reset board
                 self.board = board_dupe
-
-                # shuffle the copied deck.
                 self.deck = deck_dupe[:]
                 self.fisher_yates_shuffle()
-                
-                # deal out remaining cards
                 while self.num_board_cards() < 5:
                     self.draw_card()
-                
-                # reset best_score and self.winner_index
                 best_score = -1
                 self.winner_index = -1
-
                 for i, player in enumerate(self.players):
-                    # No need to evaluate folded hands
                     if player.folded:
                         continue
-                    
-                    # For the realtime search case, we need to provide the player with a new hand.
-                    # this logic should be joined with the logic to populate the board during a terminal state.
                     if player.hand == zero:
                         player.hand |= self.deck.pop()
                         player.hand |= self.deck.pop()
-
                     player_hand = player.hand | self.board
                     player_score = cy_evaluate(player_hand, 7)
-
                     if player_score > best_score:
                         best_score = player_score
                         self.winner_index = i
-
                 win_rate[self.winner_index] += 1
-
-            max_value = max(win_rate)
-            self.winner_index = win_rate.index(max_value)
+            self.winner_index = win_rate.index(max(win_rate))
             for i, p in enumerate(self.players):
                 p.expected_hand_strength = win_rate[i] / self.num_simulations
-            
-        # distribute winnings (this less tot_contributed to pot is the net_winnings... right? lmao)
-        self.players[self.winner_index].prior_gains += (self.pot)
-        # Distribute the pot to the winner
-        self.players[self.winner_index].chips += self.pot
         
-    
+        self.players[self.winner_index].prior_gains += self.pot
+        self.players[self.winner_index].chips += self.pot
+
+        
 
     cpdef bint is_terminal(self):
-        # we can determine if the current round has reached a terminal state if every (active) player has been given the opportunity to act, the current player index is the prior raiser, or there is only one player left in the hand.
-        # Do i need to add a HAS_FOLDED variable for the first comparison?
-        return ((self.num_actions) >= self.round_active_players and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or (self.active_players() == 1) or (self.allin_players() == (self.active_players()))
+        if ((self.num_actions >= self.round_active_players and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or
+            self.active_players() == 1 or self.allin_players() == self.active_players()):
+            self.log_current_hand()  # Log the hand here if terminal
+            return True
+        return False
 
     cpdef bint is_terminal_river(self):
-        # we can determine if the current round has reached a terminal state if every player has been given the opportunity to act, the current player index is the prior raiser, or there is only one player left in the hand.
-        return ((self.cur_round_index >= 4) or (self.board_has_five_cards() and self.is_terminal())) or (self.active_players() == 1) or (self.allin_players() == (self.active_players()))
+        if (self.cur_round_index >= 4 or
+            (self.board_has_five_cards() and self.is_terminal()) or
+            self.active_players() == 1 or self.allin_players() == self.active_players()):
+            self.log_current_hand(terminal = True)  # Log the hand here if terminal at river
+            return True
+        return False
 
     cdef void fisher_yates_shuffle(self):
         cdef int i, j
         cdef unsigned long long temp
-
-
         for i in range(len(self.deck) - 1, 0, -1):
             j = rand() % (i + 1)
             temp = self.deck[i]
@@ -262,55 +299,44 @@ cdef class GameState:
 
     cpdef int allin_players(self):
         cdef int allin = 0
-        for i in range(len(self.players)):
-            if (not self.players[i].chips):
+        for player in self.players:
+            if player.chips == 0 and not player.folded:
                 allin += 1
         return allin
 
     cpdef int active_players(self):
         cdef int alive = 0
-        for i in range(len(self.players)):
-            if (not self.players[i].folded):
+        for player in self.players:
+            if not player.folded:
                 alive += 1
         return alive
 
+    cpdef int folded_players(self):
+        cdef int folded = 0
+        for player in self.players:
+            if player.folded:
+                folded += 1
+        return folded
+
     cpdef draw_card(self):
         self.board |= self.deck.pop()
-        
+
     cpdef bint board_has_five_cards(self):
         return self.num_board_cards() == 5
 
     cpdef int num_board_cards(self):
         return bin(self.board).count('1')
 
-    cpdef reset(self):
-        self.deck = create_deck()
-        self.fisher_yates_shuffle()
-
-        self.cur_round_index = 0
-        
-        self.round_active_players = len(self.players)
-
-        self.pot = 0
-        self.current_bet = 0
-        self.winner_index = -1
-        self.last_raiser = -1
-
-        self.betting_history = [[],[],[],[]]
-
-        self.board = 0
-        for player in self.players:
-            player.reset()
-        self.dealer_position = (self.dealer_position + (self.round_active_players - 1)) % self.round_active_players
-
-        self.player_index = (self.dealer_position + 3) % len(self.players)
-        #self.last_raiser = (self.dealer_position + 2) % len(self.players) # this is the big blind index
-        self.num_actions = 0
-
     cpdef clone(self):
-        cdef GameState new_state = GameState(self.players[:], self.small_blind, self.big_blind, self.num_simulations)
+        # Clone players first
+        new_players = []
         for i in range(len(self.players)):
-            new_state.players[i] = self.players[i].clone()
+            new_players.append(self.players[i].clone())
+
+        # Create a new GameState instance
+        cdef GameState new_state = GameState(new_players, self.small_blind, self.big_blind, self.num_simulations, self.suits, self.values)
+
+        # Copy all relevant attributes
         new_state.cur_round_index = self.cur_round_index
         new_state.dealer_position = self.dealer_position
         new_state.player_index = self.player_index
@@ -321,11 +347,14 @@ cdef class GameState:
         new_state.board = self.board
         new_state.deck = self.deck[:]
         new_state.betting_history = [sublist[:] for sublist in self.betting_history]
+        new_state.round_active_players = self.round_active_players
+        new_state.winner_index = self.winner_index
+        new_state.hand_id = self.hand_id
+
         return new_state
 
-
     cpdef debug_output(self):
-        print(f"is_terminal(): {self.is_terminal()}" )
+        print(f"is_terminal(): {self.is_terminal()}")
         print(f"is_terminal_river(): {self.is_terminal_river()}")
         print(f"cur_round_index: {self.cur_round_index}")
         print(f"cur_pot: {self.pot}")
@@ -334,18 +363,52 @@ cdef class GameState:
         print(f"last_raiser: {self.last_raiser}")
         print(f"player_index: {self.player_index}")
         print(f"dealer_position: {self.dealer_position}")
+        print(f"round_active_players: {self.round_active_players}")
+        print(f"active_players(): {self.active_players()}")
+        print(f"allin_players(): {self.allin_players()}")
+        print(f"folded_players(): {self.folded_players()}")
+        print(f"current_bet: {self.current_bet}")
+        print(f"betting_history: {self.betting_history}")
         print(f"BOARD: {format_hand(self.board)}")
+        print(f"deck: {[int_to_card(card) for card in self.deck]}")
         print(f"___________")
-        for i in self.players:
-            print(f"Player {i.player_index}")
-            print(f"Player {i.player_index} position: {i.position}")
-            print(f"Player {i.player_index} chips: {i.chips}")
-            print(f"Player {i.player_index} folded: {i.folded}")
-            print(f"Player {i.player_index} abstracted: {i.abstracted_hand}")
-            print(f"Player {i.player_index} numeric hnd: {format_hand(i.hand)}")
-            print(f"Player {i.player_index} contributed: {i.contributed_to_pot}")
-            print(f"Player {i.player_index} tot contrib: {i.tot_contributed_to_pot}")
-            continue
+        for player in self.players:
+            print(f"Player {player.player_index}")
+            print(f"Player {player.player_index} position: {player.position}")
+            print(f"Player {player.player_index} chips: {player.chips}")
+            print(f"Player {player.player_index} folded: {player.folded}")
+            print(f"Player {player.player_index} abstracted: {player.abstracted_hand}")
+            print(f"Player {player.player_index} numeric hand: {format_hand(player.hand)}")
+            print(f"Player {player.player_index} contributed: {player.contributed_to_pot}")
+            print(f"Player {player.player_index} total contributed: {player.tot_contributed_to_pot}")
+            print("")
+
+
+            
+    cpdef list generate_positions(self, int num_players):
+        if num_players == 2:
+            return ['D', 'SB']
+        elif num_players == 3:
+            return ['D', 'SB', 'BB']
+        else:
+            positions = ['D', 'SB', 'BB', 'UTG']
+            if num_players > 4:
+                positions.append('MP')
+            if num_players > 5:
+                positions.append('CO')
+            if num_players == 7:
+                positions.append('MP2')
+            elif num_players == 8:
+                positions.append('HJ')
+            elif num_players == 9:
+                positions.append('HJ')
+                positions.append('MP2')
+            return positions
+
+    cpdef list create_deck(self, list suits, list values):
+        cdef list deck = [card_to_int(suit, value) for suit in suits for value in values]
+        return deck
+
 
 cpdef unsigned long long card_to_int(str suit, str value):
     cdef unsigned long long one = 1
