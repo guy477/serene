@@ -29,3 +29,62 @@ SB shows [6C KD] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
+Hand #0 - Holdem (No Limit) - 2024/06/26 16:58:43 UTC
+Firestone 6-max Seat #1 is the button
+Seat 1: D ($1010.00)
+Seat 2: SB ($990.00)
+SB posts the small blind $5.00
+D posts the big blind $10.00
+*** HOLE CARDS ***
+Dealt to D [7D 9D]
+Dealt to SB [JC TD]
+*** PRE-FLOP ***
+('SB', ('blinds', 5))
+('D', ('blinds', 10))
+('SB', ('call', 0))
+('D', ('call', 0))
+*** FLOP ***
+('SB', ('call', 0))
+('D', ('call', 0))
+*** TURN ***
+('SB', ('call', 0))
+('D', ('call', 0))
+*** RIVER ***
+('SB', ('call', 0))
+('D', ('call', 0))
+Board 7C 8C AC 6D AD
+*** SHOW DOWN ***
+D shows [7D 9D] (player.hand_description())
+SB shows [JC TD] (player.hand_description())
+*** SUMMARY ***
+player.result_description()
+player.result_description()
+Hand #0 - Holdem (No Limit) - 2024/06/26 17:02:54 UTC
+Firestone 6-max Seat #1 is the button
+Seat 1: D ($2000.00)
+Seat 2: SB ($0.00)
+SB posts the small blind $5.00
+D posts the big blind $10.00
+*** HOLE CARDS ***
+Dealt to D [TD QD]
+Dealt to SB [6D 7D]
+*** PRE-FLOP ***
+('SB', ('blinds', 5))
+('D', ('blinds', 10))
+('SB', ('call', 0))
+('D', ('call', 0))
+*** FLOP ***
+('SB', ('call', 0))
+('D', ('raise', 0.33000001311302185))
+('SB', ('call', 0))
+*** TURN ***
+('SB', ('call', 0))
+('D', ('all-in', 0))
+('SB', ('call', 0))
+Board 6C 8C TC JD AD
+*** SHOW DOWN ***
+D shows [TD QD] (player.hand_description())
+SB shows [6D 7D] (player.hand_description())
+*** SUMMARY ***
+player.result_description()
+player.result_description()

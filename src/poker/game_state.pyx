@@ -64,7 +64,7 @@ class PokerHandLogger:
 poker_logger = PokerHandLogger("poker_hand_history.log")
 
 cdef class GameState:
-    def __init__(self, list players, int small_blind, int big_blind, int num_simulations, list suits=SUITS, list values=VALUES):
+    def __init__(self, list players, int small_blind, int big_blind, int num_simulations, bint silent=False, list suits=SUITS, list values=VALUES):
         self.players = players
         self.small_blind = small_blind
         self.big_blind = big_blind
@@ -72,6 +72,7 @@ cdef class GameState:
         self.positions = self.generate_positions(len(players))
         self.suits = suits
         self.values = values
+        self.silent = silent
         self.reset()
         self.hand_id = 0
 
@@ -93,6 +94,9 @@ cdef class GameState:
             player.reset()
 
     cpdef log_current_hand(self, terminal=False):
+        if self.silent:
+            return
+        
         seats = [(player.position, player.chips) for player in self.players]
         blinds = {
             "small blind": (self.players[(self.dealer_position + 1) % len(self.players)].position, self.small_blind),
@@ -273,8 +277,6 @@ cdef class GameState:
 
         self.log_current_hand(terminal = True)  # Log the hand here if terminal at river
 
-        
-
     cpdef bint is_terminal(self):
         if ((self.num_actions >= self.round_active_players and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or
             self.active_players() == 1 or self.allin_players() == self.active_players()):
@@ -334,7 +336,7 @@ cdef class GameState:
             new_players.append(self.players[i].clone())
 
         # Create a new GameState instance
-        cdef GameState new_state = GameState(new_players, self.small_blind, self.big_blind, self.num_simulations, self.suits, self.values)
+        cdef GameState new_state = GameState(new_players, self.small_blind, self.big_blind, self.num_simulations, self.silent, self.suits, self.values)
 
         # Copy all relevant attributes
         new_state.cur_round_index = self.cur_round_index
@@ -383,8 +385,6 @@ cdef class GameState:
             print(f"Player {player.player_index} total contributed: {player.tot_contributed_to_pot}")
             print("")
 
-
-            
     cpdef list generate_positions(self, int num_players):
         if num_players == 2:
             return ['D', 'SB']
@@ -409,7 +409,6 @@ cdef class GameState:
         cdef list deck = [card_to_int(suit, value) for suit in suits for value in values]
         return deck
 
-
 cpdef unsigned long long card_to_int(str suit, str value):
     cdef unsigned long long one = 1
     cdef int suit_index = SUITS.index(suit)
@@ -417,10 +416,9 @@ cpdef unsigned long long card_to_int(str suit, str value):
     cdef int bit_position = suit_index * 13 + value_index
     return one << bit_position
 
-
 cpdef public list create_deck():
-        cdef list deck = [card_to_int(suit, value) for suit in SUITS for value in VALUES]
-        return deck
+    cdef list deck = [card_to_int(suit, value) for suit in SUITS for value in VALUES]
+    return deck
 
 cpdef str int_to_card(unsigned long long card):
     cdef int bit_position = -1
@@ -429,7 +427,6 @@ cpdef str int_to_card(unsigned long long card):
         bit_position += 1
     cdef int suit_index = bit_position // 13
     cdef int value_index = bit_position % 13
-
     return f'{VALUES[value_index]}{SUITS[suit_index]}'
 
 cpdef unsigned long long card_str_to_int(str card_str):
@@ -456,6 +453,7 @@ cpdef display_game_state(GameState game_state, int player_index):
     # print(f"Last Raiser: {game_state.last_raiser}")
     # print(f"Player Index: {game_state.player_index}")
     # print(f"Player Index Hand: {format_hand(game_state.players[game_state.player_index].hand)}")
+
 
 
 ctypedef numpy.uint8_t uint8

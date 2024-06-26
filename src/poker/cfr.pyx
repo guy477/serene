@@ -48,7 +48,9 @@ cdef class CFRTrainer:
 
         # Define a new game state for training
         players = [AIPlayer(self.initial_chips, self.bet_sizing, self) for _ in range(self.num_players)]
-        game_state = GameState(players, self.small_blind, self.big_blind, self.num_simulations, self.suits, self.values)
+        
+        # Ensure the gamestate is silenced
+        game_state = GameState(players, self.small_blind, self.big_blind, self.num_simulations, True, self.suits, self.values)
 
         for iter_num in range(self.iterations):
             epsilon = .1  # Exploration parameter
@@ -85,11 +87,17 @@ cdef class CFRTrainer:
         cdef list hands = []
         cdef list deck = game_state.deck[:]
 
-        for i in range(len(game_state.players)):
-            if i != game_state.player_index:
-                hands.append(game_state.players[i].hand)
-                game_state.deck.extend(hand_to_cards(hands[-1]))
-                game_state.players[i].hand = 0
+        # clone the gamestate and silence the logging.
+        cloned_game_state = game_state.clone()
+        cloned_game_state.silent = True
+
+        for i in range(len(cloned_game_state.players)):
+            if i != cloned_game_state.player_index:
+                hands.append(cloned_game_state.players[i].hand)
+                cloned_game_state.deck.extend(hand_to_cards(hands[-1]))
+                cloned_game_state.players[i].hand = 0
+
+
 
         for iter_num in range(self.realtime_iterations):
             ###print(f'Realtime Iteration: {iter_num}')
@@ -97,14 +105,10 @@ cdef class CFRTrainer:
             probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
             probs[:] = 1  # Initialize probabilities
 
-            self.cfr_traverse(game_state.clone(), probs, 0, self.cfr_realtime_depth, .1)
+            self.cfr_traverse(cloned_game_state, probs, 0, self.cfr_realtime_depth, .1)
             ###input("Press Enter to continue to the next iteration...")
 
-        for i in range(len(game_state.players)):
-            if i != game_state.player_index:
-                game_state.players[i].hand = hands.pop(0)
 
-        game_state.deck = deck[:]
 
     cdef cfr_traverse(self, GameState game_state, float[:] probs, int depth, int max_depth, float epsilon=0):
         cdef int num_players = len(game_state.players)
@@ -142,11 +146,11 @@ cdef class CFRTrainer:
 
         for action in available_actions:
             ###print(f"Action: {action}")
-            print(f"__________\nCURRENT GAMESTATE")
-            game_state.debug_output()
+            #print(f"__________\nCURRENT GAMESTATE")
+            #game_state.debug_output()
             new_game_state = game_state.clone()
-            print(f"__________\nCLONED GAMESTATE")
-            new_game_state.debug_output()
+            #print(f"__________\nCLONED GAMESTATE")
+            #new_game_state.debug_output()
             if new_game_state.handle_action(action):
                 if new_game_state.num_board_cards() == 0:
                     new_game_state.setup_postflop('flop')

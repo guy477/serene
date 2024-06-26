@@ -14,7 +14,7 @@ from sklearn.cluster import MiniBatchKMeans
 
 def main():
     num_players = 2
-    num_ai_players = 0
+    num_ai_players = 1
 
     # pot relative bet-sizings for preflop, flop, turn, and river
     bet_sizing = [(2.5, 8), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]

@@ -1,5 +1,6 @@
 cdef class GameState:
     cdef public int hand_id
+    cdef public int silent
 
     cdef public list suits
     cdef public list values
