@@ -1,10 +1,9 @@
-
+**Current repo is a research build with no eye toward readability or ease of use.**
 
 This repository contains a barebones implementation of Texas Hold'em written in Cython 0.29.28 (Python 3.8.8).
 
-
-The functionality defined is to be integrated with a CFR algorithm written in Cython. This CFR implementation will eventually be linked with an abstraction algorithm I've previously worked on.
-
+Can solve for nash equalibrium in simple environments with limited betting variety and few big blinds. 
+No abstraction. Poorly Optimized.
 
 End goal is to create an efficient (and scalable) implementation of poker that serves a dual purpose of being a GTO solver and a practice environment for a learning player. 
 
@@ -15,7 +14,7 @@ To install please follow the below steps:
 
 - 2. Create the Anaconda Enviornment:
 ```
-conda create --name Serene python=3.8.8 numpy pandas cython scikit-learn
+conda create --name Serene python=3.8.8 numpy pandas cython scikit-learn tqdm matplotlib
 ```
 - 3. Activate the Anaconda Environment
 ```
