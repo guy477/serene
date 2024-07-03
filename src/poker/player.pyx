@@ -1,7 +1,6 @@
 #!python
 #cython: language_level=3
 
-from collections import defaultdict
 
 
 cdef class Player:
@@ -132,7 +131,7 @@ cdef class Player:
     cpdef str get_user_input(self, prompt):
         return input(prompt)
 
-    cpdef get_available_actions(self, GameState game_state):
+    cpdef list get_available_actions(self, GameState game_state):
         ret = [('call', 0), ('fold', 0)]
 
         # If there is no action, disallow folding.
@@ -145,6 +144,11 @@ cdef class Player:
         # Allow All-ins if the gamestate's current betsize is "significant" relative to our stack.
         if game_state.current_bet >= (self.chips / 3):
             ret.append(('all-in', 0))
+
+
+        # If first round and only the blinds have been posted, dont allow calling.
+        if len(game_state.betting_history[0]) == 2:
+            ret.remove(('call', 0))
 
         if self.chips >= game_state.current_bet:
             for i in self.bet_sizing[game_state.cur_round_index]:
@@ -192,5 +196,5 @@ cdef class Player:
         # hsh = (self.abstracted_hand, self.position, game_state.cur_round_index, tuple(self.get_available_actions(game_state)), str(game_state.betting_history[0]))
         
         ### NOTE we want to get abstracted hands here
-        hsh = (self.abstracted_hand, self.position, game_state.cur_round_index, game_state.pot//100, tuple(self.get_available_actions(game_state)), str(game_state.betting_history))
+        hsh = (self.abstracted_hand, self.position, game_state.pot//100, tuple(self.get_available_actions(game_state)), str(game_state.betting_history))
         return hsh

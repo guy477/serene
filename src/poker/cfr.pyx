@@ -69,7 +69,8 @@ cdef class CFRTrainer:
 
         hand_strategy_aggregate = []  # List to store aggregated strategies for each hand
         calculated = {}
-
+        probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
+                
         for hand in hands:
             if calculated.get(hand_mapping[hand], False):
                 continue
@@ -77,11 +78,10 @@ cdef class CFRTrainer:
             print('__________')
             print(f'Current Hand: {hand}', end = '\r')
             for iter_num in tqdm(range(self.iterations)):
-                epsilon = (0.9995 ** iter_num)  # Update epsilon based on iteration  # .9998 for 20000 iterations
+                epsilon = (0.9999 ** iter_num)  # Update epsilon based on iteration  # .9998 for 20000 iterations
                 #print(f'Iteration: {iter_num} for hand: {hand}', end='\r')
 
                 # Initialize probabilities
-                probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
                 probs[:] = 1
                 # #print(f'Current Hand: {hand}')
                 game_state.setup_preflop(hand)
@@ -175,6 +175,10 @@ cdef class CFRTrainer:
 
 
     cdef cfr_traverse(self, GameState game_state, float[:] probs, int depth, int max_depth, float epsilon=0):
+        cdef Player cur_player
+        cdef int cur_player_index
+        cdef list available_actions
+        
         cdef int num_players = len(game_state.players)
         cdef float[:] node_util = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
 
@@ -186,47 +190,44 @@ cdef class CFRTrainer:
             game_state.showdown()
             return self.calculate_utilities(game_state, game_state.winner_index)
 
-        current_player = game_state.player_index
-        player_hash = game_state.players[current_player].hash(game_state)
+        cur_player_index = game_state.player_index
+        cur_player = game_state.players[cur_player_index]
+        player_hash = cur_player.hash(game_state)
+        available_actions = cur_player.get_available_actions(game_state)
 
         if player_hash not in self.regret_sum:
-            self.regret_sum[player_hash] = {action: 0 for action in game_state.players[current_player].get_available_actions(game_state)}
+            self.regret_sum[player_hash] = {action: 0 for action in available_actions}
             #print(f"Initialized regret_sum for player_hash={player_hash}")
             #input("Press enter to continue.")
 
-        available_actions = game_state.players[current_player].get_available_actions(game_state)
+        
         #print(f"Available actions: {available_actions}")
         #input("Press enter to continue.")
         
         util = {action: cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f") for action in available_actions}
-        strategy = self.get_strategy(available_actions, probs, game_state, game_state.players[current_player])
+        strategy = self.get_strategy(available_actions, probs, game_state, cur_player)
         #print(f"Strategy: {strategy}")
         #input("Press enter to continue.")
 
-        monte_carlo = depth > 8
+        monte_carlo = depth >= 3
         #print(f"Monte Carlo: {monte_carlo}")
         #input("Press enter to continue.")
 
         # Monte Carlo sampling with epsilon exploration
-        if monte_carlo:
-            epsilon_calc = epsilon * .9 ** (1 + depth)
+        if monte_carlo and available_actions:
+            epsilon_calc = epsilon  # * .9 ** (1 + depth)
             rand_value = np.random.rand()
             #print(f"Random value for epsilon exploration: {rand_value}")
             #input("Press enter to continue.")
 
-            if rand_value < epsilon:
-                strategy = {action: 1 / len(available_actions) for action in available_actions}
-            
-            strategy_list = [strategy[a] for a in available_actions]
-            if len(strategy_list) == 0:
-                action_index = 0
-                available_actions = []
-            else:
-                action_index = np.random.choice(range(len(available_actions)), p=strategy_list)
-                #print(f"Strategy list: {strategy_list}"
-            
-                action = available_actions[action_index]
-                available_actions = [action]
+            if rand_value < epsilon_calc:
+                uniform_prob = 1 / len(available_actions)
+                strategy = {action: uniform_prob for action in available_actions}
+
+            strategy_list = np.array([strategy[a] for a in available_actions], dtype=np.float32)
+            action_index = np.random.choice(len(available_actions), p=strategy_list)
+            action = available_actions[action_index]
+            available_actions = [action]
             #print(f"Chosen action in Monte Carlo: {action}")
             #input("Press enter to continue.")
 
@@ -244,7 +245,7 @@ cdef class CFRTrainer:
 
             new_probs = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
             new_probs[:] = probs[:]
-            new_probs[current_player] *= strategy[action]
+            new_probs[cur_player_index] *= strategy[action]
             
             #print(f"New probabilities: {list(new_probs)}")
             #input("Press enter to continue.")
@@ -259,8 +260,8 @@ cdef class CFRTrainer:
             #input("Press enter to continue.")
 
         for action in available_actions:
-            regret = util[action][current_player] - node_util[current_player]
-            opp_contribution = np.prod(probs) / (probs[current_player] if probs[current_player] != 0 else 1)
+            regret = util[action][cur_player_index] - node_util[cur_player_index]
+            opp_contribution = np.prod(probs) / (probs[cur_player_index] if probs[cur_player_index] != 0 else 1)
             self.regret_sum[player_hash][action] += opp_contribution * regret
 
             #print(f"Updated regret_sum for player_hash={player_hash}, action={action}")
@@ -274,10 +275,6 @@ cdef class CFRTrainer:
         #input("Press enter to continue.")
         
         return node_util
-
-
-
-
 
 
 

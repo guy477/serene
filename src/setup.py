@@ -19,6 +19,6 @@ extensions = [
 
 setup(
     name="poker",
-    ext_modules=cythonize(extensions, language_level=3),
+    ext_modules=cythonize(extensions, language_level=3, annotate=True),
     include_dirs=[numpy.get_include()]
 )

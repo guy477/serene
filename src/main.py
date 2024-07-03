@@ -18,8 +18,9 @@ def main():
 
     # pot relative bet-sizings for preflop, flop, turn, and river
     # bet_sizing = [(1.5, 5), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
+    bet_sizing = [(1.5, ), (.33, .70), (), ()]
     # bet_sizing = [(1.5, 5), (), (), ()]
-    bet_sizing = [(1.5, ), (.33,), (), ()]
+    # bet_sizing = [(1.5, ), (.33,), (), ()]
 
 
 
@@ -35,9 +36,9 @@ def main():
 
     num_simulations = 1
 
-    num_iterations = 10000
+    num_iterations = 75000
     realtime_iterations = 200
-    cfr_depth = 4
+    cfr_depth = 6
     cfr_realtime_depth = 6
     
 
@@ -263,71 +264,88 @@ def cluster():
     #########################################################################################################
 
 
-def plot_hands(strategy_list):
+def setup_deck(suits=None, ranks=None):
+    if suits is None:
+        suits = ['s', 'o']
+    if ranks is None:
+        ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+    return suits, ranks
+
+def hand_position(hand, ranks):
+    rank1, rank2 = hand[0], hand[1]
+    suited = hand[2] == 's'
+    offsuit = hand[2] == 'o'
+    pair = rank1 == rank2
+
+    i = ranks.index(rank1)
+    j = ranks.index(rank2)
+
+    if pair:
+        return i, j
+    elif suited:
+        return min(i, j), max(i, j)
+    elif offsuit:
+        return max(i, j), min(i, j)
+    else:
+        raise ValueError("Invalid hand format")
+
+def plot_hands(strategy_list, suits=None, ranks=None):
     strategy_df = pd.DataFrame(strategy_list)
-
-    print(strategy_df)
-
-    # Rename the columns for clarity
     strategy_df.columns = ['Position', 'Hand', 'Strategy']
-    strategy_df.sort_values(by = 'Hand')
-    strategy_df = strategy_df[(strategy_df['Position'] == 'SB') & (strategy_df['Strategy']!={})]
-    strategy_df.reset_index(inplace = True)
-    # Create a new DataFrame to store the individual strategy proportions
+    strategy_df.sort_values(by='Hand')
+    strategy_df = strategy_df[(strategy_df['Position'] == 'SB') & (strategy_df['Strategy'] != {})]
+    strategy_df.reset_index(inplace=True)
+
     strategy_proportions = pd.DataFrame()
-    
     for index, row in strategy_df.iterrows():
         for action, value in row.Strategy.items():
             strategy_proportions.at[index, str(action)] = value
-    
-    # Fill any missing values with 0
-    strategy_proportions.fillna(0, inplace=True)
-    
-    # Reset the index to make it easier to plot
-    strategy_proportions.reset_index(drop=True, inplace=True)
-    
-    
-    subplot_size = np.array([.5, .5])
-    # Number of columns for subplot grid
-    ncols = 13
-    # Number of rows for subplot grid
-    nrows = 13
 
+    strategy_proportions.fillna(0, inplace=True)
+    strategy_proportions.reset_index(drop=True, inplace=True)
+
+    suits, ranks = setup_deck(suits, ranks)
+
+    subplot_size = np.array([.5, .5])
+    ncols = len(ranks)
+    nrows = len(ranks)
     figsize = subplot_size * [ncols, nrows]
 
     fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize)
     axes = axes.flatten()
 
-    # Set up colors for the actions. You can adjust this to your liking.
     colors = plt.cm.get_cmap('tab10', len(strategy_df['Strategy'].iloc[0]))
 
-    for i, (idx, row) in enumerate(strategy_proportions.iterrows()):
-        ax = axes[i]
-        ax.set_title(strategy_df.loc[idx, 'Hand'], size=5, pad=-500)
-        ax.set_ylim([0, 1]) # since they are proportions
-        ax.get_xaxis().set_visible(False)  # remove the x-axis
-        ax.get_yaxis().set_visible(False)  # remove the y-axis
+    for idx, row in strategy_proportions.iterrows():
+        hand = strategy_df.loc[idx, 'Hand']
+        try:
+            pos = hand_position(hand, ranks)
+        except ValueError:
+            continue
 
-        bottom = 0 # Initialize the bottom of the bars to 0
+        ax = axes[pos[0] * ncols + pos[1]]
+        ax.set_title(hand, size=5, pad=-500)
+        ax.set_ylim([0, 1])
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+
+        bottom = 0
         for j in range(len(row.index)):
-            ax.bar(i, row.values[j], bottom=bottom, color=colors(j))
-            bottom += row.values[j]  # Add the height of the bar to the bottom for the next bar
+            ax.bar(0, row.values[j], bottom=bottom, color=colors(j))
+            bottom += row.values[j]
 
-
-    # Remove the unused subplot, if any
-    if len(strategy_proportions.index) % ncols != 0:
-        for j in range(i+1, ncols * nrows):
+    total_positions = len(strategy_proportions)
+    if total_positions % ncols != 0:
+        for j in range(total_positions, ncols * nrows):
             fig.delaxes(axes[j])
 
-    # Create legend for the whole figure
     patches = [mpatches.Patch(color=colors(i), label=strategy_proportions.columns[i]) for i in range(len(strategy_proportions.columns))]
     plt.legend(handles=patches, loc='upper left')
 
     plt.tight_layout()
-    plt.subplots_adjust(wspace=0.2, hspace=0.4)  # adjust the space between plots
+    plt.subplots_adjust(wspace=0.2, hspace=0.4)
     plt.show()
-
-
+    
 if __name__ == "__main__":
     # cluster()
     main()

@@ -1,19 +1,20 @@
 #!python
 # cython: language_level=3
-
+import numpy
 cimport numpy
 cimport cython
 
-from libc.stdlib cimport rand, srand
+from libc.stdlib cimport RAND_MAX
 
 import logging
 import time
 
-# Seed random
-srand(time.time())
 
 cdef public list SUITS = ['C', 'D', 'H', 'S']
 cdef public list VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+
+cdef public dict SUITS_INDEX = {'C': 0, 'D': 1, 'H': 2, 'S': 3}
+cdef public dict VALUES_INDEX = {'2': 0, '3': 1, '4': 2, '5': 3, '6': 4, '7': 5, '8': 6, '9': 7, 'T': 8, 'J': 9, 'Q': 10, 'K': 11, 'A': 12}
 
 class PokerHandLogger:
     def __init__(self, log_file):
@@ -309,7 +310,7 @@ cdef class GameState:
         cdef int i, j
         cdef unsigned long long temp
         for i in range(len(self.deck) - 1, 0, -1):
-            j = rand() % (i + 1)
+            j = (numpy.random.rand() * 380204032 // 1) % (i + 1)
             temp = self.deck[i]
             self.deck[i] = self.deck[j]
             self.deck[j] = temp
@@ -426,8 +427,8 @@ cdef class GameState:
 
 cpdef unsigned long long card_to_int(str suit, str value):
     cdef unsigned long long one = 1
-    cdef int suit_index = SUITS.index(suit)
-    cdef int value_index = VALUES.index(value)
+    cdef int suit_index = SUITS_INDEX[suit]
+    cdef int value_index = VALUES_INDEX[value]
     cdef int bit_position = suit_index * 13 + value_index
     return one << bit_position
 

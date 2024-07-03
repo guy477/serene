@@ -1,14 +1,18 @@
-**Current repo is a research build with no eye toward readability or ease of use.**
+This repository contains a long-running personal project of mine that explores Texas Hold'em solvers using my personal 'research' build of CFR written in Cython 0.29.28 (Python 3.8.8). 
 
-This repository contains a barebones implementation of Texas Hold'em written in Cython 0.29.28 (Python 3.8.8).
+- **The code is poorly written and maintained** 
 
-Can solve for nash equalibrium in simple environments with limited betting variety and few big blinds. 
-No abstraction. Poorly Optimized.
+- **The code is not optimized for interpretability.**
 
-End goal is to create an efficient (and scalable) implementation of poker that serves a dual purpose of being a GTO solver and a practice environment for a learning player. 
+## Example
+The folling is a range chart the displays how ofte the (SB) should open raise 1.5x the pot (1.5bb*1.5 = 2.25bb) in heads up Texas Hold'em. Search depth and gamestate hashing is heavily restricted due to memory limitations and performance constraints. Regardless, the sampled range below 'makes sense'.
+![Preflop range for current commit](./HU%20SB%20PREFLOP%20EXAMPLE.png)
 
 
-To install please follow the below steps:
+# Install
+To install the current implementation please follow the below steps:
+
+**The current implementation was built on a Macbook Pro M1**
 
 - 1. Install Anaconda Package Manager for Python.
 
