@@ -8,6 +8,7 @@ cimport numpy as np
 from libc.math cimport sqrt
 import itertools
 from collections import defaultdict
+from tqdm import tqdm
 
 cdef public list SUITS = ['C', 'D', 'H', 'S']
 cdef public list VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
@@ -35,52 +36,115 @@ cdef class CFRTrainer:
     cpdef train(self):
         cdef float[:] probs
 
-        # Generate all possible 2-card hands
-        all_possible_hands = [(r1 + r2 + 's') for r1 in self.values for r2 in self.values if r1 != r2 and (self.values.index(r1) > self.values.index(r2))]  # Suited hands
-        all_possible_hands += [(r1 + r2 + 'o') for r1 in self.values for r2 in self.values if (self.values.index(r1) >= self.values.index(r2))]  # Offsuit hands
-        all_possible_hands = sorted(all_possible_hands)
-
         # Generate all possible cards
         cards = [r + s for r in reversed(self.values) for s in self.suits]
 
         # Generate all possible hands (for testing, we can sample this to focus on the first n to maximize iteration potential)
         hands = list(sorted(itertools.combinations(cards, 2)))
 
+
+
+        # Create a mapping from hands tuple to abstracted representation
+        hand_mapping = {}
+        for hand in hands:
+            card1, card2 = hand
+            rank1, suit1 = card1[:-1], card1[-1]
+            rank2, suit2 = card2[:-1], card2[-1]
+
+            if suit1 == suit2:
+                abstracted_hand = rank1 + rank2 + 's'
+            else:
+                abstracted_hand = rank1 + rank2 + 'o'
+
+            hand_mapping[hand] = abstracted_hand
+
         # Define a new game state for training
         players = [AIPlayer(self.initial_chips, self.bet_sizing, self) for _ in range(self.num_players)]
         
-        # Ensure the gamestate is silenced
+        # Ensure the game state is set up for preflop
         game_state = GameState(players, self.small_blind, self.big_blind, self.num_simulations, True, self.suits, self.values)
 
-        for iter_num in range(self.iterations):
-            epsilon = .1  # Exploration parameter
+        train_regret = {}
+        train_strategy = {}
 
-            for hand in hands:
-                print(f'Iteration: {iter_num}; Hand: {hand}', end = '\r')
+        hand_strategy_aggregate = []  # List to store aggregated strategies for each hand
+        calculated = {}
+
+        for hand in hands:
+            if calculated.get(hand_mapping[hand], False):
+                continue
+            calculated[hand_mapping[hand]] = True
+            print('__________')
+            print(f'Current Hand: {hand}', end = '\r')
+            for iter_num in tqdm(range(self.iterations)):
+                epsilon = (0.9995 ** iter_num)  # Update epsilon based on iteration  # .9998 for 20000 iterations
+                #print(f'Iteration: {iter_num} for hand: {hand}', end='\r')
+
+                # Initialize probabilities
+                probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
+                probs[:] = 1
+                # #print(f'Current Hand: {hand}')
                 game_state.setup_preflop(hand)
 
-                probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
-                probs[:] = 1  # Initialize probabilities
+                ### NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
+                ### NOTE  CONTINUE INVESTIGATING PROBS NOTE
+                ### NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
 
-                self.cfr_traverse(game_state, probs, 0, self.cfr_depth, epsilon)
-                ###input("Press Enter to continue to the next hand...")
+                # Perform CFR traversal for the current hand
+                self.cfr_traverse(game_state.clone(), probs, 0, self.cfr_depth, epsilon)
+                # input()
 
-        game_state.dealer_position = 4
-        game_state.setup_preflop()
-
-        preflop_range = []
-        for player_idx in range(len(players)):
+            # After iterations for a hand, calculate average strategy
+            player_idx = 1  # Assuming you iterate over all players here
             player = players[player_idx]
-            if player_idx > 0:
-                last_player = players[player_idx - 1]
-                game_state.load_custom_betting_history(0, (last_player.position, ('fold', 0)))
+            strategy = self.get_average_strategy(player, game_state)
+            # show player hash and other game state info
+            player_hash = player.hash(game_state)
+            print(player_hash)
+            print(f"Regret sum: {self.regret_sum[player_hash]}")
+            print(f"Average strategy for hand {hand_mapping[hand]}: {strategy}")
 
-            for hand in all_possible_hands:
-                player.abstracted_hand = hand
-                strategy = self.get_average_strategy(player, game_state)
-                preflop_range.append((player.position, hand, strategy))
+            train_regret[player_hash] = self.regret_sum[player_hash]
+            train_strategy[player_hash] = self.strategy_sum[player_hash]
+            
+            # Reset memory for current node.
+            self.regret_sum = {}
+            self.strategy_sum = {}
+            
+            # print(strategy)
+            # input()
+        
+        # Set the global regret_sum and strategy_sum to the training values
+        self.regret_sum = train_regret
+        self.strategy_sum = train_strategy
 
-        return preflop_range
+        # After iterations for a hand, calculate average strategy
+        player_idx = 1  # Assuming you iterate over all players here
+        player = players[player_idx]
+        calculated = {}
+
+        for hand in hands:
+            if calculated.get(hand_mapping[hand], False):
+                continue
+            calculated[hand_mapping[hand]] = True
+            # Set player's abstracted hand based on the mapping
+            player.abstracted_hand = hand_mapping[hand]
+
+            # Prepend an Open-raise from the small blind:
+            # game_state.load_custom_betting_history(0, ('SB', ('raise', 2.5)))
+
+            strategy = self.get_average_strategy(player, game_state)
+            #print(player.hash(game_state))
+
+            #print(f'Average strategy for hand {hand_mapping[hand]}: {strategy}')
+
+            # Append strategy to aggregate list
+            hand_strategy_aggregate.append((player.position, hand_mapping[hand], strategy))
+
+        return hand_strategy_aggregate
+
+
+
 
     cpdef train_realtime(self, GameState game_state):
         cdef float[:] probs
@@ -100,107 +164,140 @@ cdef class CFRTrainer:
 
 
         for iter_num in range(self.realtime_iterations):
-            ###print(f'Realtime Iteration: {iter_num}')
+            ####print(f'Realtime Iteration: {iter_num}')
 
             probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
             probs[:] = 1  # Initialize probabilities
 
-            self.cfr_traverse(cloned_game_state, probs, 0, self.cfr_realtime_depth, .1)
-            ###input("Press Enter to continue to the next iteration...")
+            self.cfr_traverse(cloned_game_state, probs, 0, self.cfr_realtime_depth, .005)
+            ####input("Press Enter to continue to the next iteration...")
 
 
 
     cdef cfr_traverse(self, GameState game_state, float[:] probs, int depth, int max_depth, float epsilon=0):
         cdef int num_players = len(game_state.players)
-        cdef float[:] new_probs = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
         cdef float[:] node_util = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
 
+        #print(f"Entering cfr_traverse: depth={depth}, max_depth={max_depth}")
+        #input("Press enter to continue.")
+        
         if game_state.is_terminal_river() or depth >= max_depth:
+            #print("Terminal state or max depth reached.")
             game_state.showdown()
             return self.calculate_utilities(game_state, game_state.winner_index)
 
         current_player = game_state.player_index
         player_hash = game_state.players[current_player].hash(game_state)
 
-        ###print(f"Current player hash: {player_hash}")
+        if player_hash not in self.regret_sum:
+            self.regret_sum[player_hash] = {action: 0 for action in game_state.players[current_player].get_available_actions(game_state)}
+            #print(f"Initialized regret_sum for player_hash={player_hash}")
+            #input("Press enter to continue.")
 
-        if self.regret_sum.get(player_hash, {}) == {}:
-            self.regret_sum[player_hash] = {}
-
-        available_actions = game_state.players[current_player].get_available_actions(game_state, current_player)
+        available_actions = game_state.players[current_player].get_available_actions(game_state)
+        #print(f"Available actions: {available_actions}")
+        #input("Press enter to continue.")
+        
+        util = {action: cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f") for action in available_actions}
         strategy = self.get_strategy(available_actions, probs, game_state, game_state.players[current_player])
+        #print(f"Strategy: {strategy}")
+        #input("Press enter to continue.")
 
-        util = defaultdict(lambda: cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f"))
-        monte_carlo = depth > 4
+        monte_carlo = depth > 8
+        #print(f"Monte Carlo: {monte_carlo}")
+        #input("Press enter to continue.")
 
+        # Monte Carlo sampling with epsilon exploration
         if monte_carlo:
-            if available_actions:
-                if np.random.rand() < epsilon:
-                    strategy = {action: 1/len(available_actions) for action in available_actions}
-                    strategy_list = [1/len(available_actions) for _ in available_actions]
-                else:
-                    strategy_list = [strategy[a] for a in available_actions]
+            epsilon_calc = epsilon * .9 ** (1 + depth)
+            rand_value = np.random.rand()
+            #print(f"Random value for epsilon exploration: {rand_value}")
+            #input("Press enter to continue.")
+
+            if rand_value < epsilon:
+                strategy = {action: 1 / len(available_actions) for action in available_actions}
+            
+            strategy_list = [strategy[a] for a in available_actions]
+            if len(strategy_list) == 0:
+                action_index = 0
+                available_actions = []
+            else:
                 action_index = np.random.choice(range(len(available_actions)), p=strategy_list)
+                #print(f"Strategy list: {strategy_list}"
+            
                 action = available_actions[action_index]
                 available_actions = [action]
+            #print(f"Chosen action in Monte Carlo: {action}")
+            #input("Press enter to continue.")
 
         for action in available_actions:
-            ###print(f"Action: {action}")
-            #print(f"__________\nCURRENT GAMESTATE")
-            #game_state.debug_output()
+            #print(f"Processing action: {action}")
+            #input("Press enter to continue.")
+            
             new_game_state = game_state.clone()
-            #print(f"__________\nCLONED GAMESTATE")
-            #new_game_state.debug_output()
             if new_game_state.handle_action(action):
+                #print(f"Action {action} handled, setting up postflop.")
                 if new_game_state.num_board_cards() == 0:
                     new_game_state.setup_postflop('flop')
                 else:
                     new_game_state.setup_postflop('postflop')
+
+            new_probs = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
+            new_probs[:] = probs[:]
+            new_probs[current_player] *= strategy[action]
             
-            ###print(f"__________\nITER GAMESTATE")
-            ###new_game_state.debug_output()
-
-            ###input('verify game state...')
-
-            for i in range(num_players):
-                new_probs[i] = probs[i] * strategy[action] if i == current_player else probs[i]
-
-            ###print(f"Before traverse, action: {action}, probs: {list(new_probs)}")
+            #print(f"New probabilities: {list(new_probs)}")
+            #input("Press enter to continue.")
+            
             util[action] = self.cfr_traverse(new_game_state, new_probs, depth + 1, max_depth, epsilon)
-            ###print(f"After traverse, action: {action}, util: {list(util[action])}")
-            ###input(f"Press Enter to continue with action {action}...")
+            #print(f"Utility for action {action}: {list(util[action])}")
+            #input("Press enter to continue.")
 
         for i in range(num_players):
             node_util[i] = sum(strategy[action] * util[action][i] for action in available_actions)
+            #print(f"Node utility for player {i}: {node_util[i]}")
+            #input("Press enter to continue.")
 
         for action in available_actions:
             regret = util[action][current_player] - node_util[current_player]
-            ###print(f"Regret for action {action}: {regret}")
-            self.regret_sum[player_hash][action] = self.regret_sum[player_hash].get(action, 0) + regret
+            opp_contribution = np.prod(probs) / (probs[current_player] if probs[current_player] != 0 else 1)
+            self.regret_sum[player_hash][action] += opp_contribution * regret
 
-        ###print(f"Node utility: {list(node_util)}")
-        ###print(f"Updated regret sums: {self.regret_sum[player_hash]}")
-        ###input("Press Enter to continue to the next node...")
+            #print(f"Updated regret_sum for player_hash={player_hash}, action={action}")
+            #print(f"Regret: {regret}")
+            #print(f"Opp contribution: {opp_contribution}")
+        #print(f"Regret sum: {self.regret_sum[player_hash]}")
+            #input("Press enter to continue.")
 
+
+        #print(f"Returning node_util: {list(node_util)}")
+        #input("Press enter to continue.")
+        
         return node_util
+
+
+
+
+
+
 
     cdef float[:] calculate_utilities(self, GameState game_state, int winner_index):
         cdef int num_players = len(game_state.players)
         cdef float[:] utilities = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
 
-        pot = game_state.pot
-
+        # https://www.acrpoker.eu/real-money/poker-rake-calculation/
+        rake = game_state.pot * .98
+        rake = rake if rake < 4 else 4
+        pot = game_state.pot - rake
         for i, p in enumerate(game_state.players):
             if i == winner_index:
                 # The winner gets the pot added to their initial chips
-                utilities[i] = pot - p.tot_contributed_to_pot
+                utilities[i] = (pot - p.tot_contributed_to_pot)
             else:
                 # Other players have their total contribution deducted
-                utilities[i] = -p.tot_contributed_to_pot
+                utilities[i] = -(p.tot_contributed_to_pot)
 
         return utilities
-        ###print(f"Utilities: {list(utilities)}")
-        ###input("Press Enter to continue to the next calculation...")
 
 
     cpdef get_strategy(self, list available_actions, float[:] probs, GameState game_state, Player player):
@@ -235,8 +332,7 @@ cdef class CFRTrainer:
         
         return strategy
 
-        ###print(f"Strategy: {strategy}")
-        ###input("Press Enter to continue to the next strategy calculation...")
+
 
     cdef get_average_strategy(self, AIPlayer player, GameState game_state):
         average_strategy = {}
@@ -245,7 +341,7 @@ cdef class CFRTrainer:
         cur_gamestate_strategy = self.strategy_sum.get(game_state_hash, {})
 
         if not cur_gamestate_strategy:
-            actions = player.get_available_actions(game_state, player.player_index)
+            actions = player.get_available_actions(game_state)
             cur_gamestate_strategy = {action: 1/len(actions) for action in actions}
 
         for action, value in cur_gamestate_strategy.items():
@@ -259,7 +355,7 @@ cdef class CFRTrainer:
             for action in cur_gamestate_strategy:
                 average_strategy[action] = 1 / num_actions
 
-        ###print(f"Average strategy: {average_strategy}")
-        ###input("Press Enter to continue to the next average strategy calculation...")
+        ####print(f"Average strategy: {average_strategy}")
+        ####input("Press Enter to continue to the next average strategy calculation...")
 
         return average_strategy

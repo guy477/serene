@@ -17,11 +17,15 @@ def main():
     num_ai_players = 1
 
     # pot relative bet-sizings for preflop, flop, turn, and river
-    bet_sizing = [(2.5, 8), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
+    # bet_sizing = [(1.5, 5), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
+    # bet_sizing = [(1.5, 5), (), (), ()]
+    bet_sizing = [(1.5, ), (.33,), (), ()]
+
+
 
     # set the deck
-    SUITS = ['C', 'D'] # , 'H', 'S'
-    VALUES = [ '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'] # '2', '3', '4', '5',
+    SUITS = ['C', 'D', 'H', 'S'] # , 'H', 'S'
+    VALUES = [ '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'] # '2', '3', '4', '5',
 
     initial_chips = 1000
     small_blind = 5
@@ -29,18 +33,18 @@ def main():
 
     num_hands = 5
 
-    num_simulations = 250
+    num_simulations = 1
 
-    num_iterations = 0
+    num_iterations = 10000
     realtime_iterations = 200
-    cfr_depth = 1000
+    cfr_depth = 4
     cfr_realtime_depth = 6
     
 
     # Train the AI player using the CFR algorithm
     cfr_trainer = CFRTrainer(num_iterations, realtime_iterations, num_simulations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES)
     strategy_list = cfr_trainer.train()
-    ### plot_hands(strategy_list)
+    plot_hands(strategy_list)
 
     game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer, SUITS, VALUES)
 
@@ -262,6 +266,8 @@ def cluster():
 def plot_hands(strategy_list):
     strategy_df = pd.DataFrame(strategy_list)
 
+    print(strategy_df)
+
     # Rename the columns for clarity
     strategy_df.columns = ['Position', 'Hand', 'Strategy']
     strategy_df.sort_values(by = 'Hand')
@@ -269,9 +275,6 @@ def plot_hands(strategy_list):
     strategy_df.reset_index(inplace = True)
     # Create a new DataFrame to store the individual strategy proportions
     strategy_proportions = pd.DataFrame()
-
-    # Split the Strategy dictionary into separate columns in strategy_proportions
-    print(strategy_df)
     
     for index, row in strategy_df.iterrows():
         for action, value in row.Strategy.items():

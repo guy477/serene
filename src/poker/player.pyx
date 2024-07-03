@@ -132,27 +132,30 @@ cdef class Player:
     cpdef str get_user_input(self, prompt):
         return input(prompt)
 
-    cpdef get_available_actions(self, GameState game_state, int player_index):
-        ret = [('call', 0), ('fold', 0), ('all-in', 0)]
-        cdef Player player = game_state.players[player_index]
-    
-        # If there is no action, dissallow folding.
-        if game_state.current_bet - player.contributed_to_pot == 0:
+    cpdef get_available_actions(self, GameState game_state):
+        ret = [('call', 0), ('fold', 0)]
+
+        # If there is no action, disallow folding.
+        if game_state.current_bet - self.contributed_to_pot == 0:
             ret.remove(('fold', 0))
 
-        if player.folded or player.chips <= 0:
+        if self.folded or self.chips <= 0:
             return []
 
-        if player.chips >= game_state.current_bet:
-            for i in self.bet_sizing[game_state.cur_round_index]:
-                if player.chips >= (game_state.current_bet + int(game_state.pot * i)) and int(game_state.pot * i) > game_state.current_bet and player.chips > int(game_state.pot * i):
-                    # we dont want to represent the raise as the actual amount, that way the CFR mapping knows what it's looking at.
-                    ret.append(('raise', i))
+        # Allow All-ins if the gamestate's current betsize is "significant" relative to our stack.
+        if game_state.current_bet >= (self.chips / 3):
+            ret.append(('all-in', 0))
 
+        if self.chips >= game_state.current_bet:
+            for i in self.bet_sizing[game_state.cur_round_index]:
+                if self.chips >= (game_state.current_bet + int(game_state.pot * i)) and int(game_state.pot * i) > game_state.current_bet and self.chips > int(game_state.pot * i):
+                    # Represent the raise as a proportion rather than the actual amount
+                    ret.append(('raise', i))
         else:
             ret.remove(('call', 0))
         
         return ret
+
 
     cpdef clone(self):
         cdef Player new_player = Player(self.chips, self.bet_sizing)
@@ -185,5 +188,9 @@ cdef class Player:
     cpdef hash(self, GameState game_state):
         # hsh = hash((self.abstracted_hand, game_state.board, self.position, game_state.cur_round_index, str(self.betting_history)))
         #hsh = (self.abstracted_hand, self.position, game_state.cur_round_index, str(game_state.betting_history[0]))
-        hsh = (self.abstracted_hand, game_state.board, self.position, game_state.cur_round_index, str(game_state.betting_history))
+        # hsh = (self.abstracted_hand, game_state.board, self.position, game_state.cur_round_index, str(game_state.betting_history))
+        # hsh = (self.abstracted_hand, self.position, game_state.cur_round_index, tuple(self.get_available_actions(game_state)), str(game_state.betting_history[0]))
+        
+        ### NOTE we want to get abstracted hands here
+        hsh = (self.abstracted_hand, self.position, game_state.cur_round_index, game_state.pot//100, tuple(self.get_available_actions(game_state)), str(game_state.betting_history))
         return hsh

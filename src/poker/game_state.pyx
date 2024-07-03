@@ -13,7 +13,7 @@ import time
 srand(time.time())
 
 cdef public list SUITS = ['C', 'D', 'H', 'S']
-cdef public list VALUES = ['2', '3', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+cdef public list VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 
 class PokerHandLogger:
     def __init__(self, log_file):
@@ -73,7 +73,6 @@ cdef class GameState:
         self.suits = suits
         self.values = values
         self.silent = silent
-        self.reset()
         self.hand_id = 0
 
     cpdef reset(self):
@@ -228,54 +227,70 @@ cdef class GameState:
         cdef unsigned long long player_hand
         cdef int best_score, player_score
         cdef unsigned long long zero = 0
-        cdef int remaining_players = sum([not player.folded for player in self.players])
-        cdef unsigned long long board_dupe = self.board
-        cdef list deck_dupe = self.deck[:]
-        cdef list hands = [player.hand for player in self.players]
+        cdef int remaining_players = 0
+        cdef list hands = [0] * len(self.players)  # Preallocate list
+
+        for player in self.players:
+            if not player.folded:
+                remaining_players += 1
 
         if self.winner_index != -1:
-            # we've already called showdown for this iteration
-            # if we reach a terminal node before all cards have been dealt (e.g. all-in situation or all fold)
-            # then we only want to perform the showdown during the "handle_action" call - not during the game loop (poker_game.pyx)
-            return 
+            return  # Avoid redundant processing
 
-        if remaining_players != 1:
+        if remaining_players == 1:
             for i, player in enumerate(self.players):
                 if not player.folded:
                     self.winner_index = i
                     break
         else:
-            win_rate = [0 for _ in self.players]
+            board_dupe = self.board
+            deck_dupe = self.deck[:]
+            for i, player in enumerate(self.players):
+                hands[i] = player.hand
+
+            win_rate = [0] * len(self.players)
             for _ in range(self.num_simulations):
-                for i, player in enumerate(self.players):
-                    player.hand = hands[i]
                 self.board = board_dupe
                 self.deck = deck_dupe[:]
                 self.fisher_yates_shuffle()
+
                 while self.num_board_cards() < 5:
                     self.draw_card()
+
                 best_score = -1
                 self.winner_index = -1
+
                 for i, player in enumerate(self.players):
                     if player.folded:
                         continue
+
                     if player.hand == zero:
-                        player.hand |= self.deck.pop()
-                        player.hand |= self.deck.pop()
+                        player.hand = self.deck.pop() | self.deck.pop()
+
                     player_hand = player.hand | self.board
                     player_score = cy_evaluate(player_hand, 7)
+
                     if player_score > best_score:
                         best_score = player_score
                         self.winner_index = i
-                win_rate[self.winner_index] += 1
-            self.winner_index = win_rate.index(max(win_rate))
-            for i, p in enumerate(self.players):
-                p.expected_hand_strength = win_rate[i] / self.num_simulations
-        
-        self.players[self.winner_index].prior_gains += self.pot
-        self.players[self.winner_index].chips += self.pot
+                
+                for i in range(len(self.players)):
+                    self.players[i].hand = hands[i]  # Restore hands
 
-        self.log_current_hand(terminal = True)  # Log the hand here if terminal at river
+                win_rate[self.winner_index] += 1
+
+            self.winner_index = win_rate.index(max(win_rate))
+            num_simulations = float(self.num_simulations)  # Cache division factor
+
+            for i, p in enumerate(self.players):
+                p.expected_hand_strength = win_rate[i] / num_simulations
+
+        winner = self.players[self.winner_index]
+        winner.prior_gains += self.pot
+        winner.chips += self.pot
+
+        self.log_current_hand(terminal=True)  # Log the hand here if terminal at river
+
 
     cpdef bint is_terminal(self):
         if ((self.num_actions >= self.round_active_players and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or
