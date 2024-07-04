@@ -417,6 +417,7 @@ body.cython { font-family: courier; font-size: 12; }
   PyObject *(*to_list)(struct __pyx_obj_5poker_6_utils_Deck *);
   PyObject *(*create_deck)(struct __pyx_obj_5poker_6_utils_Deck *);
   void (*remove)(struct __pyx_obj_5poker_6_utils_Deck *, unsigned PY_LONG_LONG);
+  void (*add)(struct __pyx_obj_5poker_6_utils_Deck *, unsigned PY_LONG_LONG);
   void (*fisher_yates_shuffle)(struct __pyx_obj_5poker_6_utils_Deck *);
   unsigned PY_LONG_LONG (*pop)(struct __pyx_obj_5poker_6_utils_Deck *);
   struct __pyx_obj_5poker_6_utils_Deck *(*clone)(struct __pyx_obj_5poker_6_utils_Deck *);
@@ -822,7 +823,28 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   }
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
 </pre><pre class="cython line score-0">&#xA0;<span class="">042</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">043</span>:     cdef list to_list(self):</pre>
+<pre class="cython line score-3" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">043</span>:     cdef void add(self, unsigned long long card):</pre>
+<pre class='cython code score-3 '>static void __pyx_f_5poker_6_utils_4Deck_add(struct __pyx_obj_5poker_6_utils_Deck *__pyx_v_self, unsigned PY_LONG_LONG __pyx_v_card) {
+/* … */
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_t_1);
+  <span class='pyx_c_api'>__Pyx_AddTraceback</span>("poker._utils.Deck.add", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_L0:;
+  <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
+}
+</pre><pre class="cython line score-10" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">044</span>:         self.deck.append(card)</pre>
+<pre class='cython code score-10 '>  if (unlikely(__pyx_v_self-&gt;deck == Py_None)) {
+    <span class='py_c_api'>PyErr_Format</span>(PyExc_AttributeError, "'NoneType' object has no attribute '%.30s'", "append");
+    <span class='error_goto'>__PYX_ERR(0, 44, __pyx_L1_error)</span>
+  }
+  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyInt_From_unsigned_PY_LONG_LONG</span>(__pyx_v_card);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
+  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyList_Append</span>(__pyx_v_self-&gt;deck, __pyx_t_1);<span class='error_goto'> if (unlikely(__pyx_t_2 == ((int)-1))) __PYX_ERR(0, 44, __pyx_L1_error)</span>
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
+</pre><pre class="cython line score-0">&#xA0;<span class="">045</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">046</span>:     cdef list to_list(self):</pre>
 <pre class='cython code score-0 '>static PyObject *__pyx_f_5poker_6_utils_4Deck_to_list(struct __pyx_obj_5poker_6_utils_Deck *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
 /* … */
@@ -832,13 +854,13 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
   return __pyx_r;
 }
-</pre><pre class="cython line score-2" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">044</span>:         return self.deck</pre>
+</pre><pre class="cython line score-2" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">047</span>:         return self.deck</pre>
 <pre class='cython code score-2 '>  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
   <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_v_self-&gt;deck);
   __pyx_r = __pyx_v_self-&gt;deck;
   goto __pyx_L0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">045</span>: </pre>
-<pre class="cython line score-5" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">046</span>:     cdef Deck clone(self):</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">048</span>: </pre>
+<pre class="cython line score-5" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">049</span>:     cdef Deck clone(self):</pre>
 <pre class='cython code score-5 '>static struct __pyx_obj_5poker_6_utils_Deck *__pyx_f_5poker_6_utils_4Deck_clone(struct __pyx_obj_5poker_6_utils_Deck *__pyx_v_self) {
   struct __pyx_obj_5poker_6_utils_Deck *__pyx_v_new_deck = 0;
   struct __pyx_obj_5poker_6_utils_Deck *__pyx_r = NULL;
@@ -855,41 +877,41 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
   return __pyx_r;
 }
-</pre><pre class="cython line score-14" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">047</span>:         cdef Deck new_deck = Deck(self.suits, self.values)</pre>
-<pre class='cython code score-14 '>  __pyx_t_1 = <span class='py_c_api'>PyTuple_New</span>(2);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 47, __pyx_L1_error)</span>
+</pre><pre class="cython line score-14" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">050</span>:         cdef Deck new_deck = Deck(self.suits, self.values)</pre>
+<pre class='cython code score-14 '>  __pyx_t_1 = <span class='py_c_api'>PyTuple_New</span>(2);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
   <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_v_self-&gt;suits);
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_v_self-&gt;suits);
-  if (<span class='pyx_c_api'>__Pyx_PyTuple_SET_ITEM</span>(__pyx_t_1, 0, __pyx_v_self-&gt;suits)) <span class='error_goto'>__PYX_ERR(0, 47, __pyx_L1_error)</span>;
+  if (<span class='pyx_c_api'>__Pyx_PyTuple_SET_ITEM</span>(__pyx_t_1, 0, __pyx_v_self-&gt;suits)) <span class='error_goto'>__PYX_ERR(0, 50, __pyx_L1_error)</span>;
   <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_v_self-&gt;values);
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_v_self-&gt;values);
-  if (<span class='pyx_c_api'>__Pyx_PyTuple_SET_ITEM</span>(__pyx_t_1, 1, __pyx_v_self-&gt;values)) <span class='error_goto'>__PYX_ERR(0, 47, __pyx_L1_error)</span>;
-  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyObject_Call</span>(((PyObject *)__pyx_ptype_5poker_6_utils_Deck), __pyx_t_1, NULL);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 47, __pyx_L1_error)</span>
+  if (<span class='pyx_c_api'>__Pyx_PyTuple_SET_ITEM</span>(__pyx_t_1, 1, __pyx_v_self-&gt;values)) <span class='error_goto'>__PYX_ERR(0, 50, __pyx_L1_error)</span>;
+  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyObject_Call</span>(((PyObject *)__pyx_ptype_5poker_6_utils_Deck), __pyx_t_1, NULL);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_new_deck = ((struct __pyx_obj_5poker_6_utils_Deck *)__pyx_t_2);
   __pyx_t_2 = 0;
-</pre><pre class="cython line score-8" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">048</span>:         new_deck.deck = self.deck[:]</pre>
+</pre><pre class="cython line score-8" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">051</span>:         new_deck.deck = self.deck[:]</pre>
 <pre class='cython code score-8 '>  if (unlikely(__pyx_v_self-&gt;deck == Py_None)) {
     <span class='py_c_api'>PyErr_SetString</span>(PyExc_TypeError, "'NoneType' object is not subscriptable");
-    <span class='error_goto'>__PYX_ERR(0, 48, __pyx_L1_error)</span>
+    <span class='error_goto'>__PYX_ERR(0, 51, __pyx_L1_error)</span>
   }
-  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyList_GetSlice</span>(__pyx_v_self-&gt;deck, 0, PY_SSIZE_T_MAX);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 48, __pyx_L1_error)</span>
+  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyList_GetSlice</span>(__pyx_v_self-&gt;deck, 0, PY_SSIZE_T_MAX);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 51, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_2);
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_v_new_deck-&gt;deck);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_v_new_deck-&gt;deck);
   __pyx_v_new_deck-&gt;deck = ((PyObject*)__pyx_t_2);
   __pyx_t_2 = 0;
-</pre><pre class="cython line score-2" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">049</span>:         return new_deck</pre>
+</pre><pre class="cython line score-2" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">052</span>:         return new_deck</pre>
 <pre class='cython code score-2 '>  <span class='pyx_macro_api'>__Pyx_XDECREF</span>((PyObject *)__pyx_r);
   <span class='pyx_macro_api'>__Pyx_INCREF</span>((PyObject *)__pyx_v_new_deck);
   __pyx_r = __pyx_v_new_deck;
   goto __pyx_L0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">050</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">051</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">052</span>: </pre>
-<pre class="cython line score-3" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">053</span>: cdef unsigned long long card_to_int(str suit, str value):</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">053</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">054</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">055</span>: </pre>
+<pre class="cython line score-3" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">056</span>: cdef unsigned long long card_to_int(str suit, str value):</pre>
 <pre class='cython code score-3 '>static unsigned PY_LONG_LONG __pyx_f_5poker_6_utils_card_to_int(PyObject *__pyx_v_suit, PyObject *__pyx_v_value) {
   unsigned PY_LONG_LONG __pyx_v_one;
   int __pyx_v_suit_index;
@@ -906,35 +928,35 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
   return __pyx_r;
 }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">054</span>:     cdef unsigned long long one = 1</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">057</span>:     cdef unsigned long long one = 1</pre>
 <pre class='cython code score-0 '>  __pyx_v_one = 1;
-</pre><pre class="cython line score-15" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">055</span>:     cdef int suit_index = SUITS_INDEX[suit]</pre>
+</pre><pre class="cython line score-15" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">058</span>:     cdef int suit_index = SUITS_INDEX[suit]</pre>
 <pre class='cython code score-15 '>  if (unlikely(SUITS_INDEX == Py_None)) {
     <span class='py_c_api'>PyErr_SetString</span>(PyExc_TypeError, "'NoneType' object is not subscriptable");
-    <span class='error_goto'>__PYX_ERR(0, 55, __pyx_L1_error)</span>
+    <span class='error_goto'>__PYX_ERR(0, 58, __pyx_L1_error)</span>
   }
-  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyDict_GetItem</span>(SUITS_INDEX, __pyx_v_suit);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 55, __pyx_L1_error)</span>
+  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyDict_GetItem</span>(SUITS_INDEX, __pyx_v_suit);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 58, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
-  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyInt_As_int</span>(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 55, __pyx_L1_error)</span>
+  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyInt_As_int</span>(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 58, __pyx_L1_error)</span>
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_suit_index = __pyx_t_2;
-</pre><pre class="cython line score-15" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">056</span>:     cdef int value_index = VALUES_INDEX[value]</pre>
+</pre><pre class="cython line score-15" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">059</span>:     cdef int value_index = VALUES_INDEX[value]</pre>
 <pre class='cython code score-15 '>  if (unlikely(VALUES_INDEX == Py_None)) {
     <span class='py_c_api'>PyErr_SetString</span>(PyExc_TypeError, "'NoneType' object is not subscriptable");
-    <span class='error_goto'>__PYX_ERR(0, 56, __pyx_L1_error)</span>
+    <span class='error_goto'>__PYX_ERR(0, 59, __pyx_L1_error)</span>
   }
-  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyDict_GetItem</span>(VALUES_INDEX, __pyx_v_value);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 56, __pyx_L1_error)</span>
+  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyDict_GetItem</span>(VALUES_INDEX, __pyx_v_value);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 59, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
-  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyInt_As_int</span>(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 56, __pyx_L1_error)</span>
+  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyInt_As_int</span>(__pyx_t_1); if (unlikely((__pyx_t_2 == (int)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 59, __pyx_L1_error)</span>
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_value_index = __pyx_t_2;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">057</span>:     cdef int bit_position = suit_index * 13 + value_index</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">060</span>:     cdef int bit_position = suit_index * 13 + value_index</pre>
 <pre class='cython code score-0 '>  __pyx_v_bit_position = ((__pyx_v_suit_index * 13) + __pyx_v_value_index);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">058</span>:     return one &lt;&lt; bit_position</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">061</span>:     return one &lt;&lt; bit_position</pre>
 <pre class='cython code score-0 '>  __pyx_r = (__pyx_v_one &lt;&lt; __pyx_v_bit_position);
   goto __pyx_L0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">059</span>: </pre>
-<pre class="cython line score-5" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">060</span>: cdef str int_to_card(unsigned long long card):</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">062</span>: </pre>
+<pre class="cython line score-5" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">063</span>: cdef str int_to_card(unsigned long long card):</pre>
 <pre class='cython code score-5 '>static PyObject *__pyx_f_5poker_6_utils_int_to_card(unsigned PY_LONG_LONG __pyx_v_card) {
   int __pyx_v_bit_position;
   int __pyx_v_suit_index;
@@ -953,51 +975,51 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
   return __pyx_r;
 }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">061</span>:     cdef int bit_position = -1</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">064</span>:     cdef int bit_position = -1</pre>
 <pre class='cython code score-0 '>  __pyx_v_bit_position = -1;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">062</span>:     while card &gt; 0:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">065</span>:     while card &gt; 0:</pre>
 <pre class='cython code score-0 '>  while (1) {
     __pyx_t_1 = (__pyx_v_card &gt; 0);
     if (!__pyx_t_1) break;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">063</span>:         card &gt;&gt;= 1</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">066</span>:         card &gt;&gt;= 1</pre>
 <pre class='cython code score-0 '>    __pyx_v_card = (__pyx_v_card &gt;&gt; 1);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">064</span>:         bit_position += 1</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">067</span>:         bit_position += 1</pre>
 <pre class='cython code score-0 '>    __pyx_v_bit_position = (__pyx_v_bit_position + 1);
   }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">065</span>:     cdef int suit_index = bit_position // 13</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">068</span>:     cdef int suit_index = bit_position // 13</pre>
 <pre class='cython code score-0 '>  __pyx_v_suit_index = __Pyx_div_long(__pyx_v_bit_position, 13);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">066</span>:     cdef int value_index = bit_position % 13</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">069</span>:     cdef int value_index = bit_position % 13</pre>
 <pre class='cython code score-0 '>  __pyx_v_value_index = __Pyx_mod_long(__pyx_v_bit_position, 13);
-</pre><pre class="cython line score-25" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">067</span>:     return f'{VALUES[value_index]}{SUITS[suit_index]}'</pre>
+</pre><pre class="cython line score-25" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">070</span>:     return f'{VALUES[value_index]}{SUITS[suit_index]}'</pre>
 <pre class='cython code score-25 '>  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
   if (unlikely(VALUES == Py_None)) {
     <span class='py_c_api'>PyErr_SetString</span>(PyExc_TypeError, "'NoneType' object is not subscriptable");
-    <span class='error_goto'>__PYX_ERR(0, 67, __pyx_L1_error)</span>
+    <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L1_error)</span>
   }
-  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_GetItemInt_List</span>(VALUES, __pyx_v_value_index, int, 1, __Pyx_PyInt_From_int, 1, 1, 1);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 67, __pyx_L1_error)</span>
+  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_GetItemInt_List</span>(VALUES, __pyx_v_value_index, int, 1, __Pyx_PyInt_From_int, 1, 1, 1);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 70, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
-  __pyx_t_3 = <span class='pyx_c_api'>__Pyx_PyObject_FormatSimple</span>(__pyx_t_2, __pyx_empty_unicode);<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 67, __pyx_L1_error)</span>
+  __pyx_t_3 = <span class='pyx_c_api'>__Pyx_PyObject_FormatSimple</span>(__pyx_t_2, __pyx_empty_unicode);<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 70, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_3);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_2); __pyx_t_2 = 0;
   if (unlikely(SUITS == Py_None)) {
     <span class='py_c_api'>PyErr_SetString</span>(PyExc_TypeError, "'NoneType' object is not subscriptable");
-    <span class='error_goto'>__PYX_ERR(0, 67, __pyx_L1_error)</span>
+    <span class='error_goto'>__PYX_ERR(0, 70, __pyx_L1_error)</span>
   }
-  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_GetItemInt_List</span>(SUITS, __pyx_v_suit_index, int, 1, __Pyx_PyInt_From_int, 1, 1, 1);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 67, __pyx_L1_error)</span>
+  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_GetItemInt_List</span>(SUITS, __pyx_v_suit_index, int, 1, __Pyx_PyInt_From_int, 1, 1, 1);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 70, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
-  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_FormatSimple</span>(__pyx_t_2, __pyx_empty_unicode);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 67, __pyx_L1_error)</span>
+  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_FormatSimple</span>(__pyx_t_2, __pyx_empty_unicode);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 70, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyUnicode_ConcatInPlace</span>(__pyx_t_3, __pyx_t_4);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 67, __pyx_L1_error)</span>
+  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyUnicode_ConcatInPlace</span>(__pyx_t_3, __pyx_t_4);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 70, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_3); __pyx_t_3 = 0;
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_r = ((PyObject*)__pyx_t_2);
   __pyx_t_2 = 0;
   goto __pyx_L0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">068</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">069</span>: </pre>
-<pre class="cython line score-4" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">070</span>: cdef unsigned long long card_str_to_int(str card_str):</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">071</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">072</span>: </pre>
+<pre class="cython line score-4" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">073</span>: cdef unsigned long long card_str_to_int(str card_str):</pre>
 <pre class='cython code score-4 '>static unsigned PY_LONG_LONG __pyx_f_5poker_6_utils_card_str_to_int(PyObject *__pyx_v_card_str) {
   unsigned PY_LONG_LONG __pyx_r;
 /* … */
@@ -1011,22 +1033,22 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
   return __pyx_r;
 }
-</pre><pre class="cython line score-29" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">071</span>:     return card_to_int(card_str[1], card_str[0])</pre>
-<pre class='cython code score-29 '>  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_GetItemInt_Unicode</span>(__pyx_v_card_str, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1);<span class='error_goto'> if (unlikely(__pyx_t_1 == (Py_UCS4)-1)) __PYX_ERR(0, 71, __pyx_L1_error)</span>
-  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyUnicode_FromOrdinal</span>(__pyx_t_1);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)</span>
+</pre><pre class="cython line score-29" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">074</span>:     return card_to_int(card_str[1], card_str[0])</pre>
+<pre class='cython code score-29 '>  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_GetItemInt_Unicode</span>(__pyx_v_card_str, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1);<span class='error_goto'> if (unlikely(__pyx_t_1 == (Py_UCS4)-1)) __PYX_ERR(0, 74, __pyx_L1_error)</span>
+  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyUnicode_FromOrdinal</span>(__pyx_t_1);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 74, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
-  if (!(likely(<span class='py_c_api'>PyUnicode_CheckExact</span>(__pyx_t_2)) || <span class='pyx_c_api'>__Pyx_RaiseUnexpectedTypeError</span>("unicode", __pyx_t_2))) <span class='error_goto'>__PYX_ERR(0, 71, __pyx_L1_error)</span>
-  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_GetItemInt_Unicode</span>(__pyx_v_card_str, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1);<span class='error_goto'> if (unlikely(__pyx_t_1 == (Py_UCS4)-1)) __PYX_ERR(0, 71, __pyx_L1_error)</span>
-  __pyx_t_3 = <span class='pyx_c_api'>__Pyx_PyUnicode_FromOrdinal</span>(__pyx_t_1);<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 71, __pyx_L1_error)</span>
+  if (!(likely(<span class='py_c_api'>PyUnicode_CheckExact</span>(__pyx_t_2)) || <span class='pyx_c_api'>__Pyx_RaiseUnexpectedTypeError</span>("unicode", __pyx_t_2))) <span class='error_goto'>__PYX_ERR(0, 74, __pyx_L1_error)</span>
+  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_GetItemInt_Unicode</span>(__pyx_v_card_str, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1);<span class='error_goto'> if (unlikely(__pyx_t_1 == (Py_UCS4)-1)) __PYX_ERR(0, 74, __pyx_L1_error)</span>
+  __pyx_t_3 = <span class='pyx_c_api'>__Pyx_PyUnicode_FromOrdinal</span>(__pyx_t_1);<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 74, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_3);
-  if (!(likely(<span class='py_c_api'>PyUnicode_CheckExact</span>(__pyx_t_3)) || <span class='pyx_c_api'>__Pyx_RaiseUnexpectedTypeError</span>("unicode", __pyx_t_3))) <span class='error_goto'>__PYX_ERR(0, 71, __pyx_L1_error)</span>
-  __pyx_t_4 = __pyx_f_5poker_6_utils_card_to_int(((PyObject*)__pyx_t_2), ((PyObject*)__pyx_t_3)); if (unlikely(__pyx_t_4 == ((unsigned PY_LONG_LONG)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 71, __pyx_L1_error)</span>
+  if (!(likely(<span class='py_c_api'>PyUnicode_CheckExact</span>(__pyx_t_3)) || <span class='pyx_c_api'>__Pyx_RaiseUnexpectedTypeError</span>("unicode", __pyx_t_3))) <span class='error_goto'>__PYX_ERR(0, 74, __pyx_L1_error)</span>
+  __pyx_t_4 = __pyx_f_5poker_6_utils_card_to_int(((PyObject*)__pyx_t_2), ((PyObject*)__pyx_t_3)); if (unlikely(__pyx_t_4 == ((unsigned PY_LONG_LONG)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 74, __pyx_L1_error)</span>
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_2); __pyx_t_2 = 0;
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_r = __pyx_t_4;
   goto __pyx_L0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">072</span>: </pre>
-<pre class="cython line score-9" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">073</span>: cdef public list create_deck():</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">075</span>: </pre>
+<pre class="cython line score-9" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">076</span>: cdef public list create_deck():</pre>
 <pre class='cython code score-9 '>PyObject *create_deck(void) {
   PyObject *__pyx_v_deck = 0;
   PyObject *__pyx_7genexpr__pyx_v_suit = NULL;
@@ -1049,13 +1071,13 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
   return __pyx_r;
 }
-</pre><pre class="cython line score-61" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">074</span>:     cdef list deck = [card_to_int(suit, value) for suit in SUITS for value in VALUES]</pre>
+</pre><pre class="cython line score-61" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">077</span>:     cdef list deck = [card_to_int(suit, value) for suit in SUITS for value in VALUES]</pre>
 <pre class='cython code score-61 '>  { /* enter inner scope */
-    __pyx_t_1 = <span class='py_c_api'>PyList_New</span>(0);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 74, __pyx_L5_error)</span>
+    __pyx_t_1 = <span class='py_c_api'>PyList_New</span>(0);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 77, __pyx_L5_error)</span>
     <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
     if (unlikely(SUITS == Py_None)) {
       <span class='py_c_api'>PyErr_SetString</span>(PyExc_TypeError, "'NoneType' object is not iterable");
-      <span class='error_goto'>__PYX_ERR(0, 74, __pyx_L5_error)</span>
+      <span class='error_goto'>__PYX_ERR(0, 77, __pyx_L5_error)</span>
     }
     __pyx_t_2 = SUITS; <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_t_2);
     __pyx_t_3 = 0;
@@ -1063,21 +1085,21 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
       {
         Py_ssize_t __pyx_temp = <span class='pyx_c_api'>__Pyx_PyList_GET_SIZE</span>(__pyx_t_2);
         #if !CYTHON_ASSUME_SAFE_MACROS
-        if (unlikely((__pyx_temp &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 74, __pyx_L5_error)</span>
+        if (unlikely((__pyx_temp &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 77, __pyx_L5_error)</span>
         #endif
         if (__pyx_t_3 &gt;= __pyx_temp) break;
       }
       #if CYTHON_ASSUME_SAFE_MACROS &amp;&amp; !CYTHON_AVOID_BORROWED_REFS
-      __pyx_t_4 = <span class='py_macro_api'>PyList_GET_ITEM</span>(__pyx_t_2, __pyx_t_3); <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_t_4); __pyx_t_3++; if (unlikely((0 &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 74, __pyx_L5_error)</span>
+      __pyx_t_4 = <span class='py_macro_api'>PyList_GET_ITEM</span>(__pyx_t_2, __pyx_t_3); <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_t_4); __pyx_t_3++; if (unlikely((0 &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 77, __pyx_L5_error)</span>
       #else
-      __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PySequence_ITEM</span>(__pyx_t_2, __pyx_t_3); __pyx_t_3++;<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 74, __pyx_L5_error)</span>
+      __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PySequence_ITEM</span>(__pyx_t_2, __pyx_t_3); __pyx_t_3++;<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 77, __pyx_L5_error)</span>
       <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
       #endif
       <span class='pyx_macro_api'>__Pyx_XDECREF_SET</span>(__pyx_7genexpr__pyx_v_suit, __pyx_t_4);
       __pyx_t_4 = 0;
       if (unlikely(VALUES == Py_None)) {
         <span class='py_c_api'>PyErr_SetString</span>(PyExc_TypeError, "'NoneType' object is not iterable");
-        <span class='error_goto'>__PYX_ERR(0, 74, __pyx_L5_error)</span>
+        <span class='error_goto'>__PYX_ERR(0, 77, __pyx_L5_error)</span>
       }
       __pyx_t_4 = VALUES; <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_t_4);
       __pyx_t_5 = 0;
@@ -1085,24 +1107,24 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
         {
           Py_ssize_t __pyx_temp = <span class='pyx_c_api'>__Pyx_PyList_GET_SIZE</span>(__pyx_t_4);
           #if !CYTHON_ASSUME_SAFE_MACROS
-          if (unlikely((__pyx_temp &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 74, __pyx_L5_error)</span>
+          if (unlikely((__pyx_temp &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 77, __pyx_L5_error)</span>
           #endif
           if (__pyx_t_5 &gt;= __pyx_temp) break;
         }
         #if CYTHON_ASSUME_SAFE_MACROS &amp;&amp; !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_6 = <span class='py_macro_api'>PyList_GET_ITEM</span>(__pyx_t_4, __pyx_t_5); <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_t_6); __pyx_t_5++; if (unlikely((0 &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 74, __pyx_L5_error)</span>
+        __pyx_t_6 = <span class='py_macro_api'>PyList_GET_ITEM</span>(__pyx_t_4, __pyx_t_5); <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_t_6); __pyx_t_5++; if (unlikely((0 &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 77, __pyx_L5_error)</span>
         #else
-        __pyx_t_6 = <span class='pyx_c_api'>__Pyx_PySequence_ITEM</span>(__pyx_t_4, __pyx_t_5); __pyx_t_5++;<span class='error_goto'> if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 74, __pyx_L5_error)</span>
+        __pyx_t_6 = <span class='pyx_c_api'>__Pyx_PySequence_ITEM</span>(__pyx_t_4, __pyx_t_5); __pyx_t_5++;<span class='error_goto'> if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 77, __pyx_L5_error)</span>
         <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_6);
         #endif
         <span class='pyx_macro_api'>__Pyx_XDECREF_SET</span>(__pyx_7genexpr__pyx_v_value, __pyx_t_6);
         __pyx_t_6 = 0;
-        if (!(likely(<span class='py_c_api'>PyUnicode_CheckExact</span>(__pyx_7genexpr__pyx_v_suit))||((__pyx_7genexpr__pyx_v_suit) == Py_None) || <span class='pyx_c_api'>__Pyx_RaiseUnexpectedTypeError</span>("unicode", __pyx_7genexpr__pyx_v_suit))) <span class='error_goto'>__PYX_ERR(0, 74, __pyx_L5_error)</span>
-        if (!(likely(<span class='py_c_api'>PyUnicode_CheckExact</span>(__pyx_7genexpr__pyx_v_value))||((__pyx_7genexpr__pyx_v_value) == Py_None) || <span class='pyx_c_api'>__Pyx_RaiseUnexpectedTypeError</span>("unicode", __pyx_7genexpr__pyx_v_value))) <span class='error_goto'>__PYX_ERR(0, 74, __pyx_L5_error)</span>
-        __pyx_t_7 = __pyx_f_5poker_6_utils_card_to_int(((PyObject*)__pyx_7genexpr__pyx_v_suit), ((PyObject*)__pyx_7genexpr__pyx_v_value)); if (unlikely(__pyx_t_7 == ((unsigned PY_LONG_LONG)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 74, __pyx_L5_error)</span>
-        __pyx_t_6 = <span class='pyx_c_api'>__Pyx_PyInt_From_unsigned_PY_LONG_LONG</span>(__pyx_t_7);<span class='error_goto'> if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 74, __pyx_L5_error)</span>
+        if (!(likely(<span class='py_c_api'>PyUnicode_CheckExact</span>(__pyx_7genexpr__pyx_v_suit))||((__pyx_7genexpr__pyx_v_suit) == Py_None) || <span class='pyx_c_api'>__Pyx_RaiseUnexpectedTypeError</span>("unicode", __pyx_7genexpr__pyx_v_suit))) <span class='error_goto'>__PYX_ERR(0, 77, __pyx_L5_error)</span>
+        if (!(likely(<span class='py_c_api'>PyUnicode_CheckExact</span>(__pyx_7genexpr__pyx_v_value))||((__pyx_7genexpr__pyx_v_value) == Py_None) || <span class='pyx_c_api'>__Pyx_RaiseUnexpectedTypeError</span>("unicode", __pyx_7genexpr__pyx_v_value))) <span class='error_goto'>__PYX_ERR(0, 77, __pyx_L5_error)</span>
+        __pyx_t_7 = __pyx_f_5poker_6_utils_card_to_int(((PyObject*)__pyx_7genexpr__pyx_v_suit), ((PyObject*)__pyx_7genexpr__pyx_v_value)); if (unlikely(__pyx_t_7 == ((unsigned PY_LONG_LONG)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 77, __pyx_L5_error)</span>
+        __pyx_t_6 = <span class='pyx_c_api'>__Pyx_PyInt_From_unsigned_PY_LONG_LONG</span>(__pyx_t_7);<span class='error_goto'> if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 77, __pyx_L5_error)</span>
         <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_6);
-        if (unlikely(<span class='pyx_c_api'>__Pyx_ListComp_Append</span>(__pyx_t_1, (PyObject*)__pyx_t_6))) <span class='error_goto'>__PYX_ERR(0, 74, __pyx_L5_error)</span>
+        if (unlikely(<span class='pyx_c_api'>__Pyx_ListComp_Append</span>(__pyx_t_1, (PyObject*)__pyx_t_6))) <span class='error_goto'>__PYX_ERR(0, 77, __pyx_L5_error)</span>
         <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_6); __pyx_t_6 = 0;
       }
       <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
@@ -1119,13 +1141,13 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   } /* exit inner scope */
   __pyx_v_deck = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
-</pre><pre class="cython line score-2" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">075</span>:     return deck</pre>
+</pre><pre class="cython line score-2" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">078</span>:     return deck</pre>
 <pre class='cython code score-2 '>  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
   <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_v_deck);
   __pyx_r = __pyx_v_deck;
   goto __pyx_L0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">076</span>: </pre>
-<pre class="cython line score-8" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">077</span>: cdef list hand_to_cards(unsigned long long hand):</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">079</span>: </pre>
+<pre class="cython line score-8" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">080</span>: cdef list hand_to_cards(unsigned long long hand):</pre>
 <pre class='cython code score-8 '>static PyObject *__pyx_f_5poker_6_utils_hand_to_cards(unsigned PY_LONG_LONG __pyx_v_hand) {
   PyObject *__pyx_v_cards = 0;
   PyObject *__pyx_8genexpr1__pyx_v_card = NULL;
@@ -1146,15 +1168,15 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
   return __pyx_r;
 }
-</pre><pre class="cython line score-35" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">078</span>:     cdef list cards = [card for card in create_deck() if card &amp; hand]</pre>
+</pre><pre class="cython line score-35" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">081</span>:     cdef list cards = [card for card in create_deck() if card &amp; hand]</pre>
 <pre class='cython code score-35 '>  { /* enter inner scope */
-    __pyx_t_1 = <span class='py_c_api'>PyList_New</span>(0);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 78, __pyx_L5_error)</span>
+    __pyx_t_1 = <span class='py_c_api'>PyList_New</span>(0);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 81, __pyx_L5_error)</span>
     <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
-    __pyx_t_2 = create_deck();<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 78, __pyx_L5_error)</span>
+    __pyx_t_2 = create_deck();<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 81, __pyx_L5_error)</span>
     <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
     if (unlikely(__pyx_t_2 == Py_None)) {
       <span class='py_c_api'>PyErr_SetString</span>(PyExc_TypeError, "'NoneType' object is not iterable");
-      <span class='error_goto'>__PYX_ERR(0, 78, __pyx_L5_error)</span>
+      <span class='error_goto'>__PYX_ERR(0, 81, __pyx_L5_error)</span>
     }
     __pyx_t_3 = __pyx_t_2; <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_t_3);
     __pyx_t_4 = 0;
@@ -1163,27 +1185,27 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
       {
         Py_ssize_t __pyx_temp = <span class='pyx_c_api'>__Pyx_PyList_GET_SIZE</span>(__pyx_t_3);
         #if !CYTHON_ASSUME_SAFE_MACROS
-        if (unlikely((__pyx_temp &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 78, __pyx_L5_error)</span>
+        if (unlikely((__pyx_temp &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 81, __pyx_L5_error)</span>
         #endif
         if (__pyx_t_4 &gt;= __pyx_temp) break;
       }
       #if CYTHON_ASSUME_SAFE_MACROS &amp;&amp; !CYTHON_AVOID_BORROWED_REFS
-      __pyx_t_2 = <span class='py_macro_api'>PyList_GET_ITEM</span>(__pyx_t_3, __pyx_t_4); <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_t_2); __pyx_t_4++; if (unlikely((0 &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 78, __pyx_L5_error)</span>
+      __pyx_t_2 = <span class='py_macro_api'>PyList_GET_ITEM</span>(__pyx_t_3, __pyx_t_4); <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_t_2); __pyx_t_4++; if (unlikely((0 &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 81, __pyx_L5_error)</span>
       #else
-      __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PySequence_ITEM</span>(__pyx_t_3, __pyx_t_4); __pyx_t_4++;<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 78, __pyx_L5_error)</span>
+      __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PySequence_ITEM</span>(__pyx_t_3, __pyx_t_4); __pyx_t_4++;<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 81, __pyx_L5_error)</span>
       <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
       #endif
       <span class='pyx_macro_api'>__Pyx_XDECREF_SET</span>(__pyx_8genexpr1__pyx_v_card, __pyx_t_2);
       __pyx_t_2 = 0;
-      __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyInt_From_unsigned_PY_LONG_LONG</span>(__pyx_v_hand);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 78, __pyx_L5_error)</span>
+      __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyInt_From_unsigned_PY_LONG_LONG</span>(__pyx_v_hand);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 81, __pyx_L5_error)</span>
       <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
-      __pyx_t_5 = <span class='py_c_api'>PyNumber_And</span>(__pyx_8genexpr1__pyx_v_card, __pyx_t_2);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 78, __pyx_L5_error)</span>
+      __pyx_t_5 = <span class='py_c_api'>PyNumber_And</span>(__pyx_8genexpr1__pyx_v_card, __pyx_t_2);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 81, __pyx_L5_error)</span>
       <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_5);
       <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_6 = <span class='pyx_c_api'>__Pyx_PyObject_IsTrue</span>(__pyx_t_5); if (unlikely((__pyx_t_6 &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 78, __pyx_L5_error)</span>
+      __pyx_t_6 = <span class='pyx_c_api'>__Pyx_PyObject_IsTrue</span>(__pyx_t_5); if (unlikely((__pyx_t_6 &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 81, __pyx_L5_error)</span>
       <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_5); __pyx_t_5 = 0;
       if (__pyx_t_6) {
-        if (unlikely(<span class='pyx_c_api'>__Pyx_ListComp_Append</span>(__pyx_t_1, (PyObject*)__pyx_8genexpr1__pyx_v_card))) <span class='error_goto'>__PYX_ERR(0, 78, __pyx_L5_error)</span>
+        if (unlikely(<span class='pyx_c_api'>__Pyx_ListComp_Append</span>(__pyx_t_1, (PyObject*)__pyx_8genexpr1__pyx_v_card))) <span class='error_goto'>__PYX_ERR(0, 81, __pyx_L5_error)</span>
       }
     }
     <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_3); __pyx_t_3 = 0;
@@ -1196,13 +1218,13 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   } /* exit inner scope */
   __pyx_v_cards = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
-</pre><pre class="cython line score-2" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">079</span>:     return cards</pre>
+</pre><pre class="cython line score-2" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">082</span>:     return cards</pre>
 <pre class='cython code score-2 '>  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
   <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_v_cards);
   __pyx_r = __pyx_v_cards;
   goto __pyx_L0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">080</span>: </pre>
-<pre class="cython line score-8" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">081</span>: cdef str format_hand(unsigned long long hand):</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">083</span>: </pre>
+<pre class="cython line score-8" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">084</span>: cdef str format_hand(unsigned long long hand):</pre>
 <pre class='cython code score-8 '>static PyObject *__pyx_f_5poker_6_utils_format_hand(unsigned PY_LONG_LONG __pyx_v_hand) {
   PyObject *__pyx_v_cards = 0;
   PyObject *__pyx_8genexpr2__pyx_v_card = NULL;
@@ -1223,15 +1245,15 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
   return __pyx_r;
 }
-</pre><pre class="cython line score-43" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">082</span>:     cdef list cards = [int_to_card(card) for card in create_deck() if card &amp; hand]</pre>
+</pre><pre class="cython line score-43" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">085</span>:     cdef list cards = [int_to_card(card) for card in create_deck() if card &amp; hand]</pre>
 <pre class='cython code score-43 '>  { /* enter inner scope */
-    __pyx_t_1 = <span class='py_c_api'>PyList_New</span>(0);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 82, __pyx_L5_error)</span>
+    __pyx_t_1 = <span class='py_c_api'>PyList_New</span>(0);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 85, __pyx_L5_error)</span>
     <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
-    __pyx_t_2 = create_deck();<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 82, __pyx_L5_error)</span>
+    __pyx_t_2 = create_deck();<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 85, __pyx_L5_error)</span>
     <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
     if (unlikely(__pyx_t_2 == Py_None)) {
       <span class='py_c_api'>PyErr_SetString</span>(PyExc_TypeError, "'NoneType' object is not iterable");
-      <span class='error_goto'>__PYX_ERR(0, 82, __pyx_L5_error)</span>
+      <span class='error_goto'>__PYX_ERR(0, 85, __pyx_L5_error)</span>
     }
     __pyx_t_3 = __pyx_t_2; <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_t_3);
     __pyx_t_4 = 0;
@@ -1240,30 +1262,30 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
       {
         Py_ssize_t __pyx_temp = <span class='pyx_c_api'>__Pyx_PyList_GET_SIZE</span>(__pyx_t_3);
         #if !CYTHON_ASSUME_SAFE_MACROS
-        if (unlikely((__pyx_temp &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 82, __pyx_L5_error)</span>
+        if (unlikely((__pyx_temp &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 85, __pyx_L5_error)</span>
         #endif
         if (__pyx_t_4 &gt;= __pyx_temp) break;
       }
       #if CYTHON_ASSUME_SAFE_MACROS &amp;&amp; !CYTHON_AVOID_BORROWED_REFS
-      __pyx_t_2 = <span class='py_macro_api'>PyList_GET_ITEM</span>(__pyx_t_3, __pyx_t_4); <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_t_2); __pyx_t_4++; if (unlikely((0 &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 82, __pyx_L5_error)</span>
+      __pyx_t_2 = <span class='py_macro_api'>PyList_GET_ITEM</span>(__pyx_t_3, __pyx_t_4); <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_t_2); __pyx_t_4++; if (unlikely((0 &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 85, __pyx_L5_error)</span>
       #else
-      __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PySequence_ITEM</span>(__pyx_t_3, __pyx_t_4); __pyx_t_4++;<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 82, __pyx_L5_error)</span>
+      __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PySequence_ITEM</span>(__pyx_t_3, __pyx_t_4); __pyx_t_4++;<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 85, __pyx_L5_error)</span>
       <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
       #endif
       <span class='pyx_macro_api'>__Pyx_XDECREF_SET</span>(__pyx_8genexpr2__pyx_v_card, __pyx_t_2);
       __pyx_t_2 = 0;
-      __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyInt_From_unsigned_PY_LONG_LONG</span>(__pyx_v_hand);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 82, __pyx_L5_error)</span>
+      __pyx_t_2 = <span class='pyx_c_api'>__Pyx_PyInt_From_unsigned_PY_LONG_LONG</span>(__pyx_v_hand);<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 85, __pyx_L5_error)</span>
       <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
-      __pyx_t_5 = <span class='py_c_api'>PyNumber_And</span>(__pyx_8genexpr2__pyx_v_card, __pyx_t_2);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 82, __pyx_L5_error)</span>
+      __pyx_t_5 = <span class='py_c_api'>PyNumber_And</span>(__pyx_8genexpr2__pyx_v_card, __pyx_t_2);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 85, __pyx_L5_error)</span>
       <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_5);
       <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_6 = <span class='pyx_c_api'>__Pyx_PyObject_IsTrue</span>(__pyx_t_5); if (unlikely((__pyx_t_6 &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 82, __pyx_L5_error)</span>
+      __pyx_t_6 = <span class='pyx_c_api'>__Pyx_PyObject_IsTrue</span>(__pyx_t_5); if (unlikely((__pyx_t_6 &lt; 0))) <span class='error_goto'>__PYX_ERR(0, 85, __pyx_L5_error)</span>
       <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_5); __pyx_t_5 = 0;
       if (__pyx_t_6) {
-        __pyx_t_7 = <span class='pyx_c_api'>__Pyx_PyInt_As_unsigned_PY_LONG_LONG</span>(__pyx_8genexpr2__pyx_v_card); if (unlikely((__pyx_t_7 == (unsigned PY_LONG_LONG)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 82, __pyx_L5_error)</span>
-        __pyx_t_5 = __pyx_f_5poker_6_utils_int_to_card(__pyx_t_7);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 82, __pyx_L5_error)</span>
+        __pyx_t_7 = <span class='pyx_c_api'>__Pyx_PyInt_As_unsigned_PY_LONG_LONG</span>(__pyx_8genexpr2__pyx_v_card); if (unlikely((__pyx_t_7 == (unsigned PY_LONG_LONG)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 85, __pyx_L5_error)</span>
+        __pyx_t_5 = __pyx_f_5poker_6_utils_int_to_card(__pyx_t_7);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 85, __pyx_L5_error)</span>
         <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_5);
-        if (unlikely(<span class='pyx_c_api'>__Pyx_ListComp_Append</span>(__pyx_t_1, (PyObject*)__pyx_t_5))) <span class='error_goto'>__PYX_ERR(0, 82, __pyx_L5_error)</span>
+        if (unlikely(<span class='pyx_c_api'>__Pyx_ListComp_Append</span>(__pyx_t_1, (PyObject*)__pyx_t_5))) <span class='error_goto'>__PYX_ERR(0, 85, __pyx_L5_error)</span>
         <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_5); __pyx_t_5 = 0;
       }
     }
@@ -1277,15 +1299,15 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   } /* exit inner scope */
   __pyx_v_cards = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
-</pre><pre class="cython line score-6" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">083</span>:     return " ".join(cards)</pre>
+</pre><pre class="cython line score-6" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">086</span>:     return " ".join(cards)</pre>
 <pre class='cython code score-6 '>  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
-  __pyx_t_1 = <span class='py_c_api'>PyUnicode_Join</span>(__pyx_kp_u__3, __pyx_v_cards);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 83, __pyx_L1_error)</span>
+  __pyx_t_1 = <span class='py_c_api'>PyUnicode_Join</span>(__pyx_kp_u__3, __pyx_v_cards);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
   __pyx_r = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
   goto __pyx_L0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">084</span>: </pre>
-<pre class="cython line score-6" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">085</span>: cdef display_game_state(object game_state, int player_index):</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">087</span>: </pre>
+<pre class="cython line score-6" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">088</span>: cdef display_game_state(object game_state, int player_index):</pre>
 <pre class='cython code score-6 '>static PyObject *__pyx_f_5poker_6_utils_display_game_state(PyObject *__pyx_v_game_state, int __pyx_v_player_index) {
   PyObject *__pyx_r = NULL;
 /* … */
@@ -1303,16 +1325,16 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
   return __pyx_r;
 }
-</pre><pre class="cython line score-8" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">086</span>:     print(f"______________________________________________________________________________")</pre>
-<pre class='cython code score-8 '>  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyObject_Call</span>(__pyx_builtin_print, __pyx_tuple__5, NULL);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)</span>
+</pre><pre class="cython line score-8" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">089</span>:     print(f"______________________________________________________________________________")</pre>
+<pre class='cython code score-8 '>  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyObject_Call</span>(__pyx_builtin_print, __pyx_tuple__5, NULL);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 89, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
 /* … */
-  __pyx_tuple__5 = <span class='py_c_api'>PyTuple_Pack</span>(1, __pyx_n_u__4);<span class='error_goto'> if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 86, __pyx_L1_error)</span>
+  __pyx_tuple__5 = <span class='py_c_api'>PyTuple_Pack</span>(1, __pyx_n_u__4);<span class='error_goto'> if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 89, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_tuple__5);
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_tuple__5);
-</pre><pre class="cython line score-67" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">087</span>:     print(f"({game_state.players[player_index].position})Player {player_index + 1}: {format_hand(game_state.players[player_index].hand)}")</pre>
-<pre class='cython code score-67 '>  __pyx_t_1 = <span class='py_c_api'>PyTuple_New</span>(6);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 87, __pyx_L1_error)</span>
+</pre><pre class="cython line score-67" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">090</span>:     print(f"({game_state.players[player_index].position})Player {player_index + 1}: {format_hand(game_state.players[player_index].hand)}")</pre>
+<pre class='cython code score-67 '>  __pyx_t_1 = <span class='py_c_api'>PyTuple_New</span>(6);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
   __pyx_t_2 = 0;
   __pyx_t_3 = 127;
@@ -1320,15 +1342,15 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   __pyx_t_2 += 1;
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_kp_u__6);
   <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_1, 0, __pyx_kp_u__6);
-  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_v_game_state, __pyx_n_s_players);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 87, __pyx_L1_error)</span>
+  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_v_game_state, __pyx_n_s_players);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
-  __pyx_t_5 = <span class='pyx_c_api'>__Pyx_GetItemInt</span>(__pyx_t_4, __pyx_v_player_index, int, 1, __Pyx_PyInt_From_int, 0, 1, 1);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 87, __pyx_L1_error)</span>
+  __pyx_t_5 = <span class='pyx_c_api'>__Pyx_GetItemInt</span>(__pyx_t_4, __pyx_v_player_index, int, 1, __Pyx_PyInt_From_int, 0, 1, 1);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_5);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_t_5, __pyx_n_s_position);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 87, __pyx_L1_error)</span>
+  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_t_5, __pyx_n_s_position);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = <span class='pyx_c_api'>__Pyx_PyObject_FormatSimple</span>(__pyx_t_4, __pyx_empty_unicode);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 87, __pyx_L1_error)</span>
+  __pyx_t_5 = <span class='pyx_c_api'>__Pyx_PyObject_FormatSimple</span>(__pyx_t_4, __pyx_empty_unicode);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_5);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_3 = (<span class='pyx_c_api'>__Pyx_PyUnicode_MAX_CHAR_VALUE</span>(__pyx_t_5) &gt; __pyx_t_3) ? <span class='pyx_c_api'>__Pyx_PyUnicode_MAX_CHAR_VALUE</span>(__pyx_t_5) : __pyx_t_3;
@@ -1340,7 +1362,7 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   __pyx_t_2 += 8;
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_kp_u_Player);
   <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_1, 2, __pyx_kp_u_Player);
-  __pyx_t_5 = <span class='pyx_c_api'>__Pyx_PyUnicode_From_long</span>((__pyx_v_player_index + 1), 0, ' ', 'd');<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 87, __pyx_L1_error)</span>
+  __pyx_t_5 = <span class='pyx_c_api'>__Pyx_PyUnicode_From_long</span>((__pyx_v_player_index + 1), 0, ' ', 'd');<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_5);
   __pyx_t_2 += <span class='pyx_c_api'>__Pyx_PyUnicode_GET_LENGTH</span>(__pyx_t_5);
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_5);
@@ -1350,19 +1372,19 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   __pyx_t_2 += 2;
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_kp_u__7);
   <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_1, 4, __pyx_kp_u__7);
-  __pyx_t_5 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_v_game_state, __pyx_n_s_players);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 87, __pyx_L1_error)</span>
+  __pyx_t_5 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_v_game_state, __pyx_n_s_players);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_5);
-  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_GetItemInt</span>(__pyx_t_5, __pyx_v_player_index, int, 1, __Pyx_PyInt_From_int, 0, 1, 1);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 87, __pyx_L1_error)</span>
+  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_GetItemInt</span>(__pyx_t_5, __pyx_v_player_index, int, 1, __Pyx_PyInt_From_int, 0, 1, 1);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_t_4, __pyx_n_s_hand);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 87, __pyx_L1_error)</span>
+  __pyx_t_5 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_t_4, __pyx_n_s_hand);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_5);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_6 = <span class='pyx_c_api'>__Pyx_PyInt_As_unsigned_PY_LONG_LONG</span>(__pyx_t_5); if (unlikely((__pyx_t_6 == (unsigned PY_LONG_LONG)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 87, __pyx_L1_error)</span>
+  __pyx_t_6 = <span class='pyx_c_api'>__Pyx_PyInt_As_unsigned_PY_LONG_LONG</span>(__pyx_t_5); if (unlikely((__pyx_t_6 == (unsigned PY_LONG_LONG)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 90, __pyx_L1_error)</span>
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __pyx_f_5poker_6_utils_format_hand(__pyx_t_6);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 87, __pyx_L1_error)</span>
+  __pyx_t_5 = __pyx_f_5poker_6_utils_format_hand(__pyx_t_6);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_5);
-  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyUnicode_Unicode</span>(__pyx_t_5);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 87, __pyx_L1_error)</span>
+  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyUnicode_Unicode</span>(__pyx_t_5);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_3 = (<span class='pyx_c_api'>__Pyx_PyUnicode_MAX_CHAR_VALUE</span>(__pyx_t_4) &gt; __pyx_t_3) ? <span class='pyx_c_api'>__Pyx_PyUnicode_MAX_CHAR_VALUE</span>(__pyx_t_4) : __pyx_t_3;
@@ -1370,145 +1392,145 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_4);
   <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_1, 5, __pyx_t_4);
   __pyx_t_4 = 0;
-  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyUnicode_Join</span>(__pyx_t_1, 6, __pyx_t_2, __pyx_t_3);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 87, __pyx_L1_error)</span>
+  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyUnicode_Join</span>(__pyx_t_1, 6, __pyx_t_2, __pyx_t_3);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyObject_CallOneArg</span>(__pyx_builtin_print, __pyx_t_4);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 87, __pyx_L1_error)</span>
+  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyObject_CallOneArg</span>(__pyx_builtin_print, __pyx_t_4);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
-</pre><pre class="cython line score-20" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">088</span>:     print(f"Board: {format_hand(game_state.board)}")</pre>
-<pre class='cython code score-20 '>  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_v_game_state, __pyx_n_s_board);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 88, __pyx_L1_error)</span>
+</pre><pre class="cython line score-20" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">091</span>:     print(f"Board: {format_hand(game_state.board)}")</pre>
+<pre class='cython code score-20 '>  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_v_game_state, __pyx_n_s_board);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 91, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
-  __pyx_t_6 = <span class='pyx_c_api'>__Pyx_PyInt_As_unsigned_PY_LONG_LONG</span>(__pyx_t_1); if (unlikely((__pyx_t_6 == (unsigned PY_LONG_LONG)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 88, __pyx_L1_error)</span>
+  __pyx_t_6 = <span class='pyx_c_api'>__Pyx_PyInt_As_unsigned_PY_LONG_LONG</span>(__pyx_t_1); if (unlikely((__pyx_t_6 == (unsigned PY_LONG_LONG)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 91, __pyx_L1_error)</span>
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __pyx_f_5poker_6_utils_format_hand(__pyx_t_6);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 88, __pyx_L1_error)</span>
+  __pyx_t_1 = __pyx_f_5poker_6_utils_format_hand(__pyx_t_6);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 91, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
-  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyUnicode_Unicode</span>(__pyx_t_1);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 88, __pyx_L1_error)</span>
+  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyUnicode_Unicode</span>(__pyx_t_1);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 91, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyUnicode_Concat</span>(__pyx_kp_u_Board, __pyx_t_4);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 88, __pyx_L1_error)</span>
+  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyUnicode_Concat</span>(__pyx_kp_u_Board, __pyx_t_4);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 91, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_CallOneArg</span>(__pyx_builtin_print, __pyx_t_1);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 88, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
-  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
-  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
-</pre><pre class="cython line score-12" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">089</span>:     print(f"Pot: {game_state.pot}")</pre>
-<pre class='cython code score-12 '>  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_v_game_state, __pyx_n_s_pot);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 89, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
-  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyObject_FormatSimple</span>(__pyx_t_4, __pyx_empty_unicode);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 89, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
-  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyUnicode_Concat</span>(__pyx_kp_u_Pot, __pyx_t_1);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 89, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
-  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyObject_CallOneArg</span>(__pyx_builtin_print, __pyx_t_4);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 89, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
-  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
-  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
-</pre><pre class="cython line score-18" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">090</span>:     print(f"Chips: {game_state.players[player_index].chips}")</pre>
-<pre class='cython code score-18 '>  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_v_game_state, __pyx_n_s_players);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
-  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_GetItemInt</span>(__pyx_t_1, __pyx_v_player_index, int, 1, __Pyx_PyInt_From_int, 0, 1, 1);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
-  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_t_4, __pyx_n_s_chips);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
-  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_FormatSimple</span>(__pyx_t_1, __pyx_empty_unicode);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
-  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyUnicode_Concat</span>(__pyx_kp_u_Chips, __pyx_t_4);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
-  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
-  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_CallOneArg</span>(__pyx_builtin_print, __pyx_t_1);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 90, __pyx_L1_error)</span>
+  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_CallOneArg</span>(__pyx_builtin_print, __pyx_t_1);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 91, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">091</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">092</span>:     # print("______GAMESTATE______")</pre>
-<pre class="cython line score-0">&#xA0;<span class="">093</span>:     # print(f"Active Players: {game_state.active_players()}")</pre>
-<pre class="cython line score-0">&#xA0;<span class="">094</span>:     # print(f"Current Bet: {game_state.current_bet}")</pre>
-<pre class="cython line score-0">&#xA0;<span class="">095</span>:     # print(f"Last Raiser: {game_state.last_raiser}")</pre>
-<pre class="cython line score-0">&#xA0;<span class="">096</span>:     # print(f"Player Index: {game_state.player_index}")</pre>
-<pre class="cython line score-0">&#xA0;<span class="">097</span>:     # print(f"Player Index Hand: {format_hand(game_state.players[game_state.player_index].hand)}")</pre>
-<pre class="cython line score-0">&#xA0;<span class="">098</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">099</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">100</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">101</span>: ctypedef numpy.uint8_t uint8</pre>
+</pre><pre class="cython line score-12" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">092</span>:     print(f"Pot: {game_state.pot}")</pre>
+<pre class='cython code score-12 '>  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_v_game_state, __pyx_n_s_pot);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 92, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
+  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyObject_FormatSimple</span>(__pyx_t_4, __pyx_empty_unicode);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 92, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyUnicode_Concat</span>(__pyx_kp_u_Pot, __pyx_t_1);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 92, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyObject_CallOneArg</span>(__pyx_builtin_print, __pyx_t_4);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 92, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
+</pre><pre class="cython line score-18" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">093</span>:     print(f"Chips: {game_state.players[player_index].chips}")</pre>
+<pre class='cython code score-18 '>  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_v_game_state, __pyx_n_s_players);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 93, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
+  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_GetItemInt</span>(__pyx_t_1, __pyx_v_player_index, int, 1, __Pyx_PyInt_From_int, 0, 1, 1);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 93, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyObject_GetAttrStr</span>(__pyx_t_4, __pyx_n_s_chips);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 93, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_FormatSimple</span>(__pyx_t_1, __pyx_empty_unicode);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 93, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyUnicode_Concat</span>(__pyx_kp_u_Chips, __pyx_t_4);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 93, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = <span class='pyx_c_api'>__Pyx_PyObject_CallOneArg</span>(__pyx_builtin_print, __pyx_t_1);<span class='error_goto'> if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 93, __pyx_L1_error)</span>
+  <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_4);
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_1); __pyx_t_1 = 0;
+  <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_4); __pyx_t_4 = 0;
+</pre><pre class="cython line score-0">&#xA0;<span class="">094</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">095</span>:     # print("______GAMESTATE______")</pre>
+<pre class="cython line score-0">&#xA0;<span class="">096</span>:     # print(f"Active Players: {game_state.active_players()}")</pre>
+<pre class="cython line score-0">&#xA0;<span class="">097</span>:     # print(f"Current Bet: {game_state.current_bet}")</pre>
+<pre class="cython line score-0">&#xA0;<span class="">098</span>:     # print(f"Last Raiser: {game_state.last_raiser}")</pre>
+<pre class="cython line score-0">&#xA0;<span class="">099</span>:     # print(f"Player Index: {game_state.player_index}")</pre>
+<pre class="cython line score-0">&#xA0;<span class="">100</span>:     # print(f"Player Index Hand: {format_hand(game_state.players[game_state.player_index].hand)}")</pre>
+<pre class="cython line score-0">&#xA0;<span class="">101</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">102</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">103</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">104</span>: ctypedef numpy.uint8_t uint8</pre>
 <pre class='cython code score-0 '>typedef __pyx_t_5numpy_uint8_t __pyx_t_5poker_6_utils_uint8;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">102</span>: ctypedef numpy.uint16_t uint16</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">105</span>: ctypedef numpy.uint16_t uint16</pre>
 <pre class='cython code score-0 '>typedef __pyx_t_5numpy_uint16_t __pyx_t_5poker_6_utils_uint16;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">103</span>: ctypedef numpy.int16_t int16</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">106</span>: ctypedef numpy.int16_t int16</pre>
 <pre class='cython code score-0 '>typedef __pyx_t_5numpy_int16_t __pyx_t_5poker_6_utils_int16;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">104</span>: ctypedef numpy.int64_t int64</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">107</span>: ctypedef numpy.int64_t int64</pre>
 <pre class='cython code score-0 '>typedef __pyx_t_5numpy_int64_t __pyx_t_5poker_6_utils_int64;
-</pre><pre class="cython line score-0">&#xA0;<span class="">105</span>: ctypedef numpy.npy_bool boolean</pre>
-<pre class="cython line score-0">&#xA0;<span class="">106</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">107</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">108</span>: #################################################################################################</pre>
-<pre class="cython line score-0">&#xA0;<span class="">109</span>: # The below code is taken from eval7 - https://pypi.org/project/eval7/</pre>
-<pre class="cython line score-0">&#xA0;<span class="">110</span>: #################################################################################################</pre>
-<pre class="cython line score-0">&#xA0;<span class="">111</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">112</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">113</span>: cdef extern from "arrays.h":</pre>
-<pre class="cython line score-0">&#xA0;<span class="">114</span>:     unsigned short N_BITS_TABLE[8192]</pre>
-<pre class="cython line score-0">&#xA0;<span class="">115</span>:     unsigned short STRAIGHT_TABLE[8192]</pre>
-<pre class="cython line score-0">&#xA0;<span class="">116</span>:     unsigned int TOP_FIVE_CARDS_TABLE[8192]</pre>
-<pre class="cython line score-0">&#xA0;<span class="">117</span>:     unsigned short TOP_CARD_TABLE[8192]</pre>
-<pre class="cython line score-0">&#xA0;<span class="">118</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">119</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">120</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">121</span>: cdef int CLUB_OFFSET = 0</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">108</span>: ctypedef numpy.npy_bool boolean</pre>
+<pre class="cython line score-0">&#xA0;<span class="">109</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">110</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">111</span>: #################################################################################################</pre>
+<pre class="cython line score-0">&#xA0;<span class="">112</span>: # The below code is taken from eval7 - https://pypi.org/project/eval7/</pre>
+<pre class="cython line score-0">&#xA0;<span class="">113</span>: #################################################################################################</pre>
+<pre class="cython line score-0">&#xA0;<span class="">114</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">115</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">116</span>: cdef extern from "arrays.h":</pre>
+<pre class="cython line score-0">&#xA0;<span class="">117</span>:     unsigned short N_BITS_TABLE[8192]</pre>
+<pre class="cython line score-0">&#xA0;<span class="">118</span>:     unsigned short STRAIGHT_TABLE[8192]</pre>
+<pre class="cython line score-0">&#xA0;<span class="">119</span>:     unsigned int TOP_FIVE_CARDS_TABLE[8192]</pre>
+<pre class="cython line score-0">&#xA0;<span class="">120</span>:     unsigned short TOP_CARD_TABLE[8192]</pre>
+<pre class="cython line score-0">&#xA0;<span class="">121</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">122</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">123</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">124</span>: cdef int CLUB_OFFSET = 0</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_CLUB_OFFSET = 0;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">122</span>: cdef int DIAMOND_OFFSET = 13</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">125</span>: cdef int DIAMOND_OFFSET = 13</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_DIAMOND_OFFSET = 13;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">123</span>: cdef int HEART_OFFSET = 26</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">126</span>: cdef int HEART_OFFSET = 26</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_HEART_OFFSET = 26;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">124</span>: cdef int SPADE_OFFSET = 39</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">127</span>: cdef int SPADE_OFFSET = 39</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_SPADE_OFFSET = 39;
-</pre><pre class="cython line score-0">&#xA0;<span class="">125</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">126</span>: cdef int HANDTYPE_SHIFT = 24</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">128</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">129</span>: cdef int HANDTYPE_SHIFT = 24</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_HANDTYPE_SHIFT = 24;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">127</span>: cdef int TOP_CARD_SHIFT = 16</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">130</span>: cdef int TOP_CARD_SHIFT = 16</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_TOP_CARD_SHIFT = 16;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">128</span>: cdef int SECOND_CARD_SHIFT = 12</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">131</span>: cdef int SECOND_CARD_SHIFT = 12</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_SECOND_CARD_SHIFT = 12;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">129</span>: cdef int THIRD_CARD_SHIFT = 8</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">132</span>: cdef int THIRD_CARD_SHIFT = 8</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_THIRD_CARD_SHIFT = 8;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">130</span>: cdef int CARD_WIDTH = 4</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">133</span>: cdef int CARD_WIDTH = 4</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_CARD_WIDTH = 4;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">131</span>: cdef unsigned int TOP_CARD_MASK = 0x000F0000</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">134</span>: cdef unsigned int TOP_CARD_MASK = 0x000F0000</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_TOP_CARD_MASK = 0x000F0000;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">132</span>: cdef unsigned int SECOND_CARD_MASK = 0x0000F000</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">135</span>: cdef unsigned int SECOND_CARD_MASK = 0x0000F000</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_SECOND_CARD_MASK = 0x0000F000;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">133</span>: cdef unsigned int FIFTH_CARD_MASK = 0x0000000F</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">136</span>: cdef unsigned int FIFTH_CARD_MASK = 0x0000000F</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_FIFTH_CARD_MASK = 0x0000000F;
-</pre><pre class="cython line score-0">&#xA0;<span class="">134</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">135</span>: cdef unsigned int HANDTYPE_VALUE_STRAIGHTFLUSH = ((&lt;unsigned int&gt;8) &lt;&lt; HANDTYPE_SHIFT)</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">137</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">138</span>: cdef unsigned int HANDTYPE_VALUE_STRAIGHTFLUSH = ((&lt;unsigned int&gt;8) &lt;&lt; HANDTYPE_SHIFT)</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_HANDTYPE_VALUE_STRAIGHTFLUSH = (((unsigned int)8) &lt;&lt; __pyx_v_5poker_6_utils_HANDTYPE_SHIFT);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">136</span>: cdef unsigned int HANDTYPE_VALUE_FOUR_OF_A_KIND = ((&lt;unsigned int&gt;7) &lt;&lt; HANDTYPE_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">139</span>: cdef unsigned int HANDTYPE_VALUE_FOUR_OF_A_KIND = ((&lt;unsigned int&gt;7) &lt;&lt; HANDTYPE_SHIFT)</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_HANDTYPE_VALUE_FOUR_OF_A_KIND = (((unsigned int)7) &lt;&lt; __pyx_v_5poker_6_utils_HANDTYPE_SHIFT);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">137</span>: cdef unsigned int HANDTYPE_VALUE_FULLHOUSE = ((&lt;unsigned int&gt;6) &lt;&lt; HANDTYPE_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">140</span>: cdef unsigned int HANDTYPE_VALUE_FULLHOUSE = ((&lt;unsigned int&gt;6) &lt;&lt; HANDTYPE_SHIFT)</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_HANDTYPE_VALUE_FULLHOUSE = (((unsigned int)6) &lt;&lt; __pyx_v_5poker_6_utils_HANDTYPE_SHIFT);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">138</span>: cdef unsigned int HANDTYPE_VALUE_FLUSH = ((&lt;unsigned int&gt;5) &lt;&lt; HANDTYPE_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">141</span>: cdef unsigned int HANDTYPE_VALUE_FLUSH = ((&lt;unsigned int&gt;5) &lt;&lt; HANDTYPE_SHIFT)</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_HANDTYPE_VALUE_FLUSH = (((unsigned int)5) &lt;&lt; __pyx_v_5poker_6_utils_HANDTYPE_SHIFT);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">139</span>: cdef unsigned int HANDTYPE_VALUE_STRAIGHT = ((&lt;unsigned int&gt;4) &lt;&lt; HANDTYPE_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">142</span>: cdef unsigned int HANDTYPE_VALUE_STRAIGHT = ((&lt;unsigned int&gt;4) &lt;&lt; HANDTYPE_SHIFT)</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_HANDTYPE_VALUE_STRAIGHT = (((unsigned int)4) &lt;&lt; __pyx_v_5poker_6_utils_HANDTYPE_SHIFT);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">140</span>: cdef unsigned int HANDTYPE_VALUE_TRIPS = ((&lt;unsigned int&gt;3) &lt;&lt; HANDTYPE_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">143</span>: cdef unsigned int HANDTYPE_VALUE_TRIPS = ((&lt;unsigned int&gt;3) &lt;&lt; HANDTYPE_SHIFT)</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_HANDTYPE_VALUE_TRIPS = (((unsigned int)3) &lt;&lt; __pyx_v_5poker_6_utils_HANDTYPE_SHIFT);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">141</span>: cdef unsigned int HANDTYPE_VALUE_TWOPAIR = ((&lt;unsigned int&gt;2) &lt;&lt; HANDTYPE_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">144</span>: cdef unsigned int HANDTYPE_VALUE_TWOPAIR = ((&lt;unsigned int&gt;2) &lt;&lt; HANDTYPE_SHIFT)</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_HANDTYPE_VALUE_TWOPAIR = (((unsigned int)2) &lt;&lt; __pyx_v_5poker_6_utils_HANDTYPE_SHIFT);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">142</span>: cdef unsigned int HANDTYPE_VALUE_PAIR = ((&lt;unsigned int&gt;1) &lt;&lt; HANDTYPE_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">145</span>: cdef unsigned int HANDTYPE_VALUE_PAIR = ((&lt;unsigned int&gt;1) &lt;&lt; HANDTYPE_SHIFT)</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_HANDTYPE_VALUE_PAIR = (((unsigned int)1) &lt;&lt; __pyx_v_5poker_6_utils_HANDTYPE_SHIFT);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">143</span>: cdef unsigned int HANDTYPE_VALUE_HIGHCARD = ((&lt;unsigned int&gt;0) &lt;&lt; HANDTYPE_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">146</span>: cdef unsigned int HANDTYPE_VALUE_HIGHCARD = ((&lt;unsigned int&gt;0) &lt;&lt; HANDTYPE_SHIFT)</pre>
 <pre class='cython code score-0 '>  __pyx_v_5poker_6_utils_HANDTYPE_VALUE_HIGHCARD = (((unsigned int)0) &lt;&lt; __pyx_v_5poker_6_utils_HANDTYPE_SHIFT);
-</pre><pre class="cython line score-0">&#xA0;<span class="">144</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">145</span>: #@cython.profile(True)</pre>
-<pre class="cython line score-0">&#xA0;<span class="">146</span>: @cython.boundscheck(False)</pre>
-<pre class="cython line score-0">&#xA0;<span class="">147</span>: @cython.wraparound(False)</pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">148</span>: cdef unsigned int cy_evaluate(unsigned long long cards, unsigned int num_cards) nogil:</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">147</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">148</span>: #@cython.profile(True)</pre>
+<pre class="cython line score-0">&#xA0;<span class="">149</span>: @cython.boundscheck(False)</pre>
+<pre class="cython line score-0">&#xA0;<span class="">150</span>: @cython.wraparound(False)</pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">151</span>: cdef unsigned int cy_evaluate(unsigned long long cards, unsigned int num_cards) nogil:</pre>
 <pre class='cython code score-0 '>static unsigned int __pyx_f_5poker_6_utils_cy_evaluate(unsigned PY_LONG_LONG __pyx_v_cards, unsigned int __pyx_v_num_cards) {
   unsigned int __pyx_v_retval;
   unsigned int __pyx_v_four_mask;
@@ -1533,128 +1555,128 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
   __pyx_L0:;
   return __pyx_r;
 }
-</pre><pre class="cython line score-0">&#xA0;<span class="">149</span>:     """</pre>
-<pre class="cython line score-0">&#xA0;<span class="">150</span>:     7-card evaluation function based on Keith Rule's port of PokerEval.</pre>
-<pre class="cython line score-0">&#xA0;<span class="">151</span>:     Pure Python: 20000 calls in 0.176 seconds (113636 calls/sec)</pre>
-<pre class="cython line score-0">&#xA0;<span class="">152</span>:     Cython: 20000 calls in 0.044 seconds (454545 calls/sec)</pre>
-<pre class="cython line score-0">&#xA0;<span class="">153</span>:     """</pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">154</span>:     cdef unsigned int retval = 0, four_mask, three_mask, two_mask</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">152</span>:     """</pre>
+<pre class="cython line score-0">&#xA0;<span class="">153</span>:     7-card evaluation function based on Keith Rule's port of PokerEval.</pre>
+<pre class="cython line score-0">&#xA0;<span class="">154</span>:     Pure Python: 20000 calls in 0.176 seconds (113636 calls/sec)</pre>
+<pre class="cython line score-0">&#xA0;<span class="">155</span>:     Cython: 20000 calls in 0.044 seconds (454545 calls/sec)</pre>
+<pre class="cython line score-0">&#xA0;<span class="">156</span>:     """</pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">157</span>:     cdef unsigned int retval = 0, four_mask, three_mask, two_mask</pre>
 <pre class='cython code score-0 '>  __pyx_v_retval = 0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">155</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">156</span>:     cdef unsigned int sc = &lt;unsigned int&gt;((cards &gt;&gt; (CLUB_OFFSET)) &amp; 0x1fffUL)</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">158</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">159</span>:     cdef unsigned int sc = &lt;unsigned int&gt;((cards &gt;&gt; (CLUB_OFFSET)) &amp; 0x1fffUL)</pre>
 <pre class='cython code score-0 '>  __pyx_v_sc = ((unsigned int)((__pyx_v_cards &gt;&gt; __pyx_v_5poker_6_utils_CLUB_OFFSET) &amp; 0x1fffUL));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">157</span>:     cdef unsigned int sd = &lt;unsigned int&gt;((cards &gt;&gt; (DIAMOND_OFFSET)) &amp; 0x1fffUL)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">160</span>:     cdef unsigned int sd = &lt;unsigned int&gt;((cards &gt;&gt; (DIAMOND_OFFSET)) &amp; 0x1fffUL)</pre>
 <pre class='cython code score-0 '>  __pyx_v_sd = ((unsigned int)((__pyx_v_cards &gt;&gt; __pyx_v_5poker_6_utils_DIAMOND_OFFSET) &amp; 0x1fffUL));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">158</span>:     cdef unsigned int sh = &lt;unsigned int&gt;((cards &gt;&gt; (HEART_OFFSET)) &amp; 0x1fffUL)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">161</span>:     cdef unsigned int sh = &lt;unsigned int&gt;((cards &gt;&gt; (HEART_OFFSET)) &amp; 0x1fffUL)</pre>
 <pre class='cython code score-0 '>  __pyx_v_sh = ((unsigned int)((__pyx_v_cards &gt;&gt; __pyx_v_5poker_6_utils_HEART_OFFSET) &amp; 0x1fffUL));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">159</span>:     cdef unsigned int ss = &lt;unsigned int&gt;((cards &gt;&gt; (SPADE_OFFSET)) &amp; 0x1fffUL)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">162</span>:     cdef unsigned int ss = &lt;unsigned int&gt;((cards &gt;&gt; (SPADE_OFFSET)) &amp; 0x1fffUL)</pre>
 <pre class='cython code score-0 '>  __pyx_v_ss = ((unsigned int)((__pyx_v_cards &gt;&gt; __pyx_v_5poker_6_utils_SPADE_OFFSET) &amp; 0x1fffUL));
-</pre><pre class="cython line score-0">&#xA0;<span class="">160</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">161</span>:     cdef unsigned int ranks = sc | sd | sh | ss</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">163</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">164</span>:     cdef unsigned int ranks = sc | sd | sh | ss</pre>
 <pre class='cython code score-0 '>  __pyx_v_ranks = (((__pyx_v_sc | __pyx_v_sd) | __pyx_v_sh) | __pyx_v_ss);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">162</span>:     cdef unsigned int n_ranks = N_BITS_TABLE[ranks]</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">165</span>:     cdef unsigned int n_ranks = N_BITS_TABLE[ranks]</pre>
 <pre class='cython code score-0 '>  __pyx_v_n_ranks = (N_BITS_TABLE[__pyx_v_ranks]);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">163</span>:     cdef unsigned int n_dups = &lt;unsigned int&gt;(num_cards - n_ranks)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">166</span>:     cdef unsigned int n_dups = &lt;unsigned int&gt;(num_cards - n_ranks)</pre>
 <pre class='cython code score-0 '>  __pyx_v_n_dups = ((unsigned int)(__pyx_v_num_cards - __pyx_v_n_ranks));
-</pre><pre class="cython line score-0">&#xA0;<span class="">164</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">165</span>:     cdef unsigned int st, t, kickers, second, tc, top</pre>
-<pre class="cython line score-0">&#xA0;<span class="">166</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">167</span>:     if n_ranks &gt;= 5:</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">167</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">168</span>:     cdef unsigned int st, t, kickers, second, tc, top</pre>
+<pre class="cython line score-0">&#xA0;<span class="">169</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">170</span>:     if n_ranks &gt;= 5:</pre>
 <pre class='cython code score-0 '>  __pyx_t_1 = (__pyx_v_n_ranks &gt;= 5);
   if (__pyx_t_1) {
 /* … */
   }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">168</span>:         if N_BITS_TABLE[ss] &gt;= 5:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">171</span>:         if N_BITS_TABLE[ss] &gt;= 5:</pre>
 <pre class='cython code score-0 '>    __pyx_t_1 = ((N_BITS_TABLE[__pyx_v_ss]) &gt;= 5);
     if (__pyx_t_1) {
 /* … */
       goto __pyx_L4;
     }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">169</span>:             if STRAIGHT_TABLE[ss] != 0:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">172</span>:             if STRAIGHT_TABLE[ss] != 0:</pre>
 <pre class='cython code score-0 '>      __pyx_t_1 = ((STRAIGHT_TABLE[__pyx_v_ss]) != 0);
       if (__pyx_t_1) {
 /* … */
       }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">170</span>:                 return HANDTYPE_VALUE_STRAIGHTFLUSH + &lt;unsigned int&gt;(STRAIGHT_TABLE[ss] &lt;&lt; TOP_CARD_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">173</span>:                 return HANDTYPE_VALUE_STRAIGHTFLUSH + &lt;unsigned int&gt;(STRAIGHT_TABLE[ss] &lt;&lt; TOP_CARD_SHIFT)</pre>
 <pre class='cython code score-0 '>        __pyx_r = (__pyx_v_5poker_6_utils_HANDTYPE_VALUE_STRAIGHTFLUSH + ((unsigned int)((STRAIGHT_TABLE[__pyx_v_ss]) &lt;&lt; __pyx_v_5poker_6_utils_TOP_CARD_SHIFT)));
         goto __pyx_L0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">171</span>:             else:</pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">172</span>:                 retval = HANDTYPE_VALUE_FLUSH + TOP_FIVE_CARDS_TABLE[ss]</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">174</span>:             else:</pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">175</span>:                 retval = HANDTYPE_VALUE_FLUSH + TOP_FIVE_CARDS_TABLE[ss]</pre>
 <pre class='cython code score-0 '>      /*else*/ {
         __pyx_v_retval = (__pyx_v_5poker_6_utils_HANDTYPE_VALUE_FLUSH + (TOP_FIVE_CARDS_TABLE[__pyx_v_ss]));
       }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">173</span>:         elif N_BITS_TABLE[sc] &gt;= 5:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">176</span>:         elif N_BITS_TABLE[sc] &gt;= 5:</pre>
 <pre class='cython code score-0 '>    __pyx_t_1 = ((N_BITS_TABLE[__pyx_v_sc]) &gt;= 5);
     if (__pyx_t_1) {
 /* … */
       goto __pyx_L4;
     }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">174</span>:             if STRAIGHT_TABLE[sc] != 0:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">177</span>:             if STRAIGHT_TABLE[sc] != 0:</pre>
 <pre class='cython code score-0 '>      __pyx_t_1 = ((STRAIGHT_TABLE[__pyx_v_sc]) != 0);
       if (__pyx_t_1) {
 /* … */
       }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">175</span>:                 return HANDTYPE_VALUE_STRAIGHTFLUSH + &lt;unsigned int&gt;(STRAIGHT_TABLE[sc] &lt;&lt; TOP_CARD_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">178</span>:                 return HANDTYPE_VALUE_STRAIGHTFLUSH + &lt;unsigned int&gt;(STRAIGHT_TABLE[sc] &lt;&lt; TOP_CARD_SHIFT)</pre>
 <pre class='cython code score-0 '>        __pyx_r = (__pyx_v_5poker_6_utils_HANDTYPE_VALUE_STRAIGHTFLUSH + ((unsigned int)((STRAIGHT_TABLE[__pyx_v_sc]) &lt;&lt; __pyx_v_5poker_6_utils_TOP_CARD_SHIFT)));
         goto __pyx_L0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">176</span>:             else:</pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">177</span>:                 retval = HANDTYPE_VALUE_FLUSH + TOP_FIVE_CARDS_TABLE[sc]</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">179</span>:             else:</pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">180</span>:                 retval = HANDTYPE_VALUE_FLUSH + TOP_FIVE_CARDS_TABLE[sc]</pre>
 <pre class='cython code score-0 '>      /*else*/ {
         __pyx_v_retval = (__pyx_v_5poker_6_utils_HANDTYPE_VALUE_FLUSH + (TOP_FIVE_CARDS_TABLE[__pyx_v_sc]));
       }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">178</span>:         elif N_BITS_TABLE[sd] &gt;= 5:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">181</span>:         elif N_BITS_TABLE[sd] &gt;= 5:</pre>
 <pre class='cython code score-0 '>    __pyx_t_1 = ((N_BITS_TABLE[__pyx_v_sd]) &gt;= 5);
     if (__pyx_t_1) {
 /* … */
       goto __pyx_L4;
     }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">179</span>:             if STRAIGHT_TABLE[sd] != 0:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">182</span>:             if STRAIGHT_TABLE[sd] != 0:</pre>
 <pre class='cython code score-0 '>      __pyx_t_1 = ((STRAIGHT_TABLE[__pyx_v_sd]) != 0);
       if (__pyx_t_1) {
 /* … */
       }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">180</span>:                 return HANDTYPE_VALUE_STRAIGHTFLUSH + &lt;unsigned int&gt;(STRAIGHT_TABLE[sd] &lt;&lt; TOP_CARD_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">183</span>:                 return HANDTYPE_VALUE_STRAIGHTFLUSH + &lt;unsigned int&gt;(STRAIGHT_TABLE[sd] &lt;&lt; TOP_CARD_SHIFT)</pre>
 <pre class='cython code score-0 '>        __pyx_r = (__pyx_v_5poker_6_utils_HANDTYPE_VALUE_STRAIGHTFLUSH + ((unsigned int)((STRAIGHT_TABLE[__pyx_v_sd]) &lt;&lt; __pyx_v_5poker_6_utils_TOP_CARD_SHIFT)));
         goto __pyx_L0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">181</span>:             else:</pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">182</span>:                 retval = HANDTYPE_VALUE_FLUSH + TOP_FIVE_CARDS_TABLE[sd]</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">184</span>:             else:</pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">185</span>:                 retval = HANDTYPE_VALUE_FLUSH + TOP_FIVE_CARDS_TABLE[sd]</pre>
 <pre class='cython code score-0 '>      /*else*/ {
         __pyx_v_retval = (__pyx_v_5poker_6_utils_HANDTYPE_VALUE_FLUSH + (TOP_FIVE_CARDS_TABLE[__pyx_v_sd]));
       }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">183</span>:         elif N_BITS_TABLE[sh] &gt;= 5:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">186</span>:         elif N_BITS_TABLE[sh] &gt;= 5:</pre>
 <pre class='cython code score-0 '>    __pyx_t_1 = ((N_BITS_TABLE[__pyx_v_sh]) &gt;= 5);
     if (__pyx_t_1) {
 /* … */
       goto __pyx_L4;
     }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">184</span>:             if STRAIGHT_TABLE[sh] != 0:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">187</span>:             if STRAIGHT_TABLE[sh] != 0:</pre>
 <pre class='cython code score-0 '>      __pyx_t_1 = ((STRAIGHT_TABLE[__pyx_v_sh]) != 0);
       if (__pyx_t_1) {
 /* … */
       }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">185</span>:                 return HANDTYPE_VALUE_STRAIGHTFLUSH + &lt;unsigned int&gt;(STRAIGHT_TABLE[sh] &lt;&lt; TOP_CARD_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">188</span>:                 return HANDTYPE_VALUE_STRAIGHTFLUSH + &lt;unsigned int&gt;(STRAIGHT_TABLE[sh] &lt;&lt; TOP_CARD_SHIFT)</pre>
 <pre class='cython code score-0 '>        __pyx_r = (__pyx_v_5poker_6_utils_HANDTYPE_VALUE_STRAIGHTFLUSH + ((unsigned int)((STRAIGHT_TABLE[__pyx_v_sh]) &lt;&lt; __pyx_v_5poker_6_utils_TOP_CARD_SHIFT)));
         goto __pyx_L0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">186</span>:             else:</pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">187</span>:                 retval = HANDTYPE_VALUE_FLUSH + TOP_FIVE_CARDS_TABLE[sh]</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">189</span>:             else:</pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">190</span>:                 retval = HANDTYPE_VALUE_FLUSH + TOP_FIVE_CARDS_TABLE[sh]</pre>
 <pre class='cython code score-0 '>      /*else*/ {
         __pyx_v_retval = (__pyx_v_5poker_6_utils_HANDTYPE_VALUE_FLUSH + (TOP_FIVE_CARDS_TABLE[__pyx_v_sh]));
       }
-</pre><pre class="cython line score-0">&#xA0;<span class="">188</span>:         else:</pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">189</span>:             st = STRAIGHT_TABLE[ranks]</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">191</span>:         else:</pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">192</span>:             st = STRAIGHT_TABLE[ranks]</pre>
 <pre class='cython code score-0 '>    /*else*/ {
       __pyx_v_st = (STRAIGHT_TABLE[__pyx_v_ranks]);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">190</span>:             if st != 0:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">193</span>:             if st != 0:</pre>
 <pre class='cython code score-0 '>      __pyx_t_1 = (__pyx_v_st != 0);
       if (__pyx_t_1) {
 /* … */
       }
     }
     __pyx_L4:;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">191</span>:                 retval = HANDTYPE_VALUE_STRAIGHT + (st &lt;&lt; TOP_CARD_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">194</span>:                 retval = HANDTYPE_VALUE_STRAIGHT + (st &lt;&lt; TOP_CARD_SHIFT)</pre>
 <pre class='cython code score-0 '>        __pyx_v_retval = (__pyx_v_5poker_6_utils_HANDTYPE_VALUE_STRAIGHT + (__pyx_v_st &lt;&lt; __pyx_v_5poker_6_utils_TOP_CARD_SHIFT));
-</pre><pre class="cython line score-0">&#xA0;<span class="">192</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">193</span>:         if retval != 0 and n_dups &lt; 3:</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">195</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">196</span>:         if retval != 0 and n_dups &lt; 3:</pre>
 <pre class='cython code score-0 '>    __pyx_t_2 = (__pyx_v_retval != 0);
     if (__pyx_t_2) {
     } else {
@@ -1667,148 +1689,148 @@ static int __pyx_pf_5poker_6_utils_4Deck___init__(struct __pyx_obj_5poker_6_util
     if (__pyx_t_1) {
 /* … */
     }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">194</span>:             return retval</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">197</span>:             return retval</pre>
 <pre class='cython code score-0 '>      __pyx_r = __pyx_v_retval;
       goto __pyx_L0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">195</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">196</span>:     if n_dups == 0:</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">198</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">199</span>:     if n_dups == 0:</pre>
 <pre class='cython code score-0 '>  switch (__pyx_v_n_dups) {
     case 0:
 /* … */
     break;
     case 1:
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">197</span>:         return HANDTYPE_VALUE_HIGHCARD + TOP_FIVE_CARDS_TABLE[ranks]</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">200</span>:         return HANDTYPE_VALUE_HIGHCARD + TOP_FIVE_CARDS_TABLE[ranks]</pre>
 <pre class='cython code score-0 '>    __pyx_r = (__pyx_v_5poker_6_utils_HANDTYPE_VALUE_HIGHCARD + (TOP_FIVE_CARDS_TABLE[__pyx_v_ranks]));
     goto __pyx_L0;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">198</span>:     elif n_dups == 1:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">201</span>:     elif n_dups == 1:</pre>
 <pre class='cython code score-0 '>    break;
     case 2:
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">199</span>:         two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">202</span>:         two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)</pre>
 <pre class='cython code score-0 '>    __pyx_v_two_mask = (__pyx_v_ranks ^ (((__pyx_v_sc ^ __pyx_v_sd) ^ __pyx_v_sh) ^ __pyx_v_ss));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">200</span>:         retval = &lt;unsigned int&gt;(HANDTYPE_VALUE_PAIR + (TOP_CARD_TABLE[two_mask] &lt;&lt; TOP_CARD_SHIFT))</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">203</span>:         retval = &lt;unsigned int&gt;(HANDTYPE_VALUE_PAIR + (TOP_CARD_TABLE[two_mask] &lt;&lt; TOP_CARD_SHIFT))</pre>
 <pre class='cython code score-0 '>    __pyx_v_retval = ((unsigned int)(__pyx_v_5poker_6_utils_HANDTYPE_VALUE_PAIR + ((TOP_CARD_TABLE[__pyx_v_two_mask]) &lt;&lt; __pyx_v_5poker_6_utils_TOP_CARD_SHIFT)));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">201</span>:         t = ranks ^ two_mask</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">204</span>:         t = ranks ^ two_mask</pre>
 <pre class='cython code score-0 '>    __pyx_v_t = (__pyx_v_ranks ^ __pyx_v_two_mask);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">202</span>:         kickers = (TOP_FIVE_CARDS_TABLE[t] &gt;&gt; CARD_WIDTH) &amp; ~FIFTH_CARD_MASK</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">205</span>:         kickers = (TOP_FIVE_CARDS_TABLE[t] &gt;&gt; CARD_WIDTH) &amp; ~FIFTH_CARD_MASK</pre>
 <pre class='cython code score-0 '>    __pyx_v_kickers = (((TOP_FIVE_CARDS_TABLE[__pyx_v_t]) &gt;&gt; __pyx_v_5poker_6_utils_CARD_WIDTH) &amp; (~__pyx_v_5poker_6_utils_FIFTH_CARD_MASK));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">203</span>:         retval += kickers</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">206</span>:         retval += kickers</pre>
 <pre class='cython code score-0 '>    __pyx_v_retval = (__pyx_v_retval + __pyx_v_kickers);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">204</span>:         return retval</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">207</span>:         return retval</pre>
 <pre class='cython code score-0 '>    __pyx_r = __pyx_v_retval;
     goto __pyx_L0;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">205</span>:     elif n_dups == 2:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">208</span>:     elif n_dups == 2:</pre>
 <pre class='cython code score-0 '>    break;
     default:
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">206</span>:         two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">209</span>:         two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)</pre>
 <pre class='cython code score-0 '>    __pyx_v_two_mask = (__pyx_v_ranks ^ (((__pyx_v_sc ^ __pyx_v_sd) ^ __pyx_v_sh) ^ __pyx_v_ss));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">207</span>:         if two_mask != 0:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">210</span>:         if two_mask != 0:</pre>
 <pre class='cython code score-0 '>    __pyx_t_1 = (__pyx_v_two_mask != 0);
     if (__pyx_t_1) {
 /* … */
     }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">208</span>:             t = ranks ^ two_mask</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">211</span>:             t = ranks ^ two_mask</pre>
 <pre class='cython code score-0 '>      __pyx_v_t = (__pyx_v_ranks ^ __pyx_v_two_mask);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">209</span>:             retval = &lt;unsigned int&gt;(HANDTYPE_VALUE_TWOPAIR</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">212</span>:             retval = &lt;unsigned int&gt;(HANDTYPE_VALUE_TWOPAIR</pre>
 <pre class='cython code score-0 '>      __pyx_v_retval = ((unsigned int)((__pyx_v_5poker_6_utils_HANDTYPE_VALUE_TWOPAIR + ((TOP_FIVE_CARDS_TABLE[__pyx_v_two_mask]) &amp; (__pyx_v_5poker_6_utils_TOP_CARD_MASK | __pyx_v_5poker_6_utils_SECOND_CARD_MASK))) + ((TOP_CARD_TABLE[__pyx_v_t]) &lt;&lt; __pyx_v_5poker_6_utils_THIRD_CARD_SHIFT)));
-</pre><pre class="cython line score-0">&#xA0;<span class="">210</span>:                 + (TOP_FIVE_CARDS_TABLE[two_mask]</pre>
-<pre class="cython line score-0">&#xA0;<span class="">211</span>:                 &amp; (TOP_CARD_MASK | SECOND_CARD_MASK))</pre>
-<pre class="cython line score-0">&#xA0;<span class="">212</span>:                 + (TOP_CARD_TABLE[t] &lt;&lt; THIRD_CARD_SHIFT))</pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">213</span>:             return retval</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">213</span>:                 + (TOP_FIVE_CARDS_TABLE[two_mask]</pre>
+<pre class="cython line score-0">&#xA0;<span class="">214</span>:                 &amp; (TOP_CARD_MASK | SECOND_CARD_MASK))</pre>
+<pre class="cython line score-0">&#xA0;<span class="">215</span>:                 + (TOP_CARD_TABLE[t] &lt;&lt; THIRD_CARD_SHIFT))</pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">216</span>:             return retval</pre>
 <pre class='cython code score-0 '>      __pyx_r = __pyx_v_retval;
       goto __pyx_L0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">214</span>:         else:</pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">215</span>:             three_mask = ((sc &amp; sd) | (sh &amp; ss)) &amp; ((sc &amp; sh) | (sd &amp; ss))</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">217</span>:         else:</pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">218</span>:             three_mask = ((sc &amp; sd) | (sh &amp; ss)) &amp; ((sc &amp; sh) | (sd &amp; ss))</pre>
 <pre class='cython code score-0 '>    /*else*/ {
       __pyx_v_three_mask = (((__pyx_v_sc &amp; __pyx_v_sd) | (__pyx_v_sh &amp; __pyx_v_ss)) &amp; ((__pyx_v_sc &amp; __pyx_v_sh) | (__pyx_v_sd &amp; __pyx_v_ss)));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">216</span>:             retval = &lt;unsigned int&gt;(HANDTYPE_VALUE_TRIPS + (TOP_CARD_TABLE[three_mask] &lt;&lt; TOP_CARD_SHIFT))</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">219</span>:             retval = &lt;unsigned int&gt;(HANDTYPE_VALUE_TRIPS + (TOP_CARD_TABLE[three_mask] &lt;&lt; TOP_CARD_SHIFT))</pre>
 <pre class='cython code score-0 '>      __pyx_v_retval = ((unsigned int)(__pyx_v_5poker_6_utils_HANDTYPE_VALUE_TRIPS + ((TOP_CARD_TABLE[__pyx_v_three_mask]) &lt;&lt; __pyx_v_5poker_6_utils_TOP_CARD_SHIFT)));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">217</span>:             t = ranks ^ three_mask</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">220</span>:             t = ranks ^ three_mask</pre>
 <pre class='cython code score-0 '>      __pyx_v_t = (__pyx_v_ranks ^ __pyx_v_three_mask);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">218</span>:             second = TOP_CARD_TABLE[t]</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">221</span>:             second = TOP_CARD_TABLE[t]</pre>
 <pre class='cython code score-0 '>      __pyx_v_second = (TOP_CARD_TABLE[__pyx_v_t]);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">219</span>:             retval += (second &lt;&lt; SECOND_CARD_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">222</span>:             retval += (second &lt;&lt; SECOND_CARD_SHIFT)</pre>
 <pre class='cython code score-0 '>      __pyx_v_retval = (__pyx_v_retval + (__pyx_v_second &lt;&lt; __pyx_v_5poker_6_utils_SECOND_CARD_SHIFT));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">220</span>:             t ^= (1U &lt;&lt; &lt;int&gt;second)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">223</span>:             t ^= (1U &lt;&lt; &lt;int&gt;second)</pre>
 <pre class='cython code score-0 '>      __pyx_v_t = (__pyx_v_t ^ (1U &lt;&lt; ((int)__pyx_v_second)));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">221</span>:             retval += &lt;unsigned int&gt;(TOP_CARD_TABLE[t] &lt;&lt; THIRD_CARD_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">224</span>:             retval += &lt;unsigned int&gt;(TOP_CARD_TABLE[t] &lt;&lt; THIRD_CARD_SHIFT)</pre>
 <pre class='cython code score-0 '>      __pyx_v_retval = (__pyx_v_retval + ((unsigned int)((TOP_CARD_TABLE[__pyx_v_t]) &lt;&lt; __pyx_v_5poker_6_utils_THIRD_CARD_SHIFT)));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">222</span>:             return retval</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">225</span>:             return retval</pre>
 <pre class='cython code score-0 '>      __pyx_r = __pyx_v_retval;
       goto __pyx_L0;
     }
-</pre><pre class="cython line score-0">&#xA0;<span class="">223</span>:     else:</pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">224</span>:         four_mask = sh &amp; sd &amp; sc &amp; ss</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">226</span>:     else:</pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">227</span>:         four_mask = sh &amp; sd &amp; sc &amp; ss</pre>
 <pre class='cython code score-0 '>    __pyx_v_four_mask = (((__pyx_v_sh &amp; __pyx_v_sd) &amp; __pyx_v_sc) &amp; __pyx_v_ss);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">225</span>:         if four_mask != 0:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">228</span>:         if four_mask != 0:</pre>
 <pre class='cython code score-0 '>    __pyx_t_1 = (__pyx_v_four_mask != 0);
     if (__pyx_t_1) {
 /* … */
     }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">226</span>:             tc = TOP_CARD_TABLE[four_mask]</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">229</span>:             tc = TOP_CARD_TABLE[four_mask]</pre>
 <pre class='cython code score-0 '>      __pyx_v_tc = (TOP_CARD_TABLE[__pyx_v_four_mask]);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">227</span>:             retval = &lt;unsigned int&gt;(HANDTYPE_VALUE_FOUR_OF_A_KIND</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">230</span>:             retval = &lt;unsigned int&gt;(HANDTYPE_VALUE_FOUR_OF_A_KIND</pre>
 <pre class='cython code score-0 '>      __pyx_v_retval = ((unsigned int)((__pyx_v_5poker_6_utils_HANDTYPE_VALUE_FOUR_OF_A_KIND + (__pyx_v_tc &lt;&lt; __pyx_v_5poker_6_utils_TOP_CARD_SHIFT)) + ((TOP_CARD_TABLE[(__pyx_v_ranks ^ (1U &lt;&lt; ((int)__pyx_v_tc)))]) &lt;&lt; __pyx_v_5poker_6_utils_SECOND_CARD_SHIFT)));
-</pre><pre class="cython line score-0">&#xA0;<span class="">228</span>:                 + (tc &lt;&lt; TOP_CARD_SHIFT)</pre>
-<pre class="cython line score-0">&#xA0;<span class="">229</span>:                 + ((TOP_CARD_TABLE[ranks ^ (1U &lt;&lt; &lt;int&gt;tc)]) &lt;&lt; SECOND_CARD_SHIFT))</pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">230</span>:             return retval</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">231</span>:                 + (tc &lt;&lt; TOP_CARD_SHIFT)</pre>
+<pre class="cython line score-0">&#xA0;<span class="">232</span>:                 + ((TOP_CARD_TABLE[ranks ^ (1U &lt;&lt; &lt;int&gt;tc)]) &lt;&lt; SECOND_CARD_SHIFT))</pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">233</span>:             return retval</pre>
 <pre class='cython code score-0 '>      __pyx_r = __pyx_v_retval;
       goto __pyx_L0;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">231</span>:         two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">234</span>:         two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)</pre>
 <pre class='cython code score-0 '>    __pyx_v_two_mask = (__pyx_v_ranks ^ (((__pyx_v_sc ^ __pyx_v_sd) ^ __pyx_v_sh) ^ __pyx_v_ss));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">232</span>:         if N_BITS_TABLE[two_mask] != n_dups:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">235</span>:         if N_BITS_TABLE[two_mask] != n_dups:</pre>
 <pre class='cython code score-0 '>    __pyx_t_1 = ((N_BITS_TABLE[__pyx_v_two_mask]) != __pyx_v_n_dups);
     if (__pyx_t_1) {
 /* … */
     }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">233</span>:             three_mask = ((sc &amp; sd) | (sh &amp; ss)) &amp; ((sc &amp; sh) | (sd &amp; ss))</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">236</span>:             three_mask = ((sc &amp; sd) | (sh &amp; ss)) &amp; ((sc &amp; sh) | (sd &amp; ss))</pre>
 <pre class='cython code score-0 '>      __pyx_v_three_mask = (((__pyx_v_sc &amp; __pyx_v_sd) | (__pyx_v_sh &amp; __pyx_v_ss)) &amp; ((__pyx_v_sc &amp; __pyx_v_sh) | (__pyx_v_sd &amp; __pyx_v_ss)));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">234</span>:             retval = HANDTYPE_VALUE_FULLHOUSE</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">237</span>:             retval = HANDTYPE_VALUE_FULLHOUSE</pre>
 <pre class='cython code score-0 '>      __pyx_v_retval = __pyx_v_5poker_6_utils_HANDTYPE_VALUE_FULLHOUSE;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">235</span>:             tc = TOP_CARD_TABLE[three_mask]</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">238</span>:             tc = TOP_CARD_TABLE[three_mask]</pre>
 <pre class='cython code score-0 '>      __pyx_v_tc = (TOP_CARD_TABLE[__pyx_v_three_mask]);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">236</span>:             retval += (tc &lt;&lt; TOP_CARD_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">239</span>:             retval += (tc &lt;&lt; TOP_CARD_SHIFT)</pre>
 <pre class='cython code score-0 '>      __pyx_v_retval = (__pyx_v_retval + (__pyx_v_tc &lt;&lt; __pyx_v_5poker_6_utils_TOP_CARD_SHIFT));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">237</span>:             t = (two_mask | three_mask) ^ (1U &lt;&lt; &lt;int&gt;tc)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">240</span>:             t = (two_mask | three_mask) ^ (1U &lt;&lt; &lt;int&gt;tc)</pre>
 <pre class='cython code score-0 '>      __pyx_v_t = ((__pyx_v_two_mask | __pyx_v_three_mask) ^ (1U &lt;&lt; ((int)__pyx_v_tc)));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">238</span>:             retval += &lt;unsigned int&gt;(TOP_CARD_TABLE[t] &lt;&lt; SECOND_CARD_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">241</span>:             retval += &lt;unsigned int&gt;(TOP_CARD_TABLE[t] &lt;&lt; SECOND_CARD_SHIFT)</pre>
 <pre class='cython code score-0 '>      __pyx_v_retval = (__pyx_v_retval + ((unsigned int)((TOP_CARD_TABLE[__pyx_v_t]) &lt;&lt; __pyx_v_5poker_6_utils_SECOND_CARD_SHIFT)));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">239</span>:             return retval</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">242</span>:             return retval</pre>
 <pre class='cython code score-0 '>      __pyx_r = __pyx_v_retval;
       goto __pyx_L0;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">240</span>:         if retval != 0:</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">243</span>:         if retval != 0:</pre>
 <pre class='cython code score-0 '>    __pyx_t_1 = (__pyx_v_retval != 0);
     if (__pyx_t_1) {
 /* … */
     }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">241</span>:             return retval</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">244</span>:             return retval</pre>
 <pre class='cython code score-0 '>      __pyx_r = __pyx_v_retval;
       goto __pyx_L0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">242</span>:         else:</pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">243</span>:             retval = HANDTYPE_VALUE_TWOPAIR</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">245</span>:         else:</pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">246</span>:             retval = HANDTYPE_VALUE_TWOPAIR</pre>
 <pre class='cython code score-0 '>    /*else*/ {
       __pyx_v_retval = __pyx_v_5poker_6_utils_HANDTYPE_VALUE_TWOPAIR;
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">244</span>:             top = TOP_CARD_TABLE[two_mask]</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">247</span>:             top = TOP_CARD_TABLE[two_mask]</pre>
 <pre class='cython code score-0 '>      __pyx_v_top = (TOP_CARD_TABLE[__pyx_v_two_mask]);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">245</span>:             retval += (top &lt;&lt; TOP_CARD_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">248</span>:             retval += (top &lt;&lt; TOP_CARD_SHIFT)</pre>
 <pre class='cython code score-0 '>      __pyx_v_retval = (__pyx_v_retval + (__pyx_v_top &lt;&lt; __pyx_v_5poker_6_utils_TOP_CARD_SHIFT));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">246</span>:             second = TOP_CARD_TABLE[two_mask ^ (1 &lt;&lt; &lt;int&gt;top)]</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">249</span>:             second = TOP_CARD_TABLE[two_mask ^ (1 &lt;&lt; &lt;int&gt;top)]</pre>
 <pre class='cython code score-0 '>      __pyx_v_second = (TOP_CARD_TABLE[(__pyx_v_two_mask ^ (1 &lt;&lt; ((int)__pyx_v_top)))]);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">247</span>:             retval += (second &lt;&lt; SECOND_CARD_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">250</span>:             retval += (second &lt;&lt; SECOND_CARD_SHIFT)</pre>
 <pre class='cython code score-0 '>      __pyx_v_retval = (__pyx_v_retval + (__pyx_v_second &lt;&lt; __pyx_v_5poker_6_utils_SECOND_CARD_SHIFT));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">248</span>:             retval += &lt;unsigned int&gt;((TOP_CARD_TABLE[ranks ^ (1U &lt;&lt; &lt;int&gt;top) ^ (1 &lt;&lt; &lt;int&gt;second)]) &lt;&lt; THIRD_CARD_SHIFT)</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">251</span>:             retval += &lt;unsigned int&gt;((TOP_CARD_TABLE[ranks ^ (1U &lt;&lt; &lt;int&gt;top) ^ (1 &lt;&lt; &lt;int&gt;second)]) &lt;&lt; THIRD_CARD_SHIFT)</pre>
 <pre class='cython code score-0 '>      __pyx_v_retval = (__pyx_v_retval + ((unsigned int)((TOP_CARD_TABLE[((__pyx_v_ranks ^ (1U &lt;&lt; ((int)__pyx_v_top))) ^ (1 &lt;&lt; ((int)__pyx_v_second)))]) &lt;&lt; __pyx_v_5poker_6_utils_THIRD_CARD_SHIFT)));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">249</span>:             return retval</pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">252</span>:             return retval</pre>
 <pre class='cython code score-0 '>      __pyx_r = __pyx_v_retval;
       goto __pyx_L0;
     }
     break;
   }
-</pre><pre class="cython line score-0">&#xA0;<span class="">250</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">251</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">252</span>: '''</pre>
-<pre class="cython line score-0">&#xA0;<span class="">253</span>: Enable calling cy-evaluate from the main process for testing purposes.</pre>
-<pre class="cython line score-0">&#xA0;<span class="">254</span>: '''</pre>
-<pre class="cython line score-70" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">255</span>: cpdef cy_evaluate_cpp(cards, num_cards):</pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">253</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">254</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">255</span>: '''</pre>
+<pre class="cython line score-0">&#xA0;<span class="">256</span>: Enable calling cy-evaluate from the main process for testing purposes.</pre>
+<pre class="cython line score-0">&#xA0;<span class="">257</span>: '''</pre>
+<pre class="cython line score-70" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">258</span>: cpdef cy_evaluate_cpp(cards, num_cards):</pre>
 <pre class='cython code score-70 '>static PyObject *__pyx_pw_5poker_6_utils_1cy_evaluate_cpp(PyObject *__pyx_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
@@ -1885,7 +1907,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)<span class='pyx_c_api'>__Pyx_Arg_NewRef_FASTCALL</span>(values[0]);
           kw_args--;
         }
-        else if (unlikely(<span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 255, __pyx_L3_error)</span>
+        else if (unlikely(<span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 258, __pyx_L3_error)</span>
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
@@ -1893,14 +1915,14 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)<span class='pyx_c_api'>__Pyx_Arg_NewRef_FASTCALL</span>(values[1]);
           kw_args--;
         }
-        else if (unlikely(<span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 255, __pyx_L3_error)</span>
+        else if (unlikely(<span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 258, __pyx_L3_error)</span>
         else {
-          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("cy_evaluate_cpp", 1, 2, 2, 1); <span class='error_goto'>__PYX_ERR(0, 255, __pyx_L3_error)</span>
+          <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("cy_evaluate_cpp", 1, 2, 2, 1); <span class='error_goto'>__PYX_ERR(0, 258, __pyx_L3_error)</span>
         }
       }
       if (unlikely(kw_args &gt; 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(<span class='pyx_c_api'>__Pyx_ParseOptionalKeywords</span>(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "cy_evaluate_cpp") &lt; 0)) <span class='error_goto'>__PYX_ERR(0, 255, __pyx_L3_error)</span>
+        if (unlikely(<span class='pyx_c_api'>__Pyx_ParseOptionalKeywords</span>(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "cy_evaluate_cpp") &lt; 0)) <span class='error_goto'>__PYX_ERR(0, 258, __pyx_L3_error)</span>
       }
     } else if (unlikely(__pyx_nargs != 2)) {
       goto __pyx_L5_argtuple_error;
@@ -1913,7 +1935,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("cy_evaluate_cpp", 1, 2, 2, __pyx_nargs); <span class='error_goto'>__PYX_ERR(0, 255, __pyx_L3_error)</span>
+  <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("cy_evaluate_cpp", 1, 2, 2, __pyx_nargs); <span class='error_goto'>__PYX_ERR(0, 258, __pyx_L3_error)</span>
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -1946,7 +1968,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 static PyObject *__pyx_pf_5poker_6_utils_cy_evaluate_cpp(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_cards, PyObject *__pyx_v_num_cards) {
   PyObject *__pyx_r = NULL;
   <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
-  __pyx_t_1 = __pyx_f_5poker_6_utils_cy_evaluate_cpp(__pyx_v_cards, __pyx_v_num_cards, 0);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 255, __pyx_L1_error)</span>
+  __pyx_t_1 = __pyx_f_5poker_6_utils_cy_evaluate_cpp(__pyx_v_cards, __pyx_v_num_cards, 0);<span class='error_goto'> if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 258, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -1963,25 +1985,25 @@ static PyObject *__pyx_pf_5poker_6_utils_cy_evaluate_cpp(CYTHON_UNUSED PyObject 
   return __pyx_r;
 }
 /* … */
-  __pyx_tuple__15 = <span class='py_c_api'>PyTuple_Pack</span>(2, __pyx_n_s_cards, __pyx_n_s_num_cards);<span class='error_goto'> if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 255, __pyx_L1_error)</span>
+  __pyx_tuple__15 = <span class='py_c_api'>PyTuple_Pack</span>(2, __pyx_n_s_cards, __pyx_n_s_num_cards);<span class='error_goto'> if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 258, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_tuple__15);
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_tuple__15);
 /* … */
-  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_CyFunction_New</span>(&amp;__pyx_mdef_5poker_6_utils_1cy_evaluate_cpp, 0, __pyx_n_s_cy_evaluate_cpp, NULL, __pyx_n_s_poker__utils, __pyx_d, ((PyObject *)__pyx_codeobj__16));<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 255, __pyx_L1_error)</span>
+  __pyx_t_2 = <span class='pyx_c_api'>__Pyx_CyFunction_New</span>(&amp;__pyx_mdef_5poker_6_utils_1cy_evaluate_cpp, 0, __pyx_n_s_cy_evaluate_cpp, NULL, __pyx_n_s_poker__utils, __pyx_d, ((PyObject *)__pyx_codeobj__16));<span class='error_goto'> if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 258, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
-  if (<span class='py_c_api'>PyDict_SetItem</span>(__pyx_d, __pyx_n_s_cy_evaluate_cpp, __pyx_t_2) &lt; 0) <span class='error_goto'>__PYX_ERR(0, 255, __pyx_L1_error)</span>
+  if (<span class='py_c_api'>PyDict_SetItem</span>(__pyx_d, __pyx_n_s_cy_evaluate_cpp, __pyx_t_2) &lt; 0) <span class='error_goto'>__PYX_ERR(0, 258, __pyx_L1_error)</span>
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_codeobj__16 = (PyObject*)<span class='pyx_c_api'>__Pyx_PyCode_New</span>(2, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__15, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_poker__utils_pyx, __pyx_n_s_cy_evaluate_cpp, 255, __pyx_empty_bytes);<span class='error_goto'> if (unlikely(!__pyx_codeobj__16)) __PYX_ERR(0, 255, __pyx_L1_error)</span>
-</pre><pre class="cython line score-7" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">256</span>:     cdef unsigned long long crds = cards</pre>
-<pre class='cython code score-7 '>  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyInt_As_unsigned_PY_LONG_LONG</span>(__pyx_v_cards); if (unlikely((__pyx_t_1 == (unsigned PY_LONG_LONG)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 256, __pyx_L1_error)</span>
+  __pyx_codeobj__16 = (PyObject*)<span class='pyx_c_api'>__Pyx_PyCode_New</span>(2, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__15, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_poker__utils_pyx, __pyx_n_s_cy_evaluate_cpp, 258, __pyx_empty_bytes);<span class='error_goto'> if (unlikely(!__pyx_codeobj__16)) __PYX_ERR(0, 258, __pyx_L1_error)</span>
+</pre><pre class="cython line score-7" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">259</span>:     cdef unsigned long long crds = cards</pre>
+<pre class='cython code score-7 '>  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyInt_As_unsigned_PY_LONG_LONG</span>(__pyx_v_cards); if (unlikely((__pyx_t_1 == (unsigned PY_LONG_LONG)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 259, __pyx_L1_error)</span>
   __pyx_v_crds = __pyx_t_1;
-</pre><pre class="cython line score-7" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">257</span>:     cdef unsigned long long num_crds = num_cards</pre>
-<pre class='cython code score-7 '>  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyInt_As_unsigned_PY_LONG_LONG</span>(__pyx_v_num_cards); if (unlikely((__pyx_t_1 == (unsigned PY_LONG_LONG)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 257, __pyx_L1_error)</span>
+</pre><pre class="cython line score-7" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">260</span>:     cdef unsigned long long num_crds = num_cards</pre>
+<pre class='cython code score-7 '>  __pyx_t_1 = <span class='pyx_c_api'>__Pyx_PyInt_As_unsigned_PY_LONG_LONG</span>(__pyx_v_num_cards); if (unlikely((__pyx_t_1 == (unsigned PY_LONG_LONG)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 260, __pyx_L1_error)</span>
   __pyx_v_num_crds = __pyx_t_1;
-</pre><pre class="cython line score-8" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">258</span>:     return cy_evaluate(crds, num_crds)</pre>
+</pre><pre class="cython line score-8" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">261</span>:     return cy_evaluate(crds, num_crds)</pre>
 <pre class='cython code score-8 '>  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
-  __pyx_t_2 = __pyx_f_5poker_6_utils_cy_evaluate(__pyx_v_crds, __pyx_v_num_crds); if (unlikely(__pyx_t_2 == ((unsigned int)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 258, __pyx_L1_error)</span>
-  __pyx_t_3 = <span class='pyx_c_api'>__Pyx_PyInt_From_unsigned_int</span>(__pyx_t_2);<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 258, __pyx_L1_error)</span>
+  __pyx_t_2 = __pyx_f_5poker_6_utils_cy_evaluate(__pyx_v_crds, __pyx_v_num_crds); if (unlikely(__pyx_t_2 == ((unsigned int)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 261, __pyx_L1_error)</span>
+  __pyx_t_3 = <span class='pyx_c_api'>__Pyx_PyInt_From_unsigned_int</span>(__pyx_t_2);<span class='error_goto'> if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 261, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_3);
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;

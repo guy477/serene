@@ -40,6 +40,9 @@ cdef class Deck:
     cdef void remove(self, unsigned long long card):
         self.deck.remove(card)
 
+    cdef void add(self, unsigned long long card):
+        self.deck.append(card)
+
     cdef list to_list(self):
         return self.deck
 

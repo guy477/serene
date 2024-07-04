@@ -35,9 +35,9 @@ cdef class GameState:
     cdef public list betting_history
 
     cdef void reset(self)
-    cdef void load_custom_betting_history(self, int round, object history)
     cpdef GameState clone(self)
     cdef void assign_positions(self)
+    cdef void update_current_hand(self, object hand)
     cdef void handle_blinds(self)
     cpdef void setup_preflop(self, object hand = *)
     cpdef void setup_postflop(self, str round_name)
@@ -47,7 +47,7 @@ cdef class GameState:
     cdef void showdown(self)
     cdef bint is_terminal(self)
     cdef bint is_terminal_river(self)
-    cpdef void deal_private_cards(self, object hand = *, int player_index = *)
+    cpdef void deal_private_cards(self, int player_index = *)
     cdef list generate_positions(self, int num_players)
     cdef int active_players(self)
     cdef int folded_players(self)
@@ -57,4 +57,5 @@ cdef class GameState:
     cdef int num_board_cards(self)
     cdef void debug_output(self)
     cdef void log_current_hand(self, object terminal = *)
+    cpdef remove_str_card_from_deck(self, str card)
 

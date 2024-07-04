@@ -7,6 +7,8 @@ cimport numpy as np
 import itertools
 from multiprocessing import Pool, Manager
 from tqdm import tqdm
+import pickle
+
 
 cdef class CFRTrainer:
     def __init__(self, int iterations, int realtime_iterations, int num_simulations, int cfr_depth, int cfr_realtime_depth, int num_players, int initial_chips, int small_blind, int big_blind, list bet_sizing, list suits=SUITS, list values=VALUES, int monte_carlo_depth=9999):
@@ -30,7 +32,7 @@ cdef class CFRTrainer:
         self.regret_sum = {}
         self.strategy_sum = {}
 
-    cpdef train(self):
+    cpdef train(self, list positions_to_solve = []):
         cdef float[:] probs
 
         # Generate all possible cards
@@ -56,9 +58,10 @@ cdef class CFRTrainer:
         # Define a new game state for training
         players = [AIPlayer(self.initial_chips, self.bet_sizing, self) for _ in range(self.num_players)]
         
-        # Ensure the game state is set up for preflop
+        # Define initial gamestate
         game_state = GameState(players, self.small_blind, self.big_blind, self.num_simulations, True, self.suits, self.values)
 
+        # Reduce the hands to uniquely abstractable hands
         hands_reduced = []
         __ = {}
         for hand in hands:
@@ -66,23 +69,45 @@ cdef class CFRTrainer:
                 continue
             
             __[hand_mapping[hand]] = 1
-            hands_reduced.append(hand)    
+            hands_reduced.append(hand)
 
-        # Call the parallel training function
-        train_regret, train_strategy, hand_strategy_aggregate = self.parallel_train(hands_reduced, hand_mapping, players, game_state)
+        # local_regret = {}
+        # local_strategy = {}
+        local_hand_strategy_aggregate = []
 
-        # Set the global regret_sum and strategy_sum to the training values
-        self.regret_sum = dict(train_regret)
-        self.strategy_sum = dict(train_strategy)
+        for fast_forward_actions in positions_to_solve:
+            print('solving for position: ', fast_forward_actions)
+            input('press enter to begin')
+            # Call the parallel training function
+            train_regret, train_strategy, hand_strategy_aggregate = self.parallel_train(hands_reduced, hand_mapping, players, game_state, fast_forward_actions)
 
-        return list(hand_strategy_aggregate)
+            # Set the global regret_sum and strategy_sum to the training values
+            self.regret_sum.update(dict(train_regret))
+            self.strategy_sum.update(dict(train_strategy))
+            local_hand_strategy_aggregate.extend(hand_strategy_aggregate)
+            input('press enter to proceed to next position')
 
-    def process_hand(self, hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated):
+        # Pickle and save regret and strategy sums
+        with open('../dat/pickles/regret_sum.pkl', 'wb') as f:
+            pickle.dump(self.regret_sum, f)
+
+        with open('../dat/pickles/strategy_sum.pkl', 'wb') as f:
+            pickle.dump(self.strategy_sum, f)
+        
+        return list(local_hand_strategy_aggregate)
+
+    def process_hand(self, hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions):
+        """
+        Solve for the current player in the gamestate for the given hand.
+        """
+
         if calculated.get(hand_mapping[hand], False):
             return
         calculated[hand_mapping[hand]] = True
         print('__________')
         print(f'Current Hand: {hand}', end='\r')
+
+
 
         local_regret_sum = {}
         local_strategy_sum = {}
@@ -96,14 +121,17 @@ cdef class CFRTrainer:
 
             probs[:] = 1
 
-            # Set preflop so opponent sees new hand each iteration.
+            # Set preflop so opponent sees new hand each iteration. 
             game_state.setup_preflop(hand)
+
+            # NOTE We want to fast forward to a valid GTO state.. TODO: Implement this.
+            self.fast_forward_gamestate(hand, game_state, fast_forward_actions)
 
             # Perform CFR traversal for the current hand
             self.cfr_traverse(game_state.clone(), probs, 0, self.cfr_depth, epsilon)
 
-        # After iterations for a hand, calculate average strategy
-        player_idx = 3  # Assuming you iterate over all players here
+        # Extract current strategy.
+        player_idx = game_state.player_index
         player = players[player_idx]
         strategy = self.get_average_strategy(player, game_state)
         player_hash = player.hash(game_state)
@@ -111,17 +139,48 @@ cdef class CFRTrainer:
         print(f"Regret sum: {self.regret_sum[player_hash]}")
         print(f"Average strategy for hand {hand_mapping[hand]}: {strategy}")
 
+        # Prune none-starting nodes.
         local_regret_sum[player_hash] = self.regret_sum[player_hash]
         local_strategy_sum[player_hash] = self.strategy_sum[player_hash]
-        local_hand_strategy_aggregate.append((player.position, hand_mapping[hand], strategy))
+
+        local_hand_strategy_aggregate.append((player.position, fast_forward_actions, hand_mapping[hand], strategy))
 
         # Perform batch update to shared dictionaries
         train_regret.update(local_regret_sum)
         train_strategy.update(local_strategy_sum)
         hand_strategy_aggregate.extend(local_hand_strategy_aggregate)
 
-    def parallel_train(self, hands, hand_mapping, players, game_state):
-        with Pool() as pool:
+    cdef fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions):
+        for action in fast_forward_actions:
+            player_idx = game_state.player_index
+            strategy = self.get_average_strategy(game_state.players[player_idx], game_state)
+
+            player_hash = game_state.players[player_idx].hash(game_state)
+
+            if strategy[action] < .05 or player_hash not in self.strategy_sum:
+                # Current game_node is non-gto; reset
+                game_state.setup_preflop(hand)
+                self.fast_forward_gamestate(hand, game_state, fast_forward_actions)
+                break
+            
+
+
+            if game_state.handle_action(action):
+                #print(f"Action {action} handled, setting up postflop.")
+                if game_state.num_board_cards() == 0:
+                    game_state.setup_postflop('flop')
+                else:
+                    game_state.setup_postflop('postflop')
+
+        if hand:
+            # Update current gamestate hand to desired hand.
+            game_state.update_current_hand(hand)
+
+        game_state.debug_output()
+
+    def parallel_train(self, hands, hand_mapping, players, game_state, fast_forward_actions):
+        
+        with Pool(processes=1) as pool:
             manager = Manager()
             train_regret = manager.dict()
             train_strategy = manager.dict()
@@ -131,30 +190,32 @@ cdef class CFRTrainer:
             # Pass the shared dictionaries to the pool workers
             pool.starmap(
                 self.process_hand_wrapper, 
-                [(hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated) for hand in hands]
+                [(hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions) for hand in hands]
             )
 
         return train_regret, train_strategy, hand_strategy_aggregate
 
-    def process_hand_wrapper(self, hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated):
-        self.process_hand(hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated)
+    def process_hand_wrapper(self, hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions):
+        self.process_hand(hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions)
 
 
 
     cpdef train_realtime(self, GameState game_state):
         cdef float[:] probs
         cdef list hands = []
-        cdef list deck = game_state.deck[:]
+        cdef Deck deck = game_state.deck.clone()
 
         # clone the gamestate and silence the logging.
         cloned_game_state = game_state.clone()
         cloned_game_state.silent = True
 
-        for i in range(len(cloned_game_state.players)):
-            if i != cloned_game_state.player_index:
-                hands.append(cloned_game_state.players[i].hand)
-                cloned_game_state.deck.extend(hand_to_cards(hands[-1]))
-                cloned_game_state.players[i].hand = 0
+        # for i in range(len(cloned_game_state.players)):
+        #     if i != cloned_game_state.player_index:
+        #         hands.append(cloned_game_state.players[i].hand)
+        #         for i in hand_to_cards(hands[-1]):
+        #             cloned_game_state.remove_str_card_from_deck(i)
+
+        #         cloned_game_state.players[i].hand = 0
 
 
 
@@ -181,7 +242,7 @@ cdef class CFRTrainer:
         #input("Press enter to continue.")
         
         if game_state.is_terminal_river() or depth >= max_depth:
-            #print("Terminal state or max depth reached.")
+            # print("Terminal state or max depth reached.")
             game_state.showdown()
             return self.calculate_utilities(game_state, game_state.winner_index)
 

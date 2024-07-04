@@ -132,6 +132,9 @@ cdef class Player:
         return input(prompt)
 
     cpdef list get_available_actions(self, GameState game_state):
+        if game_state.is_terminal_river():
+            return [('call', 0)]
+
         # Initialize the list of possible actions with call and fold
         cdef list ret = [('call', 0), ('fold', 0)]
         cdef int current_bet = game_state.current_bet
@@ -153,12 +156,13 @@ cdef class Player:
         if current_bet >= (chips // 3):
             ret.append(('all-in', 0))
 
-        # If first round and only the blinds have been posted, don't allow calling.
-        if len(game_state.betting_history[0]) == 2:
+        # Prevent open limping. Inefficient.
+        if len(game_state.betting_history[0]) == 2 or all([('fold', 0) == x[1] for x in game_state.betting_history[0][2:]]):
             ret.remove(('call', 0))
 
         # Check if the player can cover the current bet.
         if chips >= current_bet:
+            
             for i in self.bet_sizing[cur_round_index]:
                 raise_amount = int(pot * i)
                 if chips >= (current_bet + raise_amount) and raise_amount > current_bet and chips > raise_amount:

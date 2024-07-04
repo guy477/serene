@@ -12,6 +12,80 @@ import matplotlib.patches as mpatches
 from scipy.special import comb
 from sklearn.cluster import MiniBatchKMeans
 
+def _6_max_opening():
+    # Positions to solve for (ORDER MATTERS)
+    UTG_OPEN = []
+    MP_OPEN = [('fold', 0)]  # Assuming UTG has folded
+    MP_DEF = [('raise', 1.5)]  # Assuming UTG has raised
+    CO_OPEN = [('fold', 0), ('fold', 0)]  # Assuming UTG and MP have folded
+    CO_UTG_DEF = [('raise', 1.5), ('fold', 0)]  # Assuming UTG has raised, MP has folded
+    CO_MP_DEF = [('fold', 0), ('raise', 1.5)]  # Assuming UTG has folded, MP has raised
+    BTN_OPEN = [('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG, MP, and CO have folded
+    BTN_UTG_DEF = [('raise', 1.5), ('fold', 0), ('fold', 0)]  # Assuming UTG has raised, MP and CO have folded
+    BTN_MP_DEF = [('fold', 0), ('raise', 1.5), ('fold', 0)]  # Assuming UTG has folded, MP has raised, CO has folded
+    BTN_CO_DEF = [('fold', 0), ('fold', 0), ('raise', 1.5)]  # Assuming UTG and MP have folded, CO has raised
+    SB_OPEN = [('fold', 0), ('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG, MP, CO, and BTN have folded
+    SB_UTG_DEF = [('raise', 1.5), ('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG has raised, MP, CO, and BTN have folded
+    SB_MP_DEF = [('fold', 0), ('raise', 1.5), ('fold', 0), ('fold', 0)]  # Assuming UTG has folded, MP has raised, CO and BTN have folded
+    SB_CO_DEF = [('fold', 0), ('fold', 0), ('raise', 1.5), ('fold', 0)]  # Assuming UTG and MP have folded, CO has raised, BTN has folded
+    SB_BTN_DEF = [('fold', 0), ('fold', 0), ('fold', 0), ('raise', 1.5)]  # Assuming UTG, MP, and CO have folded, BTN has raised
+
+    BB_DEF = [('raise', 1.5), ('fold', 0), ('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG has raised, MP, CO, BTN, and SB have folded
+    BB_MP_DEF = [('fold', 0), ('raise', 1.5), ('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG has folded, MP has raised, CO, BTN, and SB have folded
+    BB_CO_DEF = [('fold', 0), ('fold', 0), ('raise', 1.5), ('fold', 0), ('fold', 0)]  # Assuming UTG and MP have folded, CO has raised, BTN and SB have folded
+    BB_BTN_DEF = [('fold', 0), ('fold', 0), ('fold', 0), ('raise', 1.5), ('fold', 0)]  # Assuming UTG, MP, and CO have folded, BTN has raised, SB has folded
+    BB_SB_DEF = [('fold', 0), ('fold', 0), ('fold', 0), ('fold', 0), ('raise', 1.5)]  # Assuming UTG, MP, CO, and BTN have folded, SB has raised
+
+    positions_to_solve = [
+        UTG_OPEN, 
+        MP_OPEN, 
+        MP_DEF,  
+        CO_OPEN,  
+        CO_UTG_DEF,
+        CO_MP_DEF, 
+        # BTN_OPEN, 
+        # BTN_UTG_DEF, 
+        # BTN_MP_DEF, 
+        # BTN_CO_DEF, 
+        # SB_OPEN, 
+        # SB_UTG_DEF, 
+        # SB_MP_DEF, 
+        # SB_CO_DEF,
+        # SB_BTN_DEF,
+        # BB_DEF,
+        # BB_MP_DEF,
+        # BB_CO_DEF,
+        # BB_BTN_DEF,
+        # BB_SB_DEF,
+    ]
+
+    position_names = [
+        "UTG_OPEN", 
+        "MP_OPEN", 
+        "MP_DEF",  
+        "CO_OPEN",  
+        "CO_UTG_DEF",
+        "CO_MP_DEF", 
+        # "BTN_OPEN", 
+        # "BTN_UTG_DEF", 
+        # "BTN_MP_DEF", 
+        # "BTN_CO_DEF", 
+        # "SB_OPEN", 
+        # "SB_UTG_DEF", 
+        # "SB_MP_DEF", 
+        # "SB_CO_DEF",
+        # "SB_BTN_DEF",
+        # "BB_DEF",
+        # "BB_MP_DEF",
+        # "BB_CO_DEF",
+        # "BB_BTN_DEF",
+        # "BB_SB_DEF",
+    ]
+
+    positions_dict = {str(pos): name for pos, name in zip(positions_to_solve, position_names)}
+
+    return positions_to_solve, positions_dict
+
 def main():
     num_players = 6
     num_ai_players = 5
@@ -23,37 +97,38 @@ def main():
     # bet_sizing = [(1.5, ), (.33,), (), ()]
 
 
+    positions_to_solve, positions_dict = _6_max_opening()
 
-    # set the deck
-    SUITS = ['C', 'D', 'H', 'S'] # , 'H', 'S'
-    VALUES = [ '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'] # '2', '3', '4', '5',
+    # set the deck (if you use a restricted deck, the evaluation will incorrectly evaluate against a full deck)
+    SUITS = ['C', 'D', 'H', 'S']
+    VALUES = [ '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 
+    # 100 big blinds
     initial_chips = 1000
     small_blind = 5
     big_blind = 10
 
-    num_hands = 5
+    num_showdown_simulations = 1
 
-    num_simulations = 1
-
-    num_iterations = 1500
-    realtime_iterations = 200
-    cfr_depth = 50
+    num_cfr_iterations = 10
+    realtime_cfr_iterations = 200
+    cfr_depth = 8
     cfr_realtime_depth = 6
     
     # Depth at which to start Monte Carlo Simulation.
     # Exploration is controled by the epsilon value in the CFR class - keep it high.
-    monte_carlo_depth = 5
+    monte_carlo_depth = 2
 
     # Train the AI player using the CFR algorithm
-    cfr_trainer = CFRTrainer(num_iterations, realtime_iterations, num_simulations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth)
-    strategy_list = cfr_trainer.train()
-    plot_hands(strategy_list)
+    cfr_trainer = CFRTrainer(num_cfr_iterations, realtime_cfr_iterations, num_showdown_simulations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth)
+    strategy_list = cfr_trainer.train(positions_to_solve)
+    plot_hands(strategy_list, SUITS, VALUES, positions_dict)
 
-    game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer, SUITS, VALUES)
 
-    # Play the game
-    game.play_game(num_hands)
+    # num_hands = 5
+    # game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer, SUITS, VALUES)
+    # # Play the game
+    # game.play_game(num_hands)
     print('\n\n')
 
 def cluster():
@@ -267,14 +342,8 @@ def cluster():
     #########################################################################################################
 
 
-def setup_deck(suits=None, ranks=None):
-    if suits is None:
-        suits = ['o', 's']
-    if ranks is None:
-        ranks = list(reversed(['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']))
-    return suits, ranks
-
 def hand_position(hand, ranks):
+    ranks = list(reversed(ranks))
     rank1, rank2 = hand[0], hand[1]
     suited = hand[2] == 's'
     offsuit = hand[2] == 'o'
@@ -292,83 +361,98 @@ def hand_position(hand, ranks):
     else:
         raise ValueError("Invalid hand format")
 
-def plot_hands(strategy_list, suits=None, ranks=None):
+def plot_hands(strategy_list, suits=None, ranks=None, positions_dict={}):
     strategy_df = pd.DataFrame(strategy_list)
-    strategy_df.columns = ['Position', 'Hand', 'Strategy']
-    strategy_df.sort_values(by='Hand', inplace=True)
-    strategy_df = strategy_df[(strategy_df['Position'] == 'UTG') & (strategy_df['Strategy'] != {})]
+    strategy_df.columns = ['Position', 'Betting History', 'Hand', 'Strategy']
+    strategy_df['Betting History'] = strategy_df['Betting History'].apply(lambda x: str(x))
+    strategy_df.to_csv('../dat/strategy.csv', index=False)
+    strategy_df = strategy_df[strategy_df['Strategy'] != {}]
     strategy_df.reset_index(inplace=True, drop=True)
 
-    strategy_proportions = pd.DataFrame()
-    for index, row in strategy_df.iterrows():
-        for action, value in row.Strategy.items():
-            action_type = f"{action[0]}_{action[1]}"
-            if action_type not in strategy_proportions.columns:
-                strategy_proportions[action_type] = 0
-            strategy_proportions.at[index, action_type] = value
+    # Get unique combinations of 'Position' and 'Betting History'
+    unique_combinations = strategy_df[['Position', 'Betting History']].drop_duplicates()
 
-    strategy_proportions.fillna(0, inplace=True)
-    strategy_proportions.reset_index(drop=True, inplace=True)
+    # Iterate over each unique combination
+    for _, row in unique_combinations.iterrows():
+        position = row['Position']
+        betting_history = row['Betting History']
 
-    suits, ranks = setup_deck(suits, ranks)
+        # Filter the DataFrame based on the current unique combination
+        position_df = strategy_df[(strategy_df['Position'] == position) & (strategy_df['Betting History'] == betting_history)].reset_index(drop=True)
 
-    subplot_size = np.array([.5, .5])
-    ncols = len(ranks)
-    nrows = len(ranks)
-    figsize = subplot_size * [ncols, nrows]
+        strategy_proportions = pd.DataFrame()
+        for index, row in position_df.iterrows():
+            for action, value in row.Strategy.items():
+                action_type = f"{action[0]}_{action[1]}"
+                if action_type not in strategy_proportions.columns:
+                    strategy_proportions[action_type] = 0
+                strategy_proportions.at[index, action_type] = value
 
-    fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize)
-    axes = axes.flatten()
+        strategy_proportions.fillna(0, inplace=True)
+        strategy_proportions.reset_index(drop=True, inplace=True)
 
-    # Define colors for specific actions dynamically
-    unique_actions = strategy_proportions.columns
-    color_map = {}
-    
-    # Generate gradient colors for raises
-    raise_colors = plt.cm.Reds(np.linspace(0.3, 1, 100))  # Gradient from light red to dark red
-    
-    for action in unique_actions:
-        if action.startswith('fold'):
-            color_map[action] = 'lightblue'
-        elif action.startswith('call'):
-            color_map[action] = 'green'
-        elif action.startswith('raise'):
-            raise_size = float(action.split('_')[1])
-            color_map[action] = raise_colors[int(raise_size * 50) % 100]  # Scale and mod to stay within bounds
-        elif action.startswith('all-in'):
-            color_map[action] = 'darkred'
+        subplot_size = np.array([.5, .5])
+        ncols = len(ranks)
+        nrows = len(ranks)
+        figsize = subplot_size * [ncols, nrows]
 
-    for idx, row in strategy_proportions.iterrows():
-        hand = strategy_df.loc[idx, 'Hand']
-        try:
-            pos = hand_position(hand, ranks)
-        except ValueError:
-            continue
+        fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize)
+        axes = axes.flatten()
 
-        ax = axes[pos[0] * ncols + pos[1]]
-        ax.set_title(hand, size=5, pad=-500)
-        ax.set_ylim([0, 1])
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
+        # Define colors for specific actions dynamically
+        unique_actions = strategy_proportions.columns
+        color_map = {}
 
-        bottom = 0
-        for action, value in row.items():
-            if value > 0:
-                ax.bar(0, value, bottom=bottom, color=color_map[action])
-                bottom += value
+        # Generate gradient colors for raises
+        raise_colors = plt.cm.Reds(np.linspace(0.3, 1, 100))  # Gradient from light red to dark red
 
-    total_positions = len(strategy_proportions)
-    if total_positions % ncols != 0:
-        for j in range(total_positions, ncols * nrows):
-            fig.delaxes(axes[j])
+        for action in unique_actions:
+            if action.startswith('fold'):
+                color_map[action] = 'lightblue'
+            elif action.startswith('call'):
+                color_map[action] = 'green'
+            elif action.startswith('raise'):
+                raise_size = float(action.split('_')[1])
+                color_map[action] = raise_colors[int(raise_size * 50) % 100]  # Scale and mod to stay within bounds
+            elif action.startswith('all-in'):
+                color_map[action] = 'darkred'
 
-    # Create legend with dynamic colors
-    patches = [mpatches.Patch(color=color_map[action], label=action) for action in unique_actions]
-    plt.legend(handles=patches, loc='upper left')
+        for idx, row in strategy_proportions.iterrows():
+            hand = position_df.loc[idx, 'Hand']
+            try:
+                pos = hand_position(hand, ranks)
+            except ValueError:
+                continue
 
-    plt.tight_layout()
-    plt.subplots_adjust(wspace=0.2, hspace=0.4)
-    plt.show()
+            ax = axes[pos[0] * ncols + pos[1]]
+            ax.set_title(hand, size=5, pad=-500)
+            ax.set_ylim([0, 1])
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+
+            # enforce color ordering in plots
+            row_items = sorted(row.items(), key=lambda x: (x[0].startswith('all-in'), x[0].startswith('raise'), x[0].startswith('call'), x[0].startswith('fold')))
+
+            bottom = 0
+            for action, value in row_items:
+                if value > 0:
+                    ax.bar(0, value, bottom=bottom, color=color_map[action])
+                    bottom += value
+
+        total_positions = len(strategy_proportions)
+        if total_positions % ncols != 0:
+            for j in range(total_positions, ncols * nrows):
+                fig.delaxes(axes[j])
+
+        # Create legend with dynamic colors
+        patches = [mpatches.Patch(color=color_map[action], label=action) for action in unique_actions]
+        plt.legend(handles=patches, loc='upper left')
+
+        plt.tight_layout()
+        plt.subplots_adjust(wspace=0.2, hspace=0.4)
+        plt.suptitle(f'Strategy for Position: {positions_dict.get(betting_history, betting_history)}', fontsize=13, x=.95, y=.9, rotation=-90)        
+        plt.savefig(f'../dat/charts/{positions_dict.get(betting_history, betting_history)}_Range.png')
+        plt.close()
     
 if __name__ == "__main__":
     # cluster()

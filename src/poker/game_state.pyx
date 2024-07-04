@@ -115,9 +115,7 @@ cdef class GameState:
             poker_logger.log_hand(hand_log)
         
         self.hand_id += 1
-
-    cdef void load_custom_betting_history(self, int round, object history):
-        self.betting_history[round].append(history)
+                    
 
     cdef void handle_blinds(self):
         cdef int small_blind_pos, big_blind_pos, small_blind_amount, big_blind_amount
@@ -144,7 +142,36 @@ cdef class GameState:
         for i in range(len(self.players)):
             self.players[i].assign_position(self.positions[i], i)
 
-    cpdef void deal_private_cards(self, object hand=None, int player_index=-1):
+    cdef void update_current_hand(self, object hand):
+        cdef unsigned long long card1, card2
+        cdef Player player
+
+        # extract the current player's hand
+        player_hand = hand_to_cards(self.players[self.player_index].hand)
+
+        # Erase the player's hand
+        self.players[self.player_index].hand = 0
+
+        # Add the current player's hand back to the deck
+        self.deck.add(player_hand[0])
+        self.deck.add(player_hand[1])
+
+        # Convert string card to unsigned int card
+        card1 = card_str_to_int(hand[0])
+        card2 = card_str_to_int(hand[1])
+
+        ## Remove custom hand from deck
+        ## NOTE: Since we pre-emptively remove the desired cards from the deck, we don't need to remove them from the player's hand.
+        ##       May require a refactor later on.
+        # self.deck.remove(card1)
+        # self.deck.remove(card2)
+
+        # Update the player's hand with new hand
+        self.players[self.player_index].add_card(card1)
+        self.players[self.player_index].add_card(card2)
+        self.players[self.player_index].abstracted_hand = self.abstract_hand(card1, card2)
+
+    cpdef void deal_private_cards(self, int player_index=-1):
         cdef unsigned long long i, card1, card2
         cdef Player player
 
@@ -152,21 +179,10 @@ cdef class GameState:
         if player_index == -1:
             player_index = self.player_index
 
-        # Handle the specific hand for the given player
-        if hand:
-            card1 = card_str_to_int(hand[0])
-            card2 = card_str_to_int(hand[1])
-            self.deck.remove(card1)
-            self.deck.remove(card2)
-            self.players[player_index].add_card(card1)
-            self.players[player_index].add_card(card2)
-            self.players[player_index].abstracted_hand = self.abstract_hand(card1, card2)
-
         # Deal cards to all players
         for i in range(len(self.players)):
             player = self.players[i]
-            if hand and i == player_index:
-                continue
+            
             if player.chips > 0:
                 card1 = self.deck.pop()
                 card2 = self.deck.pop()
@@ -191,11 +207,17 @@ cdef class GameState:
         
         return high_card + low_card + suited
 
-    cpdef void setup_preflop(self, object hand=None):
+    cpdef void setup_preflop(self, object hand = None):
         self.reset()
+
+        if hand:
+            # Remove hand from game_state deck
+            self.remove_str_card_from_deck(hand[0])
+            self.remove_str_card_from_deck(hand[1])        
+
         self.assign_positions()
         self.handle_blinds()
-        self.deal_private_cards(hand)
+        self.deal_private_cards()
         self.num_actions = 0
         self.round_active_players = self.active_players()
 
@@ -235,7 +257,7 @@ cdef class GameState:
         self.num_actions += 1
         self.player_index = (self.player_index + 1) % len(self.players)
 
-        if self.active_players() == self.allin_players() + self.folded_players():
+        if self.active_players() == self.allin_players():
             self.progress_to_showdown()
             return True
 
@@ -440,3 +462,6 @@ cdef class GameState:
                 positions.append('HJ')
                 positions.append('MP2')
             return positions
+
+    cpdef remove_str_card_from_deck(self, str card):
+        self.deck.remove(card_str_to_int(card)) 
