@@ -1,4 +1,5 @@
-from .game_state cimport GameState, display_game_state
+from .game_state cimport GameState
+from ._utils cimport *
 
 cdef class Player:
     cdef public int chips
@@ -13,13 +14,13 @@ cdef class Player:
     cdef public int tot_contributed_to_pot
     cdef public int prior_gains
     
-    cpdef assign_position(self, str position, int player_index)
-    cpdef get_action(self, GameState game_state, int player_index)
-    cpdef take_action(self, GameState game_state, int player_index, object action)
-    cpdef list get_available_actions(self, GameState game_state)
-    cpdef str get_user_input(self, prompt)
+    cpdef public void assign_position(self, str position, int player_index)
+    cpdef public bint get_action(self, GameState game_state, int player_index)
+    cpdef public bint take_action(self, GameState game_state, int player_index, object action)
+    cpdef public list get_available_actions(self, GameState game_state)
+    cpdef public str get_user_input(self, prompt)
     
-    cpdef add_card(self, unsigned long long card)
-    cpdef reset(self)
-    cpdef clone(self)
-    cpdef hash(self, GameState game_state)
+    cpdef public void add_card(self, unsigned long long card)
+    cpdef public void reset(self)
+    cpdef public Player clone(self)
+    cpdef public str hash(self, GameState game_state)

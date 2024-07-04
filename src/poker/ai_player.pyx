@@ -13,7 +13,7 @@ cdef class AIPlayer(Player):
         self.strategy_trainer = cfr_trainer
 
 
-    cpdef get_action(self, GameState game_state, int player_index):
+    cpdef public bint get_action(self, GameState game_state, int player_index):
         cdef object user_input
         cdef bint valid = 0
         cdef bint raize = 0
@@ -72,7 +72,7 @@ cdef class AIPlayer(Player):
         return raize
         
 
-    cpdef clone(self):
+    cpdef public AIPlayer clone(self):
         # there has to be a better way to clone. Currently, im wasting memory by recreating a CFRTrainer object each time i cosntruct a new AIPlayer.
         # Better: I should reconsider how i handle the CFR object. Probably easiest to create this as part of the Poker_Game object and pass clones of it to each AIPlayer before each iteration? Update it after each iteration?
         cdef AIPlayer new_player = AIPlayer(self.chips, self.bet_sizing, self.strategy_trainer)

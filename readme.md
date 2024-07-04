@@ -9,9 +9,9 @@ This repository contains a long-running personal project of mine that explores T
 - **Note:** The code is not optimized for interpretability.
 
 ## Example
-The following is a range chart that displays how often the Small Blind (SB) should open raise 1.5x the pot (1.5bb * 1.5 = 2.25bb) in heads-up Texas Hold'em. Search depth and gamestate hashing are heavily restricted due to memory limitations and performance constraints. Regardless, the sampled range below 'makes sense'.
+The following is a range chart that displays how often the (UTG) should open raise 1.5x the pot (1.5bb * 1.5 = 2.25bb) in heads-up Texas Hold'em. Search depth and gamestate hashing are heavily restricted due to memory limitations and performance constraints. Regardless, the sampled range below 'makes sense'.
 
-![Preflop range for current commit](./HU%20SB%20PREFLOP%20EXAMPLE.png)
+![Preflop range for current commit](./dat/EX%20Preflop%20UTG%20Open%206%20Max.png)
 
 ## Installation
 To install the current implementation, please follow the steps below:

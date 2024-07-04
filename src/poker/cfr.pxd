@@ -1,8 +1,10 @@
-from .game_state cimport GameState, hand_to_cards
+from ._utils cimport *
+from .game_state cimport GameState
 from .ai_player cimport AIPlayer, Player
 from .information_set cimport InformationSet
 
 cdef class CFRTrainer:
+    cdef public int monte_carlo_depth
     cdef public list suits
     cdef public list values
     cdef public int iterations
@@ -26,11 +28,11 @@ cdef class CFRTrainer:
 
     cpdef train_realtime(self, GameState game_state)
 
-    cdef cfr_traverse(self, GameState game_state, float[:] probs, int depth, int max_depth, float epsilon = *)
+    cdef float[:] cfr_traverse(self, GameState game_state, float[:] probs, int depth, int max_depth, float epsilon = *)
 
     cdef float[:] calculate_utilities(self, GameState game_state, int player)
 
-    cdef get_average_strategy(self, AIPlayer player, GameState game_state)
+    cdef dict get_average_strategy(self, AIPlayer player, GameState game_state)
     
-    cpdef get_strategy(self, list available_actions, float[:] probs, GameState game_state, Player player)
+    cdef dict get_strategy(self, list available_actions, float[:] probs, GameState game_state, Player player)
     

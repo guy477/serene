@@ -1,20 +1,15 @@
 #!python
 #cython: language_level=3
 
-import random
 import cython
 import numpy as np
 cimport numpy as np
-from libc.math cimport sqrt
 import itertools
-from collections import defaultdict
+from multiprocessing import Pool, Manager
 from tqdm import tqdm
 
-cdef public list SUITS = ['C', 'D', 'H', 'S']
-cdef public list VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
-
 cdef class CFRTrainer:
-    def __init__(self, int iterations, int realtime_iterations, int num_simulations, int cfr_depth, int cfr_realtime_depth, int num_players, int initial_chips, int small_blind, int big_blind, list bet_sizing, list suits=SUITS, list values=VALUES):
+    def __init__(self, int iterations, int realtime_iterations, int num_simulations, int cfr_depth, int cfr_realtime_depth, int num_players, int initial_chips, int small_blind, int big_blind, list bet_sizing, list suits=SUITS, list values=VALUES, int monte_carlo_depth=9999):
         self.iterations = iterations
         self.realtime_iterations = realtime_iterations
         self.num_simulations = num_simulations
@@ -30,6 +25,8 @@ cdef class CFRTrainer:
         self.suits = suits
         self.values = values
 
+        self.monte_carlo_depth = monte_carlo_depth
+
         self.regret_sum = {}
         self.strategy_sum = {}
 
@@ -41,8 +38,6 @@ cdef class CFRTrainer:
 
         # Generate all possible hands (for testing, we can sample this to focus on the first n to maximize iteration potential)
         hands = list(sorted(itertools.combinations(cards, 2)))
-
-
 
         # Create a mapping from hands tuple to abstracted representation
         hand_mapping = {}
@@ -64,85 +59,85 @@ cdef class CFRTrainer:
         # Ensure the game state is set up for preflop
         game_state = GameState(players, self.small_blind, self.big_blind, self.num_simulations, True, self.suits, self.values)
 
-        train_regret = {}
-        train_strategy = {}
-
-        hand_strategy_aggregate = []  # List to store aggregated strategies for each hand
-        calculated = {}
-        probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
-                
+        hands_reduced = []
+        __ = {}
         for hand in hands:
-            if calculated.get(hand_mapping[hand], False):
+            if hand_mapping[hand] in __:
                 continue
-            calculated[hand_mapping[hand]] = True
-            print('__________')
-            print(f'Current Hand: {hand}', end = '\r')
-            for iter_num in tqdm(range(self.iterations)):
-                epsilon = (0.9999 ** iter_num)  # Update epsilon based on iteration  # .9998 for 20000 iterations
-                #print(f'Iteration: {iter_num} for hand: {hand}', end='\r')
-
-                # Initialize probabilities
-                probs[:] = 1
-                # #print(f'Current Hand: {hand}')
-                game_state.setup_preflop(hand)
-
-                ### NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
-                ### NOTE  CONTINUE INVESTIGATING PROBS NOTE
-                ### NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
-
-                # Perform CFR traversal for the current hand
-                self.cfr_traverse(game_state.clone(), probs, 0, self.cfr_depth, epsilon)
-                # input()
-
-            # After iterations for a hand, calculate average strategy
-            player_idx = 1  # Assuming you iterate over all players here
-            player = players[player_idx]
-            strategy = self.get_average_strategy(player, game_state)
-            # show player hash and other game state info
-            player_hash = player.hash(game_state)
-            print(player_hash)
-            print(f"Regret sum: {self.regret_sum[player_hash]}")
-            print(f"Average strategy for hand {hand_mapping[hand]}: {strategy}")
-
-            train_regret[player_hash] = self.regret_sum[player_hash]
-            train_strategy[player_hash] = self.strategy_sum[player_hash]
             
-            # Reset memory for current node.
-            self.regret_sum = {}
-            self.strategy_sum = {}
-            
-            # print(strategy)
-            # input()
-        
+            __[hand_mapping[hand]] = 1
+            hands_reduced.append(hand)    
+
+        # Call the parallel training function
+        train_regret, train_strategy, hand_strategy_aggregate = self.parallel_train(hands_reduced, hand_mapping, players, game_state)
+
         # Set the global regret_sum and strategy_sum to the training values
-        self.regret_sum = train_regret
-        self.strategy_sum = train_strategy
+        self.regret_sum = dict(train_regret)
+        self.strategy_sum = dict(train_strategy)
+
+        return list(hand_strategy_aggregate)
+
+    def process_hand(self, hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated):
+        if calculated.get(hand_mapping[hand], False):
+            return
+        calculated[hand_mapping[hand]] = True
+        print('__________')
+        print(f'Current Hand: {hand}', end='\r')
+
+        local_regret_sum = {}
+        local_strategy_sum = {}
+        local_hand_strategy_aggregate = []
+
+        # Initialize probabilities
+        probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
+
+        for iter_num in tqdm(range(self.iterations)):
+            epsilon = (0.9999 ** iter_num)  # Update epsilon based on iteration
+
+            probs[:] = 1
+
+            # Set preflop so opponent sees new hand each iteration.
+            game_state.setup_preflop(hand)
+
+            # Perform CFR traversal for the current hand
+            self.cfr_traverse(game_state.clone(), probs, 0, self.cfr_depth, epsilon)
 
         # After iterations for a hand, calculate average strategy
-        player_idx = 1  # Assuming you iterate over all players here
+        player_idx = 3  # Assuming you iterate over all players here
         player = players[player_idx]
-        calculated = {}
+        strategy = self.get_average_strategy(player, game_state)
+        player_hash = player.hash(game_state)
+        print(player_hash)
+        print(f"Regret sum: {self.regret_sum[player_hash]}")
+        print(f"Average strategy for hand {hand_mapping[hand]}: {strategy}")
 
-        for hand in hands:
-            if calculated.get(hand_mapping[hand], False):
-                continue
-            calculated[hand_mapping[hand]] = True
-            # Set player's abstracted hand based on the mapping
-            player.abstracted_hand = hand_mapping[hand]
+        local_regret_sum[player_hash] = self.regret_sum[player_hash]
+        local_strategy_sum[player_hash] = self.strategy_sum[player_hash]
+        local_hand_strategy_aggregate.append((player.position, hand_mapping[hand], strategy))
 
-            # Prepend an Open-raise from the small blind:
-            # game_state.load_custom_betting_history(0, ('SB', ('raise', 2.5)))
+        # Perform batch update to shared dictionaries
+        train_regret.update(local_regret_sum)
+        train_strategy.update(local_strategy_sum)
+        hand_strategy_aggregate.extend(local_hand_strategy_aggregate)
 
-            strategy = self.get_average_strategy(player, game_state)
-            #print(player.hash(game_state))
+    def parallel_train(self, hands, hand_mapping, players, game_state):
+        with Pool() as pool:
+            manager = Manager()
+            train_regret = manager.dict()
+            train_strategy = manager.dict()
+            hand_strategy_aggregate = manager.list()
+            calculated = manager.dict()
 
-            #print(f'Average strategy for hand {hand_mapping[hand]}: {strategy}')
+            # Pass the shared dictionaries to the pool workers
+            pool.starmap(
+                self.process_hand_wrapper, 
+                [(hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated) for hand in hands]
+            )
 
-            # Append strategy to aggregate list
-            hand_strategy_aggregate.append((player.position, hand_mapping[hand], strategy))
+        return train_regret, train_strategy, hand_strategy_aggregate
 
-        return hand_strategy_aggregate
-
+    def process_hand_wrapper(self, hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated):
+        self.process_hand(hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated)
 
 
 
@@ -174,7 +169,7 @@ cdef class CFRTrainer:
 
 
 
-    cdef cfr_traverse(self, GameState game_state, float[:] probs, int depth, int max_depth, float epsilon=0):
+    cdef float[:] cfr_traverse(self, GameState game_state, float[:] probs, int depth, int max_depth, float epsilon=0):
         cdef Player cur_player
         cdef int cur_player_index
         cdef list available_actions
@@ -209,7 +204,7 @@ cdef class CFRTrainer:
         #print(f"Strategy: {strategy}")
         #input("Press enter to continue.")
 
-        monte_carlo = depth >= 3
+        monte_carlo = depth >= self.monte_carlo_depth
         #print(f"Monte Carlo: {monte_carlo}")
         #input("Press enter to continue.")
 
@@ -222,9 +217,10 @@ cdef class CFRTrainer:
 
             if rand_value < epsilon_calc:
                 uniform_prob = 1 / len(available_actions)
-                strategy = {action: uniform_prob for action in available_actions}
-
-            strategy_list = np.array([strategy[a] for a in available_actions], dtype=np.float32)
+                strategy_tmp = {action: uniform_prob for action in available_actions}
+                strategy_list = np.array([strategy_tmp[a] for a in available_actions], dtype=np.float32)
+            else:
+                strategy_list = np.array([strategy[a] for a in available_actions], dtype=np.float32)
             action_index = np.random.choice(len(available_actions), p=strategy_list)
             action = available_actions[action_index]
             available_actions = [action]
@@ -297,7 +293,7 @@ cdef class CFRTrainer:
         return utilities
 
 
-    cpdef get_strategy(self, list available_actions, float[:] probs, GameState game_state, Player player):
+    cdef dict get_strategy(self, list available_actions, float[:] probs, GameState game_state, Player player):
         current_player = game_state.player_index
         player_hash = player.hash(game_state)
         
@@ -331,7 +327,7 @@ cdef class CFRTrainer:
 
 
 
-    cdef get_average_strategy(self, AIPlayer player, GameState game_state):
+    cdef dict get_average_strategy(self, AIPlayer player, GameState game_state):
         average_strategy = {}
         game_state_hash = player.hash(game_state)
         normalization_sum = 0

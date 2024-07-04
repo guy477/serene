@@ -21,12 +21,12 @@ cdef class Player:
         
 
 
-    cpdef assign_position(self, str position, int player_index):
+    cpdef public void assign_position(self, str position, int player_index):
         self.player_index = player_index
         self.position = position
 
 
-    cpdef get_action(self, GameState game_state, int player_index):
+    cpdef public bint get_action(self, GameState game_state, int player_index):
         cdef str user_input
         cdef float raise_amount
         cdef bint valid = 0
@@ -64,7 +64,7 @@ cdef class Player:
                 valid = 1
         return raize
 
-    cpdef take_action(self, GameState game_state, int player_index, object action):
+    cpdef public bint take_action(self, GameState game_state, int player_index, object action):
         cdef Player player = game_state.players[player_index]
         cdef int call_amount
         cdef bint raize = False
@@ -78,7 +78,7 @@ cdef class Player:
             if call_amount > player.chips:
                 call_amount = player.chips
 
-            player.chips -= call_amount
+            player.chips = player.chips - call_amount
             game_state.pot += call_amount
             player.contributed_to_pot += call_amount
             player.tot_contributed_to_pot += call_amount
@@ -125,43 +125,51 @@ cdef class Player:
         return raize
 
 
-    cpdef add_card(self, unsigned long long card):
+    cpdef public void add_card(self, unsigned long long card):
         self.hand |= card
 
-    cpdef str get_user_input(self, prompt):
+    cpdef public str get_user_input(self, prompt):
         return input(prompt)
 
     cpdef list get_available_actions(self, GameState game_state):
-        ret = [('call', 0), ('fold', 0)]
+        # Initialize the list of possible actions with call and fold
+        cdef list ret = [('call', 0), ('fold', 0)]
+        cdef int current_bet = game_state.current_bet
+        cdef int cur_round_index = game_state.cur_round_index
+        cdef int pot = game_state.pot
+        cdef int chips = self.chips
+        cdef int bet_to_call = current_bet - self.contributed_to_pot
+        cdef float i
 
         # If there is no action, disallow folding.
-        if game_state.current_bet - self.contributed_to_pot == 0:
+        if bet_to_call == 0:
             ret.remove(('fold', 0))
 
-        if self.folded or self.chips <= 0:
+        # If the player has folded or has no chips, return an empty list of actions.
+        if self.folded or chips <= 0:
             return []
 
-        # Allow All-ins if the gamestate's current betsize is "significant" relative to our stack.
-        if game_state.current_bet >= (self.chips / 3):
+        # Allow All-ins if the gamestate's current bet size is "significant" relative to our stack.
+        if current_bet >= (chips // 3):
             ret.append(('all-in', 0))
 
-
-        # If first round and only the blinds have been posted, dont allow calling.
+        # If first round and only the blinds have been posted, don't allow calling.
         if len(game_state.betting_history[0]) == 2:
             ret.remove(('call', 0))
 
-        if self.chips >= game_state.current_bet:
-            for i in self.bet_sizing[game_state.cur_round_index]:
-                if self.chips >= (game_state.current_bet + int(game_state.pot * i)) and int(game_state.pot * i) > game_state.current_bet and self.chips > int(game_state.pot * i):
-                    # Represent the raise as a proportion rather than the actual amount
+        # Check if the player can cover the current bet.
+        if chips >= current_bet:
+            for i in self.bet_sizing[cur_round_index]:
+                raise_amount = int(pot * i)
+                if chips >= (current_bet + raise_amount) and raise_amount > current_bet and chips > raise_amount:
+                    # Represent the raise as a proportion rather than the actual amount.
                     ret.append(('raise', i))
         else:
             ret.remove(('call', 0))
         
         return ret
 
-
-    cpdef clone(self):
+    cpdef public Player clone(self):
         cdef Player new_player = Player(self.chips, self.bet_sizing)
         new_player.hand = self.hand
         
@@ -176,7 +184,7 @@ cdef class Player:
         new_player.prior_gains = self.prior_gains
         return new_player
 
-    cpdef reset(self):
+    cpdef public void reset(self):
         self.hand = 0
         self.abstracted_hand = ''
         self.folded = False
@@ -189,12 +197,14 @@ cdef class Player:
         self.tot_contributed_to_pot = 0
         self.prior_gains = 0
     
-    cpdef hash(self, GameState game_state):
+    cpdef public str hash(self, GameState game_state):
         # hsh = hash((self.abstracted_hand, game_state.board, self.position, game_state.cur_round_index, str(self.betting_history)))
         #hsh = (self.abstracted_hand, self.position, game_state.cur_round_index, str(game_state.betting_history[0]))
         # hsh = (self.abstracted_hand, game_state.board, self.position, game_state.cur_round_index, str(game_state.betting_history))
         # hsh = (self.abstracted_hand, self.position, game_state.cur_round_index, tuple(self.get_available_actions(game_state)), str(game_state.betting_history[0]))
         
         ### NOTE we want to get abstracted hands here
-        hsh = (self.abstracted_hand, self.position, game_state.pot//100, tuple(self.get_available_actions(game_state)), str(game_state.betting_history))
+        
+        hsh = str((self.abstracted_hand, self.position, game_state.pot//200, tuple(self.get_available_actions(game_state)), str(game_state.betting_history[0])))
+        
         return hsh

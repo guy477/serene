@@ -13,8 +13,8 @@ from scipy.special import comb
 from sklearn.cluster import MiniBatchKMeans
 
 def main():
-    num_players = 2
-    num_ai_players = 1
+    num_players = 6
+    num_ai_players = 5
 
     # pot relative bet-sizings for preflop, flop, turn, and river
     # bet_sizing = [(1.5, 5), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
@@ -36,14 +36,17 @@ def main():
 
     num_simulations = 1
 
-    num_iterations = 75000
+    num_iterations = 1500
     realtime_iterations = 200
-    cfr_depth = 6
+    cfr_depth = 50
     cfr_realtime_depth = 6
     
+    # Depth at which to start Monte Carlo Simulation.
+    # Exploration is controled by the epsilon value in the CFR class - keep it high.
+    monte_carlo_depth = 5
 
     # Train the AI player using the CFR algorithm
-    cfr_trainer = CFRTrainer(num_iterations, realtime_iterations, num_simulations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES)
+    cfr_trainer = CFRTrainer(num_iterations, realtime_iterations, num_simulations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth)
     strategy_list = cfr_trainer.train()
     plot_hands(strategy_list)
 
@@ -266,9 +269,9 @@ def cluster():
 
 def setup_deck(suits=None, ranks=None):
     if suits is None:
-        suits = ['s', 'o']
+        suits = ['o', 's']
     if ranks is None:
-        ranks = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+        ranks = list(reversed(['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']))
     return suits, ranks
 
 def hand_position(hand, ranks):
@@ -283,23 +286,26 @@ def hand_position(hand, ranks):
     if pair:
         return i, j
     elif suited:
-        return min(i, j), max(i, j)
+        return (i, j)
     elif offsuit:
-        return max(i, j), min(i, j)
+        return (j, i)
     else:
         raise ValueError("Invalid hand format")
 
 def plot_hands(strategy_list, suits=None, ranks=None):
     strategy_df = pd.DataFrame(strategy_list)
     strategy_df.columns = ['Position', 'Hand', 'Strategy']
-    strategy_df.sort_values(by='Hand')
-    strategy_df = strategy_df[(strategy_df['Position'] == 'SB') & (strategy_df['Strategy'] != {})]
-    strategy_df.reset_index(inplace=True)
+    strategy_df.sort_values(by='Hand', inplace=True)
+    strategy_df = strategy_df[(strategy_df['Position'] == 'UTG') & (strategy_df['Strategy'] != {})]
+    strategy_df.reset_index(inplace=True, drop=True)
 
     strategy_proportions = pd.DataFrame()
     for index, row in strategy_df.iterrows():
         for action, value in row.Strategy.items():
-            strategy_proportions.at[index, str(action)] = value
+            action_type = f"{action[0]}_{action[1]}"
+            if action_type not in strategy_proportions.columns:
+                strategy_proportions[action_type] = 0
+            strategy_proportions.at[index, action_type] = value
 
     strategy_proportions.fillna(0, inplace=True)
     strategy_proportions.reset_index(drop=True, inplace=True)
@@ -314,7 +320,23 @@ def plot_hands(strategy_list, suits=None, ranks=None):
     fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize)
     axes = axes.flatten()
 
-    colors = plt.cm.get_cmap('tab10', len(strategy_df['Strategy'].iloc[0]))
+    # Define colors for specific actions dynamically
+    unique_actions = strategy_proportions.columns
+    color_map = {}
+    
+    # Generate gradient colors for raises
+    raise_colors = plt.cm.Reds(np.linspace(0.3, 1, 100))  # Gradient from light red to dark red
+    
+    for action in unique_actions:
+        if action.startswith('fold'):
+            color_map[action] = 'lightblue'
+        elif action.startswith('call'):
+            color_map[action] = 'green'
+        elif action.startswith('raise'):
+            raise_size = float(action.split('_')[1])
+            color_map[action] = raise_colors[int(raise_size * 50) % 100]  # Scale and mod to stay within bounds
+        elif action.startswith('all-in'):
+            color_map[action] = 'darkred'
 
     for idx, row in strategy_proportions.iterrows():
         hand = strategy_df.loc[idx, 'Hand']
@@ -330,16 +352,18 @@ def plot_hands(strategy_list, suits=None, ranks=None):
         ax.get_yaxis().set_visible(False)
 
         bottom = 0
-        for j in range(len(row.index)):
-            ax.bar(0, row.values[j], bottom=bottom, color=colors(j))
-            bottom += row.values[j]
+        for action, value in row.items():
+            if value > 0:
+                ax.bar(0, value, bottom=bottom, color=color_map[action])
+                bottom += value
 
     total_positions = len(strategy_proportions)
     if total_positions % ncols != 0:
         for j in range(total_positions, ncols * nrows):
             fig.delaxes(axes[j])
 
-    patches = [mpatches.Patch(color=colors(i), label=strategy_proportions.columns[i]) for i in range(len(strategy_proportions.columns))]
+    # Create legend with dynamic colors
+    patches = [mpatches.Patch(color=color_map[action], label=action) for action in unique_actions]
     plt.legend(handles=patches, loc='upper left')
 
     plt.tight_layout()
