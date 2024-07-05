@@ -38,11 +38,11 @@ def _6_max_opening():
 
     positions_to_solve = [
         UTG_OPEN, 
-        MP_OPEN, 
-        MP_DEF,  
-        CO_OPEN,  
-        CO_UTG_DEF,
-        CO_MP_DEF, 
+        # MP_OPEN, 
+        # MP_DEF,  
+        # CO_OPEN,  
+        # CO_UTG_DEF,
+        # CO_MP_DEF, 
         # BTN_OPEN, 
         # BTN_UTG_DEF, 
         # BTN_MP_DEF, 
@@ -61,11 +61,11 @@ def _6_max_opening():
 
     position_names = [
         "UTG_OPEN", 
-        "MP_OPEN", 
-        "MP_DEF",  
-        "CO_OPEN",  
-        "CO_UTG_DEF",
-        "CO_MP_DEF", 
+        # "MP_OPEN", 
+        # "MP_DEF",  
+        # "CO_OPEN",  
+        # "CO_UTG_DEF",
+        # "CO_MP_DEF", 
         # "BTN_OPEN", 
         # "BTN_UTG_DEF", 
         # "BTN_MP_DEF", 
@@ -92,7 +92,7 @@ def main():
 
     # pot relative bet-sizings for preflop, flop, turn, and river
     # bet_sizing = [(1.5, 5), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
-    bet_sizing = [(1.5, ), (.33, .70), (), ()]
+    bet_sizing = [(1.5, ), (.33,), (), ()]
     # bet_sizing = [(1.5, 5), (), (), ()]
     # bet_sizing = [(1.5, ), (.33,), (), ()]
 
@@ -110,14 +110,14 @@ def main():
 
     num_showdown_simulations = 1
 
-    num_cfr_iterations = 10
+    num_cfr_iterations = 200
     realtime_cfr_iterations = 200
-    cfr_depth = 8
+    cfr_depth = 9
     cfr_realtime_depth = 6
     
     # Depth at which to start Monte Carlo Simulation.
     # Exploration is controled by the epsilon value in the CFR class - keep it high.
-    monte_carlo_depth = 2
+    monte_carlo_depth = 9999
 
     # Train the AI player using the CFR algorithm
     cfr_trainer = CFRTrainer(num_cfr_iterations, realtime_cfr_iterations, num_showdown_simulations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth)

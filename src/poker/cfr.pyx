@@ -76,8 +76,6 @@ cdef class CFRTrainer:
         local_hand_strategy_aggregate = []
 
         for fast_forward_actions in positions_to_solve:
-            print('solving for position: ', fast_forward_actions)
-            input('press enter to begin')
             # Call the parallel training function
             train_regret, train_strategy, hand_strategy_aggregate = self.parallel_train(hands_reduced, hand_mapping, players, game_state, fast_forward_actions)
 
@@ -85,7 +83,6 @@ cdef class CFRTrainer:
             self.regret_sum.update(dict(train_regret))
             self.strategy_sum.update(dict(train_strategy))
             local_hand_strategy_aggregate.extend(hand_strategy_aggregate)
-            input('press enter to proceed to next position')
 
         # Pickle and save regret and strategy sums
         with open('../dat/pickles/regret_sum.pkl', 'wb') as f:
@@ -176,11 +173,11 @@ cdef class CFRTrainer:
             # Update current gamestate hand to desired hand.
             game_state.update_current_hand(hand)
 
-        game_state.debug_output()
+        # game_state.debug_output()
 
     def parallel_train(self, hands, hand_mapping, players, game_state, fast_forward_actions):
         
-        with Pool(processes=1) as pool:
+        with Pool(processes = 1) as pool: # 
             manager = Manager()
             train_regret = manager.dict()
             train_strategy = manager.dict()
@@ -238,13 +235,14 @@ cdef class CFRTrainer:
         cdef int num_players = len(game_state.players)
         cdef float[:] node_util = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
 
-        #print(f"Entering cfr_traverse: depth={depth}, max_depth={max_depth}")
-        #input("Press enter to continue.")
-        
         if game_state.is_terminal_river() or depth >= max_depth:
-            # print("Terminal state or max depth reached.")
-            game_state.showdown()
+            game_state.progress_to_showdown()
             return self.calculate_utilities(game_state, game_state.winner_index)
+
+        # print(list(probs))
+        # util_sum = sum(probs)
+        # for i in range(num_players):
+        #     probs[i] /= util_sum
 
         cur_player_index = game_state.player_index
         cur_player = game_state.players[cur_player_index]
@@ -253,28 +251,18 @@ cdef class CFRTrainer:
 
         if player_hash not in self.regret_sum:
             self.regret_sum[player_hash] = {action: 0 for action in available_actions}
-            #print(f"Initialized regret_sum for player_hash={player_hash}")
-            #input("Press enter to continue.")
+        
 
-        
-        #print(f"Available actions: {available_actions}")
-        #input("Press enter to continue.")
-        
         util = {action: cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f") for action in available_actions}
+        
         strategy = self.get_strategy(available_actions, probs, game_state, cur_player)
-        #print(f"Strategy: {strategy}")
-        #input("Press enter to continue.")
-
+        
         monte_carlo = depth >= self.monte_carlo_depth
-        #print(f"Monte Carlo: {monte_carlo}")
-        #input("Press enter to continue.")
 
         # Monte Carlo sampling with epsilon exploration
         if monte_carlo and available_actions:
             epsilon_calc = epsilon  # * .9 ** (1 + depth)
             rand_value = np.random.rand()
-            #print(f"Random value for epsilon exploration: {rand_value}")
-            #input("Press enter to continue.")
 
             if rand_value < epsilon_calc:
                 uniform_prob = 1 / len(available_actions)
@@ -285,16 +273,11 @@ cdef class CFRTrainer:
             action_index = np.random.choice(len(available_actions), p=strategy_list)
             action = available_actions[action_index]
             available_actions = [action]
-            #print(f"Chosen action in Monte Carlo: {action}")
-            #input("Press enter to continue.")
 
         for action in available_actions:
-            #print(f"Processing action: {action}")
-            #input("Press enter to continue.")
-            
+           
             new_game_state = game_state.clone()
             if new_game_state.handle_action(action):
-                #print(f"Action {action} handled, setting up postflop.")
                 if new_game_state.num_board_cards() == 0:
                     new_game_state.setup_postflop('flop')
                 else:
@@ -304,32 +287,36 @@ cdef class CFRTrainer:
             new_probs[:] = probs[:]
             new_probs[cur_player_index] *= strategy[action]
             
-            #print(f"New probabilities: {list(new_probs)}")
-            #input("Press enter to continue.")
-            
-            util[action] = self.cfr_traverse(new_game_state, new_probs, depth + 1, max_depth, epsilon)
-            #print(f"Utility for action {action}: {list(util[action])}")
-            #input("Press enter to continue.")
+            util[action] = self.cfr_traverse(new_game_state, new_probs, depth + 1, max_depth, epsilon)[:]
 
+        # TODO: Do i need to handle node_utility differently for monte carlo?
         for i in range(num_players):
             node_util[i] = sum(strategy[action] * util[action][i] for action in available_actions)
-            #print(f"Node utility for player {i}: {node_util[i]}")
-            #input("Press enter to continue.")
 
+        # Update regrets for all actions
         for action in available_actions:
+            
             regret = util[action][cur_player_index] - node_util[cur_player_index]
-            opp_contribution = np.prod(probs) / (probs[cur_player_index] if probs[cur_player_index] != 0 else 1)
+            # Correct opponent's contribution calculation
+            opp_contribution = 1
+            # for i in range(num_players):
+            #     if i != cur_player_index:
+            #         opp_contribution *= probs[i]
+            # opp_contribution = probs[cur_player_index]
+            # if depth == 0:
+            #     print('__________')
+            #     print(f'action: {action}\nregret: {regret}')
+            
             self.regret_sum[player_hash][action] += opp_contribution * regret
 
-            #print(f"Updated regret_sum for player_hash={player_hash}, action={action}")
-            #print(f"Regret: {regret}")
-            #print(f"Opp contribution: {opp_contribution}")
-        #print(f"Regret sum: {self.regret_sum[player_hash]}")
-            #input("Press enter to continue.")
+        # if depth == 0:
+        #     print(f'current player index: {cur_player_index}')
+        #     print(f'strategu: {strategy}')
+        #     print(f'node util: {list(node_util)}')
+        #     print(f'util: {[list(x) for x in util.values()]}')
+        #     print(f'regret_sum: {self.regret_sum[player_hash]}')
+        #     game_state.debug_output()
 
-
-        #print(f"Returning node_util: {list(node_util)}")
-        #input("Press enter to continue.")
         
         return node_util
 
@@ -360,6 +347,9 @@ cdef class CFRTrainer:
         
         if self.strategy_sum.get(player_hash, {}) == {}:
             self.strategy_sum[player_hash] = {}
+        # else:
+        #     print(player_hash)
+        #     print(self.strategy_sum[player_hash])
         
         if not available_actions:
             return {}
@@ -367,11 +357,18 @@ cdef class CFRTrainer:
         # Calculate the strategy based on regret sums
         strategy = {}
         normalization_sum = 0.0
+        regrets = []
         
         for action in available_actions:
-            regret = max(self.regret_sum.get(player_hash, {}).get(action, 0), 0)
-            strategy[action] = regret
-            normalization_sum += regret
+            regret = self.regret_sum.get(player_hash, {}).get(action, 0)
+            regrets.append(regret)
+        
+        adjusted_regrets = [regret for regret in regrets]
+        
+        # Calculate the strategy based on adjusted regrets
+        for i, action in enumerate(available_actions):
+            strategy[action] = max(adjusted_regrets[i], 0) # Forced exploration
+            normalization_sum += strategy[action]
         
         # Normalize the strategy
         if normalization_sum > 0:
@@ -379,13 +376,11 @@ cdef class CFRTrainer:
                 strategy[action] /= normalization_sum
                 self.strategy_sum[player_hash][action] = self.strategy_sum[player_hash].get(action, 0) + probs[current_player] * strategy[action]
         else:
-            num_actions = len(available_actions)
-            for action in available_actions:
-                strategy[action] = 1 / num_actions
+            for action in strategy:
+                strategy[action] = 1 / len(available_actions)
                 self.strategy_sum[player_hash][action] = self.strategy_sum[player_hash].get(action, 0) + probs[current_player] * strategy[action]
         
         return strategy
-
 
 
     cdef dict get_average_strategy(self, AIPlayer player, GameState game_state):
@@ -398,15 +393,28 @@ cdef class CFRTrainer:
             actions = player.get_available_actions(game_state)
             cur_gamestate_strategy = {action: 1/len(actions) for action in actions}
 
+        # Collect regrets
+        regrets = []
         for action, value in cur_gamestate_strategy.items():
+            regrets.append(value)
+
+        # Find the maximum negative regret
+        max_negative_regret = min(regrets)
+
+        # Adjust regrets by subtracting the maximum negative regret
+        adjusted_regrets = {action: value - max_negative_regret for action, value in cur_gamestate_strategy.items()}
+
+        # Calculate the normalization sum for adjusted regrets
+        for value in adjusted_regrets.values():
             normalization_sum += value
 
+        # Normalize the strategy
         if normalization_sum > 0:
-            for action, value in cur_gamestate_strategy.items():
+            for action, value in adjusted_regrets.items():
                 average_strategy[action] = value / normalization_sum
         else:
-            num_actions = len(cur_gamestate_strategy)
-            for action in cur_gamestate_strategy:
+            num_actions = len(adjusted_regrets)
+            for action in adjusted_regrets:
                 average_strategy[action] = 1 / num_actions
 
         ####print(f"Average strategy: {average_strategy}")
