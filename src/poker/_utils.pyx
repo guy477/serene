@@ -10,6 +10,82 @@ import numpy
 cimport numpy
 cimport cython
 
+import hashlib
+
+
+# Define the hashing function
+cdef bytes hash_key_sha256(str key):
+    """Hash a string using SHA-256 and return the hexadecimal representation as bytes."""
+    return hashlib.sha256(key.encode('utf-8')).digest()
+
+cdef class HashTable(dict):
+    """
+    HashTable class implementing a hash table with SHA-256 hashed keys.
+    
+    This class provides an option to mark items for pruning and a method to
+    remove all items marked for pruning.
+    
+    - `__init__(self, default=None)`: Initialize the hash table with an optional default value.
+    - `__getitem__(self, key)`: Retrieve the value associated with the given key.
+    - `__setitem__(self, key, value)`: Set the value for the given key. Value should be a tuple (actual_value, to_prune).
+    - `__delitem__(self, key)`: Delete the item associated with the given key.
+    - `__contains__(self, key)`: Check if the key exists in the table.
+    - `get(self, key, default=defaultdict(float))`: Get the value for the key, ignoring the prune flag.
+    - `update(self, other)`: Update the hash table with items from another dictionary.
+    - `clear(self)`: Clear all items in the hash table.
+    - `items(self)`: Get all items in the hash table.
+    - `__len__(self)`: Get the number of items in the hash table.
+    - `prune(self)`: Remove all items with `to_prune` set to `True`.
+    """
+    def __init__(self, default=None):
+        self.table = {}
+
+
+    def __getitem__(self, key):
+        cdef bytes hashed_key = hash_key_sha256(key)
+        return self.table[hashed_key][0]
+
+    def __setitem__(self, key, value):
+        cdef bytes hashed_key = hash_key_sha256(key)
+        if isinstance(value, tuple) and len(value) == 2:
+            self.table[hashed_key] = value
+        else:
+            raise ValueError("Value must be a tuple (actual_value, to_prune)")
+
+    def __delitem__(self, key):
+        cdef bytes hashed_key = hash_key_sha256(key)
+        del self.table[hashed_key]
+
+    def __contains__(self, key):
+        cdef bytes hashed_key = hash_key_sha256(key)
+        return hashed_key in self.table
+
+    def get(self, key, default=None):
+        cdef bytes hashed_key = hash_key_sha256(key)
+        if hashed_key not in self.table:
+            self.table[hashed_key] = (default if default is not None else self.default, False)
+        return self.table[hashed_key][0]
+
+    def update(self, other):
+        for key, value in other.items():
+            # We're assuming the other key is hashed already
+            self.table[key] = value
+
+    def clear(self):
+        self.table.clear()
+
+    def items(self):
+        return [(key, value) for key, value in self.table.items()]
+
+    def __len__(self):
+        return len(self.table)
+
+    def prune(self):
+        keys_to_prune = [key for key, value in self.table.items() if value[1]]
+        for key in keys_to_prune:
+            del self.table[key]
+
+
 cdef class Deck:
 
     def __init__(self, list suits, list values):
@@ -33,24 +109,28 @@ cdef class Deck:
 
     cdef void fisher_yates_shuffle(self):
         numpy.random.shuffle(self.deck)
+        # pass
 
     cdef unsigned long long pop(self):
-        return self.deck.pop()
+        # Remove from the beginning
+        return self.deck.pop(0)
 
     cdef void remove(self, unsigned long long card):
+        # Remove the given card
         self.deck.remove(card)
 
     cdef void add(self, unsigned long long card):
+        # Add to the end
         self.deck.append(card)
 
     cdef list to_list(self):
+        # Deck is a list; but if we were to optimize deck to another struct...
         return self.deck
 
     cdef Deck clone(self):
         cdef Deck new_deck = Deck(self.suits, self.values)
         new_deck.deck = self.deck[:]
         return new_deck
-
 
 
 cdef unsigned long long card_to_int(str suit, str value):

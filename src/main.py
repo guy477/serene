@@ -38,48 +38,48 @@ def _6_max_opening():
 
     positions_to_solve = [
         UTG_OPEN, 
-        # MP_OPEN, 
-        # MP_DEF,  
-        # CO_OPEN,  
-        # CO_UTG_DEF,
-        # CO_MP_DEF, 
-        # BTN_OPEN, 
-        # BTN_UTG_DEF, 
-        # BTN_MP_DEF, 
-        # BTN_CO_DEF, 
-        # SB_OPEN, 
-        # SB_UTG_DEF, 
-        # SB_MP_DEF, 
-        # SB_CO_DEF,
-        # SB_BTN_DEF,
-        # BB_DEF,
-        # BB_MP_DEF,
-        # BB_CO_DEF,
-        # BB_BTN_DEF,
-        # BB_SB_DEF,
+        MP_OPEN, 
+        MP_DEF,  
+        CO_OPEN,  
+        CO_UTG_DEF,
+        CO_MP_DEF, 
+        BTN_OPEN, 
+        BTN_UTG_DEF, 
+        BTN_MP_DEF, 
+        BTN_CO_DEF, 
+        SB_OPEN, 
+        SB_UTG_DEF, 
+        SB_MP_DEF, 
+        SB_CO_DEF,
+        SB_BTN_DEF,
+        BB_DEF,
+        BB_MP_DEF,
+        BB_CO_DEF,
+        BB_BTN_DEF,
+        BB_SB_DEF,
     ]
 
     position_names = [
         "UTG_OPEN", 
-        # "MP_OPEN", 
-        # "MP_DEF",  
-        # "CO_OPEN",  
-        # "CO_UTG_DEF",
-        # "CO_MP_DEF", 
-        # "BTN_OPEN", 
-        # "BTN_UTG_DEF", 
-        # "BTN_MP_DEF", 
-        # "BTN_CO_DEF", 
-        # "SB_OPEN", 
-        # "SB_UTG_DEF", 
-        # "SB_MP_DEF", 
-        # "SB_CO_DEF",
-        # "SB_BTN_DEF",
-        # "BB_DEF",
-        # "BB_MP_DEF",
-        # "BB_CO_DEF",
-        # "BB_BTN_DEF",
-        # "BB_SB_DEF",
+        "MP_OPEN", 
+        "MP_DEF",  
+        "CO_OPEN",  
+        "CO_UTG_DEF",
+        "CO_MP_DEF", 
+        "BTN_OPEN", 
+        "BTN_UTG_DEF", 
+        "BTN_MP_DEF", 
+        "BTN_CO_DEF", 
+        "SB_OPEN", 
+        "SB_UTG_DEF", 
+        "SB_MP_DEF", 
+        "SB_CO_DEF",
+        "SB_BTN_DEF",
+        "BB_DEF",
+        "BB_MP_DEF",
+        "BB_CO_DEF",
+        "BB_BTN_DEF",
+        "BB_SB_DEF",
     ]
 
     positions_dict = {str(pos): name for pos, name in zip(positions_to_solve, position_names)}
@@ -92,10 +92,14 @@ def main():
 
     # pot relative bet-sizings for preflop, flop, turn, and river
     # bet_sizing = [(1.5, 5), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
-    bet_sizing = [(1.5, ), (.33,), (), ()]
-    # bet_sizing = [(1.5, 5), (), (), ()]
-    # bet_sizing = [(1.5, ), (.33,), (), ()]
+    
+    # bet_sizing = [(1.5, ), (), (), ()]
 
+    bet_sizing = [(1.5, 5.0), (), (), ()]
+
+    # bet_sizing = [(1.5, ), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
+
+    # bet_sizing = [(1.5, ), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
 
     positions_to_solve, positions_dict = _6_max_opening()
 
@@ -110,17 +114,21 @@ def main():
 
     num_showdown_simulations = 1
 
-    num_cfr_iterations = 200
+    num_cfr_iterations = 1000
     realtime_cfr_iterations = 200
-    cfr_depth = 9
+    cfr_depth = 200
     cfr_realtime_depth = 6
     
     # Depth at which to start Monte Carlo Simulation.
-    # Exploration is controled by the epsilon value in the CFR class - keep it high.
     monte_carlo_depth = 9999
 
+    # Depth at which to start pruning regret and strategy sums.
+    prune_depth = 9999
+    # Chance-probability at which to start declaring a node "terminal"
+    prune_probability = 1e-10
+
     # Train the AI player using the CFR algorithm
-    cfr_trainer = CFRTrainer(num_cfr_iterations, realtime_cfr_iterations, num_showdown_simulations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth)
+    cfr_trainer = CFRTrainer(num_cfr_iterations, realtime_cfr_iterations, num_showdown_simulations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
     strategy_list = cfr_trainer.train(positions_to_solve)
     plot_hands(strategy_list, SUITS, VALUES, positions_dict)
 

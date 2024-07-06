@@ -266,20 +266,21 @@ cdef class GameState:
     cdef void progress_to_showdown(self):
         while self.num_board_cards() < 5:
             self.draw_card()
+        
+        ###
+        # TODO: If non-terminal state, correctly redistribute utility to players
+        #       Such that no one is unfairly docked if their "bet" is effectively called by their opponents at no cost.
+        ###
+
         self.cur_round_index = 4
         self.showdown()
 
     cdef void showdown(self):
-        cdef unsigned long long player_hand
+        cdef unsigned long long player_hand, board_dupe
         cdef int best_score, player_score
-        cdef unsigned long long zero = 0
-        cdef int remaining_players = 0
-        cdef list hands = [0] * len(self.players)  # Preallocate list
+        cdef int remaining_players = sum(1 for player in self.players if not player.folded)
+        cdef list hands = [player.hand for player in self.players]  # Preallocate list of hands
         cdef Player winner
-
-        for player in self.players:
-            if not player.folded:
-                remaining_players += 1
 
         if self.winner_index != -1:
             return  # Avoid redundant processing
@@ -292,8 +293,6 @@ cdef class GameState:
         else:
             board_dupe = self.board
             deck_dupe = self.deck.clone()
-            for i, player in enumerate(self.players):
-                hands[i] = player.hand
 
             win_rate = [0] * len(self.players)
             for _ in range(self.num_simulations):
@@ -311,7 +310,7 @@ cdef class GameState:
                     if player.folded:
                         continue
 
-                    if player.hand == zero:
+                    if player.hand == 0:
                         player.hand = self.deck.pop() | self.deck.pop()
 
                     player_hand = player.hand | self.board
@@ -320,25 +319,23 @@ cdef class GameState:
                     if player_score > best_score:
                         best_score = player_score
                         self.winner_index = i
-                
-                for i in range(len(self.players)):
-                    self.players[i].hand = hands[i]  # Restore hands
+
+                for i, player in enumerate(self.players):
+                    player.hand = hands[i]  # Restore hands
 
                 win_rate[self.winner_index] += 1
 
             self.winner_index = win_rate.index(max(win_rate))
-            num_simulations = float(self.num_simulations)  # Cache division factor
+            num_simulations = float(self.num_simulations)
 
-            for i, p in enumerate(self.players):
-                p.expected_hand_strength = win_rate[i] / num_simulations
+            for i, player in enumerate(self.players):
+                player.expected_hand_strength = win_rate[i] / num_simulations
 
         winner = self.players[self.winner_index]
         winner.prior_gains += self.pot
         winner.chips += self.pot
 
         self.log_current_hand(terminal=True)  # Log the hand here if terminal at river
-
-
     cdef bint is_terminal(self):
         if ((self.num_actions >= self.round_active_players and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or
             self.active_players() == 1 or self.allin_players() == self.active_players()):
@@ -406,6 +403,12 @@ cdef class GameState:
         new_state.current_bet = self.current_bet
         new_state.board = self.board
         new_state.deck = self.deck.clone()
+
+        ### NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
+        ### Shuffing the deck between clones have drastic down stream affects. un comment if you know what you're doing
+        ## With a loose interpretation of "change node"... this will makes every node very chance-ie!
+        # new_state.deck.fisher_yates_shuffle()
+        
         new_state.betting_history = [sublist[:] for sublist in self.betting_history]
         new_state.round_active_players = self.round_active_players
         new_state.winner_index = self.winner_index

@@ -2,7 +2,6 @@
 #cython: language_level=3
 
 
-
 cdef class Player:
     def __init__(self, int initial_chips, list bet_sizing):
         self.chips = initial_chips
@@ -113,7 +112,11 @@ cdef class Player:
             player.chips -= (bet_amount)
             game_state.pot += (bet_amount)
             player.contributed_to_pot += (bet_amount)
-            player.tot_contributed_to_pot += (bet_amount)
+            
+            ### NOTE: by ignoring the forced contributions we don't negatively impact the player's regret calculation.
+            ### TODO: is there a better place to do this for consistency? or is this the exact reason i made blinds distinct from raises? reality may have never known.
+            # player.tot_contributed_to_pot += (bet_amount)
+
             game_state.current_bet = bet_amount
 
         elif action[0] == "fold":
@@ -144,20 +147,25 @@ cdef class Player:
         cdef int bet_to_call = current_bet - self.contributed_to_pot
         cdef float i
 
+        # If the player has folded only force repeated folds vs no-ops 
+        if self.folded:
+            return [('call', 0)]
+
+        # If player chips is 0 we can assume all in (TODO REVISIT WHEN SPLIT POTS)
+        if chips <= 0:
+            return [('check', 0)]
+
+
         # If there is no action, disallow folding.
         if bet_to_call == 0:
             ret.remove(('fold', 0))
-
-        # If the player has folded or has no chips, return an empty list of actions.
-        if self.folded or chips <= 0:
-            return []
 
         # Allow All-ins if the gamestate's current bet size is "significant" relative to our stack.
         if current_bet >= (chips // 3):
             ret.append(('all-in', 0))
 
         # Prevent open limping. Inefficient.
-        if len(game_state.betting_history[0]) == 2 or all([('fold', 0) == x[1] for x in game_state.betting_history[0][2:]]):
+        if game_state.cur_round_index == 0 and (len(game_state.betting_history[0]) == 2 or all([('fold', 0) == x[1] for x in game_state.betting_history[0][2:]])):
             ret.remove(('call', 0))
 
         # Check if the player can cover the current bet.
@@ -168,9 +176,17 @@ cdef class Player:
                 if chips >= (current_bet + raise_amount) and raise_amount > current_bet and chips > raise_amount:
                     # Represent the raise as a proportion rather than the actual amount.
                     ret.append(('raise', i))
+
+            # Better guide preflop raises.
+            if game_state.cur_round_index == 0 and ('raise', 1.5) in game_state.betting_history[0]:
+                ret.remove(('raise', 1.5))
+            elif game_state.cur_round_index == 0 and ('raise', 1.5) not in game_state.betting_history[0] and ('raise', 5) in ret:
+                ret.remove(('raise', 5))
         else:
             ret.remove(('call', 0))
         
+        assert(len(ret) > 0)
+
         return ret
 
     cpdef public Player clone(self):
@@ -208,7 +224,6 @@ cdef class Player:
         # hsh = (self.abstracted_hand, self.position, game_state.cur_round_index, tuple(self.get_available_actions(game_state)), str(game_state.betting_history[0]))
         
         ### NOTE we want to get abstracted hands here
-        
-        hsh = str((self.abstracted_hand, self.position, game_state.pot//200, tuple(self.get_available_actions(game_state)), str(game_state.betting_history[0])))
-        
+        ### NOTE NOTE this hsh is further hashed in the HashTable object.
+        hsh = str((self.abstracted_hand, self.position, game_state.pot//200, tuple(self.get_available_actions(game_state)))) #  str(game_state.betting_history)
         return hsh

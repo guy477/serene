@@ -1,22 +1,24 @@
-#!python
-#cython: language_level=3
-
-import cython
+# Import necessary modules
+import hashlib
 import numpy as np
-cimport numpy as np
 import itertools
 from multiprocessing import Pool, Manager
+import psutil
 from tqdm import tqdm
 import pickle
-
+import gc, time
+from collections import defaultdict
 
 cdef class CFRTrainer:
-    def __init__(self, int iterations, int realtime_iterations, int num_simulations, int cfr_depth, int cfr_realtime_depth, int num_players, int initial_chips, int small_blind, int big_blind, list bet_sizing, list suits=SUITS, list values=VALUES, int monte_carlo_depth=9999):
+    def __init__(self, int iterations, int realtime_iterations, int num_simulations, int cfr_depth, int cfr_realtime_depth, int num_players, int initial_chips, int small_blind, int big_blind, list bet_sizing, list suits=SUITS, list values=VALUES, int monte_carlo_depth=9999, int prune_depth = 9999, double prune_probability = 1e-8):
         self.iterations = iterations
         self.realtime_iterations = realtime_iterations
         self.num_simulations = num_simulations
         self.cfr_realtime_depth = cfr_realtime_depth
         self.cfr_depth = cfr_depth
+
+        self.prune_depth = prune_depth
+        self.prune_probability_threshold = prune_probability
 
         self.num_players = num_players
         self.initial_chips = initial_chips
@@ -29,11 +31,12 @@ cdef class CFRTrainer:
 
         self.monte_carlo_depth = monte_carlo_depth
 
-        self.regret_sum = {}
-        self.strategy_sum = {}
+        # Use HashTable for regret_sum and strategy_sum
+        self.regret_sum = HashTable()
+        self.strategy_sum = HashTable()
 
     cpdef train(self, list positions_to_solve = []):
-        cdef float[:] probs
+        cdef double[:] probs
 
         # Generate all possible cards
         cards = [r + s for r in reversed(self.values) for s in self.suits]
@@ -71,8 +74,6 @@ cdef class CFRTrainer:
             __[hand_mapping[hand]] = 1
             hands_reduced.append(hand)
 
-        # local_regret = {}
-        # local_strategy = {}
         local_hand_strategy_aggregate = []
 
         for fast_forward_actions in positions_to_solve:
@@ -101,22 +102,22 @@ cdef class CFRTrainer:
         if calculated.get(hand_mapping[hand], False):
             return
         calculated[hand_mapping[hand]] = True
-        print('__________')
-        print(f'Current Hand: {hand}', end='\r')
+        
+        print(f'Current Hand: {hand}')
+        print(game_state)
+        
 
-
-
-        local_regret_sum = {}
-        local_strategy_sum = {}
+        local_regret_sum = HashTable()
+        local_strategy_sum = HashTable()
         local_hand_strategy_aggregate = []
 
         # Initialize probabilities
-        probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
+        probs = np.ones(self.num_players, dtype=np.float64)
 
         for iter_num in tqdm(range(self.iterations)):
-            epsilon = (0.9999 ** iter_num)  # Update epsilon based on iteration
+            epsilon = 0.00 * (0.9999 ** iter_num)  # Update epsilon based on iteration
 
-            probs[:] = 1
+            probs.fill(1)
 
             # Set preflop so opponent sees new hand each iteration. 
             game_state.setup_preflop(hand)
@@ -127,6 +128,10 @@ cdef class CFRTrainer:
             # Perform CFR traversal for the current hand
             self.cfr_traverse(game_state.clone(), probs, 0, self.cfr_depth, epsilon)
 
+            # If using monte carlo - remove all monte carlo samples.
+            self.strategy_sum.prune()
+            self.regret_sum.prune()
+
         # Extract current strategy.
         player_idx = game_state.player_index
         player = players[player_idx]
@@ -134,11 +139,15 @@ cdef class CFRTrainer:
         player_hash = player.hash(game_state)
         print(player_hash)
         print(f"Regret sum: {self.regret_sum[player_hash]}")
+        print(f"Strategy sum: {self.strategy_sum[player_hash]}")
         print(f"Average strategy for hand {hand_mapping[hand]}: {strategy}")
 
         # Prune none-starting nodes.
-        local_regret_sum[player_hash] = self.regret_sum[player_hash]
-        local_strategy_sum[player_hash] = self.strategy_sum[player_hash]
+        local_regret_sum[player_hash] = (self.regret_sum[player_hash], False)
+        local_strategy_sum[player_hash] = (self.strategy_sum[player_hash], False)
+
+        self.regret_sum.clear()
+        self.strategy_sum.clear()
 
         local_hand_strategy_aggregate.append((player.position, fast_forward_actions, hand_mapping[hand], strategy))
 
@@ -159,8 +168,6 @@ cdef class CFRTrainer:
                 game_state.setup_preflop(hand)
                 self.fast_forward_gamestate(hand, game_state, fast_forward_actions)
                 break
-            
-
 
             if game_state.handle_action(action):
                 #print(f"Action {action} handled, setting up postflop.")
@@ -175,30 +182,47 @@ cdef class CFRTrainer:
 
         # game_state.debug_output()
 
-    def parallel_train(self, hands, hand_mapping, players, game_state, fast_forward_actions):
-        
-        with Pool(processes = 1) as pool: # 
-            manager = Manager()
-            train_regret = manager.dict()
-            train_strategy = manager.dict()
-            hand_strategy_aggregate = manager.list()
-            calculated = manager.dict()
+    def parallel_train(self, hands, hand_mapping, players, game_state, fast_forward_actions, mem_efficient=True, batch_size=psutil.cpu_count(logical=True)):
+        manager = Manager()
+        train_regret = manager.dict()
+        train_strategy = manager.dict()
+        hand_strategy_aggregate = manager.list()
+        calculated = manager.dict()
 
-            # Pass the shared dictionaries to the pool workers
-            pool.starmap(
-                self.process_hand_wrapper, 
-                [(hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions) for hand in hands]
-            )
+        def process_batch(batch_hands):
+            with Pool(processes = psutil.cpu_count(logical=True)) as pool:
+                pool.starmap(
+                    self.process_hand_wrapper,
+                    [(hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions) for hand in batch_hands]
+                )
+
+        num_batches = (len(hands) + batch_size - 1) // batch_size  # Calculate number of batches
+
+        for i in range(num_batches):
+            start_index = i * batch_size
+            end_index = min(start_index + batch_size, len(hands))
+            batch_hands = hands[start_index:end_index]
+
+            process_batch(batch_hands)
+
+            if mem_efficient:
+                # Clear the regret and strategy sums to save memory. objects are reduplicated into each process
+                self.regret_sum.clear()
+                self.strategy_sum.clear()
+
+                # Update with solved root nodes (does this do anything, idk yet! TODO figure out wth cfr is doing... will these values just be washed away without the following states being solved? probably... but this is better than nothing >:())
+                self.regret_sum.update(dict(train_regret))
+                self.strategy_sum.update(dict(train_strategy))
+
+                gc.collect()
 
         return train_regret, train_strategy, hand_strategy_aggregate
 
     def process_hand_wrapper(self, hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions):
         self.process_hand(hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions)
 
-
-
     cpdef train_realtime(self, GameState game_state):
-        cdef float[:] probs
+        cdef double[:] probs
         cdef list hands = []
         cdef Deck deck = game_state.deck.clone()
 
@@ -206,209 +230,154 @@ cdef class CFRTrainer:
         cloned_game_state = game_state.clone()
         cloned_game_state.silent = True
 
-        # for i in range(len(cloned_game_state.players)):
-        #     if i != cloned_game_state.player_index:
-        #         hands.append(cloned_game_state.players[i].hand)
-        #         for i in hand_to_cards(hands[-1]):
-        #             cloned_game_state.remove_str_card_from_deck(i)
-
-        #         cloned_game_state.players[i].hand = 0
-
-
-
         for iter_num in range(self.realtime_iterations):
-            ####print(f'Realtime Iteration: {iter_num}')
-
-            probs = cython.view.array(shape=(self.num_players,), itemsize=sizeof(float), format="f")
-            probs[:] = 1  # Initialize probabilities
-
+            probs = np.ones(self.num_players, dtype=np.float64)
             self.cfr_traverse(cloned_game_state, probs, 0, self.cfr_realtime_depth, .005)
-            ####input("Press Enter to continue to the next iteration...")
 
+    # NOTE: I cant pickle lambdas so this is going here.
+    cpdef default_double(self):
+        return 0.0
 
-
-    cdef float[:] cfr_traverse(self, GameState game_state, float[:] probs, int depth, int max_depth, float epsilon=0):
-        cdef Player cur_player
-        cdef int cur_player_index
-        cdef list available_actions
+    cdef double[:] cfr_traverse(self, GameState game_state, double[:] probs, int depth, int max_depth, float epsilon=0):
         
-        cdef int num_players = len(game_state.players)
-        cdef float[:] node_util = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
+        cdef int cur_player_index = game_state.player_index
+        cdef Player cur_player = game_state.players[cur_player_index]
+        cdef object action = ()
 
-        if game_state.is_terminal_river() or depth >= max_depth:
+        cdef int num_players = len(game_state.players)
+        cdef double[:] node_util = cython.view.array(shape=(num_players,), itemsize=sizeof(double), format="d")
+        cdef dict[double[:]] util
+        cdef double[:] new_probs = cython.view.array(shape=(num_players,), itemsize=sizeof(double), format="d")
+        cdef dict strategy
+        cdef int action_index
+        cdef float rand_value, uniform_prob
+        cdef double opp_contribution
+        cdef double regret
+        cdef int monte_carlo = depth >= self.monte_carlo_depth
+        cdef int prune = depth >= self.prune_depth
+        cdef list available_actions = game_state.players[game_state.player_index].get_available_actions(game_state)
+
+        # If the game_state is terminal, the depth exceeds the max depth, or the current player has a negligible probability of reaching this state, return the utility.
+        if game_state.is_terminal_river() or depth >= max_depth or probs[cur_player_index] < self.prune_probability_threshold:
+            # TODO: Incorporate a mechanism to return bet chips to players if the current (potentially non-termonal) state is forced to enter a terminal state.
             game_state.progress_to_showdown()
             return self.calculate_utilities(game_state, game_state.winner_index)
 
-        # print(list(probs))
-        # util_sum = sum(probs)
-        # for i in range(num_players):
-        #     probs[i] /= util_sum
-
-        cur_player_index = game_state.player_index
-        cur_player = game_state.players[cur_player_index]
         player_hash = cur_player.hash(game_state)
-        available_actions = cur_player.get_available_actions(game_state)
 
-        if player_hash not in self.regret_sum:
-            self.regret_sum[player_hash] = {action: 0 for action in available_actions}
-        
+        self.regret_sum[player_hash] = (self.regret_sum.get(player_hash, defaultdict(self.default_double)), prune)
 
-        util = {action: cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f") for action in available_actions}
-        
-        strategy = self.get_strategy(available_actions, probs, game_state, cur_player)
-        
-        monte_carlo = depth >= self.monte_carlo_depth
+        util = {action: np.zeros(num_players, dtype=np.float64) for action in available_actions}
+        strategy = self.get_strategy(available_actions, probs, game_state, cur_player, prune)
 
-        # Monte Carlo sampling with epsilon exploration
         if monte_carlo and available_actions:
-            epsilon_calc = epsilon  # * .9 ** (1 + depth)
+            # Can we also prune the MC samples from the regret and strategy sums?
+            epsilon_calc = epsilon
             rand_value = np.random.rand()
-
             if rand_value < epsilon_calc:
-                uniform_prob = 1 / len(available_actions)
-                strategy_tmp = {action: uniform_prob for action in available_actions}
-                strategy_list = np.array([strategy_tmp[a] for a in available_actions], dtype=np.float32)
-            else:
-                strategy_list = np.array([strategy[a] for a in available_actions], dtype=np.float32)
+                uniform_prob = 1.0 / len(available_actions)
+                for action in available_actions:
+                    strategy[action] = uniform_prob
+            
+            strategy_list = np.array([strategy[a] for a in available_actions], dtype=np.float64)
+            strategy_list /= strategy_list.sum()
             action_index = np.random.choice(len(available_actions), p=strategy_list)
-            action = available_actions[action_index]
-            available_actions = [action]
+
+            available_actions = available_actions[:action_index+1][-1:]
+
 
         for action in available_actions:
-           
             new_game_state = game_state.clone()
             if new_game_state.handle_action(action):
                 if new_game_state.num_board_cards() == 0:
                     new_game_state.setup_postflop('flop')
                 else:
                     new_game_state.setup_postflop('postflop')
-
-            new_probs = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
-            new_probs[:] = probs[:]
-            new_probs[cur_player_index] *= strategy[action]
             
-            util[action] = self.cfr_traverse(new_game_state, new_probs, depth + 1, max_depth, epsilon)[:]
+            new_probs[:] = probs
+            new_probs[cur_player_index] *= strategy[action]
 
-        # TODO: Do i need to handle node_utility differently for monte carlo?
+            util[action] = self.cfr_traverse(new_game_state, new_probs, depth + 1, max_depth, epsilon)
+        
+        ### NOTE: I want to just take the maximum expected value. Thanks yuliia!
         for i in range(num_players):
             node_util[i] = sum(strategy[action] * util[action][i] for action in available_actions)
 
-        # Update regrets for all actions
+            ### NOTE: Causes divergence. Tends to either over or under correct.
+            ### TODO: Figure out how to take a max-possible-regret approach.
+            # best_action = max(available_actions, key=lambda action: strategy[action] * util[action][i])
+            # node_util[i] = util[best_action][i]
+        
         for action in available_actions:
-            
             regret = util[action][cur_player_index] - node_util[cur_player_index]
-            # Correct opponent's contribution calculation
-            opp_contribution = 1
-            # for i in range(num_players):
-            #     if i != cur_player_index:
-            #         opp_contribution *= probs[i]
-            # opp_contribution = probs[cur_player_index]
-            # if depth == 0:
-            #     print('__________')
-            #     print(f'action: {action}\nregret: {regret}')
+
+            # Here we want to incorporate the opponent's likelihood of reaching this state into our regret.
+            opp_contribution = 1.0
+            for i in range(num_players):
+                if i != cur_player_index:
+                    opp_contribution *= probs[i]
             
             self.regret_sum[player_hash][action] += opp_contribution * regret
 
-        # if depth == 0:
-        #     print(f'current player index: {cur_player_index}')
-        #     print(f'strategu: {strategy}')
-        #     print(f'node util: {list(node_util)}')
-        #     print(f'util: {[list(x) for x in util.values()]}')
-        #     print(f'regret_sum: {self.regret_sum[player_hash]}')
-        #     game_state.debug_output()
-
-        
         return node_util
 
-
-
-    cdef float[:] calculate_utilities(self, GameState game_state, int winner_index):
+    cdef double[:] calculate_utilities(self, GameState game_state, int winner_index):
         cdef int num_players = len(game_state.players)
-        cdef float[:] utilities = cython.view.array(shape=(num_players,), itemsize=sizeof(float), format="f")
+        cdef double[:] utilities = np.zeros(num_players, dtype=np.float64)
 
-        # https://www.acrpoker.eu/real-money/poker-rake-calculation/
-        rake = game_state.pot * .98
+        rake = game_state.pot * .03 # 3% rake
         rake = rake if rake < 4 else 4
         pot = game_state.pot - rake
         for i, p in enumerate(game_state.players):
             if i == winner_index:
-                # The winner gets the pot added to their initial chips
                 utilities[i] = (pot - p.tot_contributed_to_pot)
             else:
-                # Other players have their total contribution deducted
                 utilities[i] = -(p.tot_contributed_to_pot)
 
         return utilities
 
-
-    cdef dict get_strategy(self, list available_actions, float[:] probs, GameState game_state, Player player):
+    cdef dict get_strategy(self, list available_actions, double[:] probs, GameState game_state, Player player, bint prune):
         current_player = game_state.player_index
         player_hash = player.hash(game_state)
         
-        if self.strategy_sum.get(player_hash, {}) == {}:
-            self.strategy_sum[player_hash] = {}
-        # else:
-        #     print(player_hash)
-        #     print(self.strategy_sum[player_hash])
-        
+        self.strategy_sum[player_hash] = (self.strategy_sum.get(player_hash, defaultdict(float)), prune)
+
         if not available_actions:
             return {}
         
-        # Calculate the strategy based on regret sums
         strategy = {}
         normalization_sum = 0.0
-        regrets = []
+        regrets = [max(self.regret_sum[player_hash][action], 0) for action in available_actions]
         
-        for action in available_actions:
-            regret = self.regret_sum.get(player_hash, {}).get(action, 0)
-            regrets.append(regret)
+        for action, regret in zip(available_actions, regrets):
+            strategy[action] = regret
+            normalization_sum += regret
         
-        adjusted_regrets = [regret for regret in regrets]
-        
-        # Calculate the strategy based on adjusted regrets
-        for i, action in enumerate(available_actions):
-            strategy[action] = max(adjusted_regrets[i], 0) # Forced exploration
-            normalization_sum += strategy[action]
-        
-        # Normalize the strategy
         if normalization_sum > 0:
             for action in strategy:
                 strategy[action] /= normalization_sum
-                self.strategy_sum[player_hash][action] = self.strategy_sum[player_hash].get(action, 0) + probs[current_player] * strategy[action]
+                self.strategy_sum[player_hash][action] += probs[current_player] * strategy[action]
         else:
+            uniform_prob = 1 / len(available_actions)
             for action in strategy:
-                strategy[action] = 1 / len(available_actions)
-                self.strategy_sum[player_hash][action] = self.strategy_sum[player_hash].get(action, 0) + probs[current_player] * strategy[action]
+                strategy[action] = uniform_prob
+                self.strategy_sum[player_hash][action] += probs[current_player] * uniform_prob
         
         return strategy
-
 
     cdef dict get_average_strategy(self, AIPlayer player, GameState game_state):
         average_strategy = {}
         game_state_hash = player.hash(game_state)
         normalization_sum = 0
-        cur_gamestate_strategy = self.strategy_sum.get(game_state_hash, {})
+        cur_gamestate_strategy = self.strategy_sum.get(game_state_hash, defaultdict(float))
 
         if not cur_gamestate_strategy:
             actions = player.get_available_actions(game_state)
             cur_gamestate_strategy = {action: 1/len(actions) for action in actions}
 
-        # Collect regrets
-        regrets = []
-        for action, value in cur_gamestate_strategy.items():
-            regrets.append(value)
+        adjusted_regrets = {action: max(value, 0) for action, value in cur_gamestate_strategy.items()}
+        normalization_sum = sum(adjusted_regrets.values())
 
-        # Find the maximum negative regret
-        max_negative_regret = min(regrets)
-
-        # Adjust regrets by subtracting the maximum negative regret
-        adjusted_regrets = {action: value - max_negative_regret for action, value in cur_gamestate_strategy.items()}
-
-        # Calculate the normalization sum for adjusted regrets
-        for value in adjusted_regrets.values():
-            normalization_sum += value
-
-        # Normalize the strategy
         if normalization_sum > 0:
             for action, value in adjusted_regrets.items():
                 average_strategy[action] = value / normalization_sum
@@ -416,8 +385,5 @@ cdef class CFRTrainer:
             num_actions = len(adjusted_regrets)
             for action in adjusted_regrets:
                 average_strategy[action] = 1 / num_actions
-
-        ####print(f"Average strategy: {average_strategy}")
-        ####input("Press Enter to continue to the next average strategy calculation...")
 
         return average_strategy

@@ -2,6 +2,8 @@ import numpy
 cimport numpy
 cimport cython
 
+from collections.abc import MutableMapping
+
 cdef public list SUITS = ['C', 'D', 'H', 'S']
 cdef public list VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 
@@ -21,6 +23,12 @@ cdef display_game_state(object game_state, int player_index)
 cdef unsigned int cy_evaluate(unsigned long long cards, unsigned int num_cards) nogil
 cpdef cy_evaluate_cpp(cards, num_cards)
 
+
+
+cdef class HashTable(dict):
+    cdef dict table
+
+
 cdef class Deck:
     cdef list suits
     cdef list values
@@ -33,3 +41,4 @@ cdef class Deck:
     cdef void fisher_yates_shuffle(self)
     cdef unsigned long long pop(self)
     cdef Deck clone(self)
+    
