@@ -164,26 +164,44 @@ cdef class Player:
         if current_bet >= (chips // 3):
             ret.append(('all-in', 0))
 
-        # Prevent open limping. Inefficient.
-        if game_state.cur_round_index == 0 and (len(game_state.betting_history[0]) == 2 or all([('fold', 0) == x[1] for x in game_state.betting_history[0][2:]])):
-            ret.remove(('call', 0))
-
-        # Check if the player can cover the current bet.
+        
         if chips >= current_bet:
-            
+            ## Add raises that dont put us all in
             for i in self.bet_sizing[cur_round_index]:
                 raise_amount = int(pot * i)
                 if chips >= (current_bet + raise_amount) and raise_amount > current_bet and chips > raise_amount:
                     # Represent the raise as a proportion rather than the actual amount.
                     ret.append(('raise', i))
-
-            # Better guide preflop raises.
-            if game_state.cur_round_index == 0 and ('raise', 1.5) in game_state.betting_history[0]:
-                ret.remove(('raise', 1.5))
-            elif game_state.cur_round_index == 0 and ('raise', 1.5) not in game_state.betting_history[0] and ('raise', 5) in ret:
-                ret.remove(('raise', 5))
         else:
             ret.remove(('call', 0))
+
+        
+        ### Handle preflop cases
+        if game_state.cur_round_index == 0:
+            ## if no one has acted, or everyone has folded, we can't call. AKA NO LIMPING ALLOWED
+            if (len(game_state.betting_history[0]) == 2 or all([('fold', 0) == x[1] for x in game_state.betting_history[0][2:]])):
+
+               ret.remove(('call', 0))    # Prevent Limping
+               ret.remove(('raise', 2.0)) # Prevent over raising (for now)
+               return ret
+            
+            ## otherwise, it's the first round and someone's made a bet
+            else:
+
+                ### NOTE NOTE guided preflop raises.                
+                ## If no one has opened, only allow 2.25bb open
+                if ('raise', 1.5) not in game_state.betting_history[0] and ('raise', 2.0) in ret:
+                    ret.remove(('raise', 2.0))
+                    
+                ## If someone's raised already, remove open raise (1.5x) 
+                elif ('raise', 1.5) in game_state.betting_history[0] and ('raise', 1.5) in ret:
+                    ret.remove(('raise', 1.5))
+
+            
+
+        ## TODO: Remove the ability re-raise if ono player has already called?
+
+
         
         assert(len(ret) > 0)
 
@@ -225,5 +243,6 @@ cdef class Player:
         
         ### NOTE we want to get abstracted hands here
         ### NOTE NOTE this hsh is further hashed in the HashTable object.
-        hsh = str((self.abstracted_hand, self.position, game_state.pot//200, tuple(self.get_available_actions(game_state)))) #  str(game_state.betting_history)
+        # hsh = str((self.abstracted_hand, self.position, game_state.pot//200, tuple(self.get_available_actions(game_state)))) #  str(game_state.betting_history)
+        hsh = str((self.abstracted_hand, self.position, game_state.pot//200, tuple(self.get_available_actions(game_state)), str(game_state.betting_history[0]))) #  
         return hsh

@@ -68,7 +68,7 @@ cdef class GameState:
         self.silent = silent
         self.hand_id = 0
         self.betting_history = [[], [], [], []]
-        self.deck = Deck(self.suits, self.values)  # Initialize the Deck object
+        self.reset()
 
     cdef void reset(self):
         self.cur_round_index = 0
@@ -86,7 +86,7 @@ cdef class GameState:
         self.betting_history[2] = []
         self.betting_history[3] = []
         self.deck = Deck(self.suits, self.values)  # Reinitialize the Deck object
-        self.deck.fisher_yates_shuffle()
+        # self.deck.fisher_yates_shuffle()
         for player in self.players:
             player.reset()
 
@@ -264,13 +264,19 @@ cdef class GameState:
         return self.is_terminal()
 
     cdef void progress_to_showdown(self):
+
+        ## Deal out remaining cards
         while self.num_board_cards() < 5:
             self.draw_card()
         
-        ###
-        # TODO: If non-terminal state, correctly redistribute utility to players
-        #       Such that no one is unfairly docked if their "bet" is effectively called by their opponents at no cost.
-        ###
+        ## Progress to a terminal state
+        # Case: progress_to_showdown called during CFR Training at a depth limit - with the prior action being a raise.
+        #       In this case, the pot will increase by the players contribution, meaning the players yet to act
+        #       will be able to win more chips than they have contributed. This does not constitue a terminal public state.
+        #   To deal with this we can have everyone fold, everyone call, or revert the raise.. I think the best option is have everyone call.
+        # TLDR: Get showdown utility to a true terminal state.
+        while not self.handle_action(('call', 0)):
+            pass
 
         self.cur_round_index = 4
         self.showdown()

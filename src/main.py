@@ -95,7 +95,7 @@ def main():
     
     # bet_sizing = [(1.5, ), (), (), ()]
 
-    bet_sizing = [(1.5, 5.0), (), (), ()]
+    bet_sizing = [(1.5, 2.0), (), (), ()]
 
     # bet_sizing = [(1.5, ), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
 
@@ -114,9 +114,9 @@ def main():
 
     num_showdown_simulations = 1
 
-    num_cfr_iterations = 1000
+    num_cfr_iterations = 500
     realtime_cfr_iterations = 200
-    cfr_depth = 200
+    cfr_depth = 5
     cfr_realtime_depth = 6
     
     # Depth at which to start Monte Carlo Simulation.

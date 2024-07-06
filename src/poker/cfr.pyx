@@ -102,6 +102,8 @@ cdef class CFRTrainer:
         if calculated.get(hand_mapping[hand], False):
             return
         calculated[hand_mapping[hand]] = True
+
+        game_state = game_state.clone()
         
         print(f'Current Hand: {hand}')
         print(game_state)
@@ -163,21 +165,23 @@ cdef class CFRTrainer:
 
             player_hash = game_state.players[player_idx].hash(game_state)
 
-            if strategy[action] < .05 or player_hash not in self.strategy_sum:
-                # Current game_node is non-gto; reset
+            # NOTE: Verify the action aligns with the current strategy.
+            if strategy[action] < .10 or player_hash not in self.strategy_sum:
+                ## Current game_node is non-gto; reset and try again.
+                # TODO: Odds of never breaking out of this non zero?
                 game_state.setup_preflop(hand)
                 self.fast_forward_gamestate(hand, game_state, fast_forward_actions)
                 break
 
+            # Assuming the action aligns with the current strategy, perform the action.
             if game_state.handle_action(action):
-                #print(f"Action {action} handled, setting up postflop.")
                 if game_state.num_board_cards() == 0:
                     game_state.setup_postflop('flop')
                 else:
                     game_state.setup_postflop('postflop')
 
         if hand:
-            # Update current gamestate hand to desired hand.
+            # Assume the hero got the the current game state with the given hand.
             game_state.update_current_hand(hand)
 
         # game_state.debug_output()
@@ -293,6 +297,9 @@ cdef class CFRTrainer:
                     new_game_state.setup_postflop('flop')
                 else:
                     new_game_state.setup_postflop('postflop')
+
+                # If we've reached a public terminal state, reset current probs to 1.
+                probs[:] = 1.0
             
             new_probs[:] = probs
             new_probs[cur_player_index] *= strategy[action]
