@@ -459,7 +459,7 @@ def plot_hands(strategy_list, suits=None, ranks=None, positions_dict={}):
         plt.tight_layout()
         plt.subplots_adjust(wspace=0.2, hspace=0.4)
         plt.suptitle(f'Strategy for Position: {positions_dict.get(betting_history, betting_history)}', fontsize=13, x=.95, y=.9, rotation=-90)        
-        plt.savefig(f'../dat/charts/{positions_dict.get(betting_history, betting_history)}_Range.png')
+        plt.savefig(f'results/charts/{positions_dict.get(betting_history, betting_history)}_Range.png')
         plt.close()
     
 if __name__ == "__main__":
