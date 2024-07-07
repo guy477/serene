@@ -2,12 +2,15 @@
 import hashlib
 import numpy as np
 import itertools
-from multiprocessing import Pool, Manager
+from multiprocessing import Pool, Manager, set_start_method
 import psutil
 from tqdm import tqdm
 import pickle
 import gc, time
 from collections import defaultdict
+
+# No more shared memory >:(
+set_start_method('spawn', force=True)
 
 cdef class CFRTrainer:
     def __init__(self, int iterations, int realtime_iterations, int num_simulations, int cfr_depth, int cfr_realtime_depth, int num_players, int initial_chips, int small_blind, int big_blind, list bet_sizing, list suits=SUITS, list values=VALUES, int monte_carlo_depth=9999, int prune_depth = 9999, double prune_probability = 1e-8):
@@ -35,6 +38,48 @@ cdef class CFRTrainer:
         self.regret_sum = HashTable()
         self.strategy_sum = HashTable()
 
+    def parallel_train(self, hands, hand_mapping, fast_forward_actions, mem_efficient=True, batch_size=2):#psutil.cpu_count(logical=True)
+        manager = Manager()
+        train_regret = manager.dict()
+        train_strategy = manager.dict()
+        hand_strategy_aggregate = manager.list()
+        calculated = manager.dict()
+
+        def process_batch(batch_hands):
+            hands = [(hand, hand_mapping, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions) for hand in batch_hands]
+            with Pool(processes=2) as pool: #psutil.cpu_count(logical=True)
+                try:
+                    pool.starmap(self.process_hand_wrapper, hands)
+                finally:
+                    pool.close()
+                    pool.join()
+
+        num_batches = (len(hands) + batch_size - 1) // batch_size  # Calculate number of batches
+
+        for i in range(num_batches):
+            start_index = i * batch_size
+            end_index = min(start_index + batch_size, len(hands))
+            batch_hands = hands[start_index:end_index]
+
+            process_batch(batch_hands)
+
+            if mem_efficient:
+                # Clear the regret and strategy sums to save memory. objects are reduplicated into each process
+                self.regret_sum.clear()
+                self.strategy_sum.clear()
+
+                # Update with solved root nodes (does this do anything, idk yet! TODO figure out wth cfr is doing... will these values just be washed away without the following states being solved? probably... but this is better than nothing >:())
+                self.regret_sum.update(dict(train_regret))
+                self.strategy_sum.update(dict(train_strategy))
+
+                gc.collect()
+
+        return train_regret, train_strategy, hand_strategy_aggregate
+
+    def process_hand_wrapper(self, hand, hand_mapping, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions):
+        self.process_hand(hand, hand_mapping, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions)
+
+
     cpdef train(self, list positions_to_solve = []):
         cdef double[:] probs
 
@@ -58,12 +103,6 @@ cdef class CFRTrainer:
 
             hand_mapping[hand] = abstracted_hand
 
-        # Define a new game state for training
-        players = [AIPlayer(self.initial_chips, self.bet_sizing) for _ in range(self.num_players)]
-        
-        # Define initial gamestate
-        game_state = GameState(players, self.small_blind, self.big_blind, self.num_simulations, True, self.suits, self.values)
-
         # Reduce the hands to uniquely abstractable hands
         hands_reduced = []
         __ = {}
@@ -78,7 +117,7 @@ cdef class CFRTrainer:
 
         for fast_forward_actions in positions_to_solve:
             # Call the parallel training function
-            train_regret, train_strategy, hand_strategy_aggregate = self.parallel_train(hands_reduced, hand_mapping, game_state, fast_forward_actions)
+            train_regret, train_strategy, hand_strategy_aggregate = self.parallel_train(hands_reduced, hand_mapping, fast_forward_actions)
 
             # Set the global regret_sum and strategy_sum to the training values
             self.regret_sum.update(dict(train_regret))
@@ -94,7 +133,7 @@ cdef class CFRTrainer:
         
         return list(local_hand_strategy_aggregate)
 
-    def process_hand(self, hand, hand_mapping, game_state_global, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions):
+    def process_hand(self, hand, hand_mapping, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions):
         """
         Solve for the current player in the gamestate for the given hand.
         """
@@ -106,7 +145,7 @@ cdef class CFRTrainer:
         process = psutil.Process()
         
         print(f'Current Hand: {hand} - ')
-        cdef GameState game_state = game_state_global.clone() 
+        cdef GameState game_state = GameState([AIPlayer(self.initial_chips, self.bet_sizing) for _ in range(self.num_players)], self.small_blind, self.big_blind, self.num_simulations, True, self.suits, self.values) 
         print(game_state)
         
 
@@ -122,16 +161,10 @@ cdef class CFRTrainer:
 
             probs.fill(1)
 
-            # NOTE We want to fast forward to a valid GTO state.. TODO: Implement this.
-            ## TODO: Investigate if i need to clone the gamestate here to force a deref. 
-            ###         For context, I was having difficulties dereferencing across platforms (linux/mac)
+            # NOTE We want to fast forward to a valid GTO state.. TODO: Validate This
             self.fast_forward_gamestate(hand, game_state, fast_forward_actions)
-            
-            ## Validate reference.
-            print(game_state)
 
             # Perform CFR traversal for the current hand
-            ## NOTE: Dereference the game_state as cfr_traverse will modify the game_state in place.
             self.cfr_traverse(game_state, probs, 0, self.cfr_depth, epsilon)
 
             # If using monte carlo - remove all monte carlo samples.
@@ -163,11 +196,8 @@ cdef class CFRTrainer:
         hand_strategy_aggregate.extend(local_hand_strategy_aggregate)
     
     
-    ### NOTE: I by cloning and returning the gamestate, we create a new reference which is important for parallel processing.
-    ## This is a bit of a hack, but it works for now. TODO: read a textbook about pointers or something.
+
     cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions):
-        ## Validate reference.
-        print(game_state)
         game_state.setup_preflop(hand)
         for action in fast_forward_actions:
             player_idx = game_state.player_index
@@ -193,52 +223,7 @@ cdef class CFRTrainer:
             # Assume the hero got the the current game state with the given hand.
             game_state.update_current_hand(hand)
 
-        # print('Fast Forwarded Game State')
-        # game_state.debug_output()
 
-        # Dereference?
-        # return game_state#.clone() 
-
-    def parallel_train(self, hands, hand_mapping, game_state, fast_forward_actions, mem_efficient=True, batch_size=2):#psutil.cpu_count(logical=True)
-        manager = Manager()
-        train_regret = manager.dict()
-        train_strategy = manager.dict()
-        hand_strategy_aggregate = manager.list()
-        calculated = manager.dict()
-
-        ## Validate reference.
-        print('asdfasdfasdfasdfasdf')
-        print(game_state)
-        def process_batch(batch_hands):
-            hands = [(hand, hand_mapping, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions) for hand in batch_hands]
-            with Pool(processes = 2) as pool: #psutil.cpu_count(logical=True)
-                pool.starmap(
-                    self.process_hand_wrapper, hands)
-
-        num_batches = (len(hands) + batch_size - 1) // batch_size  # Calculate number of batches
-
-        for i in range(num_batches):
-            start_index = i * batch_size
-            end_index = min(start_index + batch_size, len(hands))
-            batch_hands = hands[start_index:end_index]
-
-            process_batch(batch_hands)
-
-            if mem_efficient:
-                # Clear the regret and strategy sums to save memory. objects are reduplicated into each process
-                self.regret_sum.clear()
-                self.strategy_sum.clear()
-
-                # Update with solved root nodes (does this do anything, idk yet! TODO figure out wth cfr is doing... will these values just be washed away without the following states being solved? probably... but this is better than nothing >:())
-                self.regret_sum.update(dict(train_regret))
-                self.strategy_sum.update(dict(train_strategy))
-
-                gc.collect()
-
-        return train_regret, train_strategy, hand_strategy_aggregate
-
-    def process_hand_wrapper(self, hand, hand_mapping, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions):
-        self.process_hand(hand, hand_mapping, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions)
 
 
     # NOTE: I cant pickle lambdas so this is going here.
