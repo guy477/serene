@@ -67,6 +67,8 @@ cdef class GameState:
         self.silent = silent
         self.hand_id = 0
         self.deck = Deck(self.suits, self.values)  # Initialize the Deck object
+        self.positions = self.generate_positions(len(self.players))
+        self.reset()
 
     cdef void reset(self):
         self.cur_round_index = 0
@@ -81,20 +83,20 @@ cdef class GameState:
         self.board = 0
         self.betting_history = [[], [], [], []]
         self.deck.reset()
-        for player in self.players:
-            player.reset()
-        self.positions = self.generate_positions(len(self.players))
+        for i in range(len(self.players)):
+            self.players[i].reset()
+        
             
 
     cpdef GameState clone(self):
-        # Clone players first
-        cdef list[Player] new_players = []
-        for i in range(len(self.players)):
-            new_players.append(self.players[i].clone())
-
         # Create a new GameState instance
-        cdef GameState new_state = GameState(new_players, self.small_blind, self.big_blind, self.num_simulations, self.silent, self.suits, self.values)
+        cdef GameState new_state = GameState([i.clone() for i in self.players], self.small_blind, self.big_blind, self.num_simulations, self.silent, self.suits, self.values)
         
+        # print("cloned gamestate player memory address")
+        # print([i for i in new_state.players])
+
+        # print("cur gamestate player memory address")
+        # print([i for i in self.players])
         # Copy all relevant attributes
         new_state.cur_round_index = self.cur_round_index
         new_state.dealer_position = self.dealer_position

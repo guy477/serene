@@ -7,6 +7,7 @@ src/poker/*.h
 *.so
 *.c
 *.cpp
+*.html
 *.h
 __BAK/
 .DS_Store

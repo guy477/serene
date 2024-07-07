@@ -122,22 +122,19 @@ cdef class CFRTrainer:
             # NOTE We want to fast forward to a valid GTO state.. TODO: Implement this.
             ## TODO: Investigate if i need to clone the gamestate here to force a deref. 
             ###         For context, I was having difficulties dereferencing across platforms (linux/mac)
-            game_state = self.fast_forward_gamestate(hand, game_state.clone(), fast_forward_actions)
+            self.fast_forward_gamestate(hand, game_state, fast_forward_actions)
             
-            ## Validate dereference.
+            ## Validate reference.
             print(game_state)
-
-            game_state.debug_output()
 
             # Perform CFR traversal for the current hand
             ## NOTE: Dereference the game_state as cfr_traverse will modify the game_state in place.
-            self.cfr_traverse(game_state.clone(), probs, 0, self.cfr_depth, epsilon)
+            self.cfr_traverse(game_state, probs, 0, self.cfr_depth, epsilon)
 
             # If using monte carlo - remove all monte carlo samples.
             self.strategy_sum.prune()
             self.regret_sum.prune()
             
-        game_state.debug_output()
         # Extract current strategy.
         player_idx = game_state.player_index
         player = game_state.players[player_idx]
@@ -166,6 +163,8 @@ cdef class CFRTrainer:
     ### NOTE: I by cloning and returning the gamestate, we create a new reference which is important for parallel processing.
     ## This is a bit of a hack, but it works for now. TODO: read a textbook about pointers or something.
     cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions):
+        ## Validate reference.
+        print(game_state)
         game_state.setup_preflop(hand)
         for action in fast_forward_actions:
             player_idx = game_state.player_index
@@ -195,7 +194,7 @@ cdef class CFRTrainer:
         # game_state.debug_output()
 
         # Dereference?
-        return game_state#.clone() 
+        # return game_state#.clone() 
 
     def parallel_train(self, hands, hand_mapping, game_state, fast_forward_actions, mem_efficient=True, batch_size=1):#psutil.cpu_count(logical=True)
         manager = Manager()
@@ -204,6 +203,9 @@ cdef class CFRTrainer:
         hand_strategy_aggregate = manager.list()
         calculated = manager.dict()
 
+        ## Validate reference.
+        print('asdfasdfasdfasdfasdf')
+        print(game_state)
         def process_batch(batch_hands):
             hands = [(hand, hand_mapping, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions) for hand in batch_hands]
             with Pool(processes = 1) as pool: #psutil.cpu_count(logical=True)
@@ -235,18 +237,6 @@ cdef class CFRTrainer:
     def process_hand_wrapper(self, hand, hand_mapping, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions):
         self.process_hand(hand, hand_mapping, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions)
 
-    cpdef train_realtime(self, GameState game_state):
-        cdef double[:] probs
-        cdef list hands = []
-        cdef Deck deck = game_state.deck.clone()
-
-        # clone the gamestate and silence the logging.
-        cloned_game_state = game_state.clone()
-        cloned_game_state.silent = True
-
-        for iter_num in range(self.realtime_iterations):
-            probs = np.ones(self.num_players, dtype=np.float64)
-            self.cfr_traverse(cloned_game_state, probs, 0, self.cfr_realtime_depth, .005)
 
     # NOTE: I cant pickle lambdas so this is going here.
     cpdef default_double(self):
@@ -335,6 +325,23 @@ cdef class CFRTrainer:
                     opp_contribution *= probs[i]
             
             self.regret_sum[player_hash][action] += opp_contribution * regret
+
+
+
+        # if depth == 0:
+        #     print('Depth 0')
+        #     print('Depth 0')
+        #     print('Depth 0')
+        #     print(player_hash)
+        #     print(f'probs {list(probs)}')
+        #     print(f'node_util {list(node_util)}')
+        #     print(f'util {[list(util[action]) for action in available_actions]}')
+        #     print(self.regret_sum[player_hash])
+        #     print(action )
+        #     print(game_state)
+        #     print(new_game_state)
+        #     game_state.debug_output()
+
 
         return node_util
 

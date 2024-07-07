@@ -48,7 +48,7 @@ This repository contains a long-running personal project of mine that explores T
 
 ## Example
 
-**See [src/results/charts/](src/results/charts) for proof of concept**
+**See [src/../results/charts/](src/../results/charts) for proof of concept**
 
 The following is a range chart that displays how often the (UTG) should open raise 1.5x the pot (1.5bb * 1.5 = 2.25bb) in 6-Max Texas Hold'em. Iterations Search depth and gamestate hashing are heavily restricted due to memory limitations and performance constraints. Regardless, the sampled range below reflects a loose version of what you might see on GTO Wizard.
 

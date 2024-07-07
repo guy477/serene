@@ -31,8 +31,6 @@ cdef class CFRTrainer:
 
     cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions)
 
-    cpdef train_realtime(self, GameState game_state)
-
     cdef double[:] cfr_traverse(self, GameState game_state, double[:] probs, int depth, int max_depth, float epsilon = *)
 
     cdef double[:] calculate_utilities(self, GameState game_state, int player)
