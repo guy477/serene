@@ -282,6 +282,7 @@ cdef class GameState:
             if self.players[self.player_index].take_action(self, self.player_index, action):
                 self.last_raiser = self.player_index
         else:
+            ## TODO: Update "handle_action" to take a CFR Trainer... if possible.
             if self.players[self.player_index].get_action(self, self.player_index):
                 self.last_raiser = self.player_index
 

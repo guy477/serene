@@ -59,7 +59,7 @@ cdef class CFRTrainer:
             hand_mapping[hand] = abstracted_hand
 
         # Define a new game state for training
-        players = [AIPlayer(self.initial_chips, self.bet_sizing, self) for _ in range(self.num_players)]
+        players = [AIPlayer(self.initial_chips, self.bet_sizing) for _ in range(self.num_players)]
         
         # Define initial gamestate
         game_state = GameState(players, self.small_blind, self.big_blind, self.num_simulations, True, self.suits, self.values)
