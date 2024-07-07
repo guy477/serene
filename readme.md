@@ -41,9 +41,9 @@ This repository contains a long-running personal project of mine that explores T
 ```* = WIP```
 
 ## Things to do (maybe)
-- Correct progress_to_showdown in GameState
-- Solve each GameState backwards (solve the blinds, working backwards to the UTG)
-- Better abstract GameState representations
+- Adjust pruning logic to feed back to the global regret and strategy sums. i.e. dont just copy the root node's sums.
+- Formalize preflop blueprint construction process
+- Implement postflop abstractions
 - More to come...
 
 ## Example
