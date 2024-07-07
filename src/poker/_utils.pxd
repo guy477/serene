@@ -2,8 +2,6 @@ import numpy
 cimport numpy
 cimport cython
 
-from collections.abc import MutableMapping
-
 cdef public list SUITS = ['C', 'D', 'H', 'S']
 cdef public list VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 
@@ -22,7 +20,7 @@ cdef list hand_to_cards(unsigned long long hand)
 cdef display_game_state(object game_state, int player_index)
 cdef unsigned int cy_evaluate(unsigned long long cards, unsigned int num_cards) nogil
 cpdef cy_evaluate_cpp(cards, num_cards)
-
+cpdef list build_fast_forward_actions(list betting_history)
 
 
 cdef class HashTable(dict):

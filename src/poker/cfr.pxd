@@ -1,32 +1,33 @@
 from ._utils cimport *
 from .game_state cimport GameState
-from .ai_player cimport AIPlayer, Player
-from .information_set cimport InformationSet
+from .player cimport Player
 
 cdef class CFRTrainer:
-    cdef public int monte_carlo_depth
-    cdef public int prune_depth
-    cdef public double prune_probability_threshold
-    cdef public list suits
-    cdef public list values
-    cdef public int iterations
-    cdef public int realtime_iterations
-    cdef public int cfr_depth
-    cdef public int cfr_realtime_depth
+    cdef int monte_carlo_depth
+    cdef int prune_depth
+    cdef double prune_probability_threshold
+    cdef list suits
+    cdef list values
+    cdef int iterations
+    cdef int realtime_iterations
+    cdef int cfr_depth
+    cdef int cfr_realtime_depth
 
-    cdef public int num_simulations
+    cdef int num_simulations
 
-    cdef public int num_players
-    cdef public int initial_chips
-    cdef public int small_blind
-    cdef public int big_blind
+    cdef int num_players
+    cdef int initial_chips
+    cdef int small_blind
+    cdef int big_blind
 
-    cdef public list bet_sizing
-    cdef public HashTable regret_sum
-    cdef public HashTable strategy_sum
+    cdef list bet_sizing
+    cdef HashTable regret_sum
+    cdef HashTable strategy_sum
 
     cpdef default_double(self)
     
+    cdef progress_gamestate_to_showdown(self, GameState game_state, float epsilon = *)
+
     cpdef train(self, list positions_to_solve = *)
 
     cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions)
@@ -35,7 +36,7 @@ cdef class CFRTrainer:
 
     cdef double[:] calculate_utilities(self, GameState game_state, int player)
 
-    cdef dict get_average_strategy(self, AIPlayer player, GameState game_state)
+    cdef dict get_average_strategy(self, Player player, GameState game_state)
     
     cdef dict get_strategy(self, list available_actions, double[:] probs, GameState game_state, Player player, bint get_strategy)
     

@@ -38,7 +38,7 @@ cdef class CFRTrainer:
         self.regret_sum = HashTable()
         self.strategy_sum = HashTable()
 
-    def parallel_train(self, hands, hand_mapping, fast_forward_actions, mem_efficient=True, batch_size=2):#psutil.cpu_count(logical=True)
+    def parallel_train(self, hands, hand_mapping, fast_forward_actions, mem_efficient=True, batch_size=psutil.cpu_count(logical=True)):
         manager = Manager()
         train_regret = manager.dict()
         train_strategy = manager.dict()
@@ -47,7 +47,7 @@ cdef class CFRTrainer:
 
         def process_batch(batch_hands):
             hands = [(hand, hand_mapping, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions) for hand in batch_hands]
-            with Pool(processes=2) as pool: #psutil.cpu_count(logical=True)
+            with Pool(processes=psutil.cpu_count(logical=True)) as pool: #psutil.cpu_count(logical=True)
                 try:
                     pool.starmap(self.process_hand_wrapper, hands)
                 finally:
@@ -87,6 +87,7 @@ cdef class CFRTrainer:
         cards = [r + s for r in reversed(self.values) for s in self.suits]
 
         # Generate all possible hands (for testing, we can sample this to focus on the first n to maximize iteration potential)
+        # These are abstracted hands used in preflop hashing.
         hands = list(sorted(itertools.combinations(cards, 2)))
 
         # Create a mapping from hands tuple to abstracted representation
@@ -145,7 +146,7 @@ cdef class CFRTrainer:
         process = psutil.Process()
         
         print(f'Current Hand: {hand} - ')
-        cdef GameState game_state = GameState([AIPlayer(self.initial_chips, self.bet_sizing) for _ in range(self.num_players)], self.small_blind, self.big_blind, self.num_simulations, True, self.suits, self.values) 
+        cdef GameState game_state = GameState([Player(self.initial_chips, self.bet_sizing, False) for _ in range(self.num_players)], self.small_blind, self.big_blind, self.num_simulations, True, self.suits, self.values) 
         print(game_state)
         
 
@@ -170,10 +171,11 @@ cdef class CFRTrainer:
             # If using monte carlo - remove all monte carlo samples.
             self.strategy_sum.prune()
             self.regret_sum.prune()
+
+            # time.sleep(5)
             
         # Extract current strategy.
-        player_idx = game_state.player_index
-        player = game_state.players[player_idx]
+        player = game_state.get_current_player()
         strategy = self.get_average_strategy(player, game_state)
         player_hash = player.hash(game_state)
         print(player_hash)
@@ -200,10 +202,9 @@ cdef class CFRTrainer:
     cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions):
         game_state.setup_preflop(hand)
         for action in fast_forward_actions:
-            player_idx = game_state.player_index
-            strategy = self.get_average_strategy(game_state.players[player_idx], game_state)
+            strategy = self.get_average_strategy(game_state.get_current_player(), game_state)
 
-            player_hash = game_state.players[player_idx].hash(game_state)
+            player_hash = game_state.get_current_player().hash(game_state)
 
             # NOTE: Verify the action aligns with the current strategy.
             if strategy[action] < .10 or player_hash not in self.strategy_sum:
@@ -213,27 +214,54 @@ cdef class CFRTrainer:
                 break
 
             # Assuming the action aligns with the current strategy, perform the action.
-            if game_state.handle_action(action):
-                if game_state.num_board_cards() == 0:
-                    game_state.setup_postflop('flop')
-                else:
-                    game_state.setup_postflop('postflop')
+            game_state.step(action)
 
         if hand:
             # Assume the hero got the the current game state with the given hand.
             game_state.update_current_hand(hand)
 
 
-
-
     # NOTE: I cant pickle lambdas so this is going here.
     cpdef default_double(self):
         return 0.0
 
-    cdef double[:] cfr_traverse(self, GameState game_state, double[:] probs, int depth, int max_depth, float epsilon=0):
+
+    cdef progress_gamestate_to_showdown(self, GameState game_state, float epsilon = 1):
+        """### NOTE: The logic commented below mixes random strategy w/ monte-carlo search to terminal.
+          ### NOTE NOTE: The progress_to_showdown function in game_state will have everyone call. 
+        while not (game_state.is_terminal() or game_state.is_terminal_river()):
+            strategy = self.get_average_strategy(game_state.get_current_player(), game_state)
+
+            available_actions = game_state.get_current_player().get_available_actions(game_state)
+            
+            # game_state.debug_output()
+            # print(available_actions)
+            # print(strategy)
         
+            epsilon_calc = epsilon
+            rand_value = np.random.rand()
+            if rand_value < epsilon_calc:
+                uniform_prob = 1.0 / len(available_actions)
+                for action in available_actions:
+                    strategy[action] = uniform_prob
+            
+            strategy_list = np.array([strategy[a] for a in available_actions], dtype=np.float64)
+            strategy_list /= strategy_list.sum()
+            action_index = np.random.choice(len(available_actions), p=strategy_list)
+
+            available_actions = available_actions[:action_index+1][-1:]
+
+            game_state.step(available_actions[0])
+
+            self.progress_gamestate_to_showdown(game_state)
+        """
+        game_state.progress_to_showdown()
+
+    cdef double[:] cfr_traverse(self, GameState game_state, double[:] probs, int depth, int max_depth, float epsilon=0):
+        # cdef GameState game_state = game_state_parent.clone()
+
         cdef int cur_player_index = game_state.player_index
-        cdef Player cur_player = game_state.players[cur_player_index]
+        cdef Player cur_player = game_state.get_current_player()
         cdef object action = ()
 
         cdef int num_players = len(game_state.players)
@@ -247,12 +275,13 @@ cdef class CFRTrainer:
         cdef double regret
         cdef int monte_carlo = depth >= self.monte_carlo_depth
         cdef int prune = depth >= self.prune_depth
-        cdef list available_actions = game_state.players[game_state.player_index].get_available_actions(game_state)
+        cdef list available_actions = game_state.get_current_player().get_available_actions(game_state)
+
 
         # If the game_state is terminal, the depth exceeds the max depth, or the current player has a negligible probability of reaching this state, return the utility.
         if game_state.is_terminal_river() or depth >= max_depth or probs[cur_player_index] < self.prune_probability_threshold:
             # TODO: Incorporate a mechanism to return bet chips to players if the current (potentially non-termonal) state is forced to enter a terminal state.
-            game_state.progress_to_showdown()
+            self.progress_gamestate_to_showdown(game_state)
             return self.calculate_utilities(game_state, game_state.winner_index)
 
         player_hash = cur_player.hash(game_state)
@@ -280,11 +309,8 @@ cdef class CFRTrainer:
 
         for action in available_actions:
             new_game_state = game_state.clone()
-            if new_game_state.handle_action(action):
-                if new_game_state.num_board_cards() == 0:
-                    new_game_state.setup_postflop('flop')
-                else:
-                    new_game_state.setup_postflop('postflop')
+
+            if new_game_state.step(action):
 
                 # If we've reached a public terminal state, reset current probs to 1.
                 probs[:] = 1.0
@@ -321,6 +347,21 @@ cdef class CFRTrainer:
         #     print('Depth 0')
         #     print('Depth 0')
         #     print(player_hash)
+        #     print(strategy)
+        #     print(f'probs {list(probs)}')
+        #     print(f'node_util {list(node_util)}')
+        #     print(f'util {[list(util[action]) for action in available_actions]}')
+        #     print(self.regret_sum[player_hash])
+        #     print(action )
+        #     print(game_state)
+        #     print(new_game_state)
+        #     game_state.debug_output()
+        # if depth == 1:
+        #     print('Depth 1')
+        #     print('Depth 1')
+        #     print('Depth 1')
+        #     print(player_hash)
+        #     print(strategy)
         #     print(f'probs {list(probs)}')
         #     print(f'node_util {list(node_util)}')
         #     print(f'util {[list(util[action]) for action in available_actions]}')
@@ -377,7 +418,7 @@ cdef class CFRTrainer:
         
         return strategy
 
-    cdef dict get_average_strategy(self, AIPlayer player, GameState game_state):
+    cdef dict get_average_strategy(self, Player player, GameState game_state):
         average_strategy = {}
         game_state_hash = player.hash(game_state)
         normalization_sum = 0

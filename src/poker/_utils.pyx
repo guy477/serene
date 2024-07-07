@@ -5,7 +5,6 @@ cdef public dict SUITS_INDEX = {'C': 0, 'D': 1, 'H': 2, 'S': 3}
 cdef public dict VALUES_INDEX = {'2': 0, '3': 1, '4': 2, '5': 3, '6': 4, '7': 5, '8': 6, '9': 7, 'T': 8, 'J': 9, 'Q': 10, 'K': 11, 'A': 12}
 
 
-import random
 import numpy
 cimport numpy
 cimport cython
@@ -134,7 +133,13 @@ cdef class Deck:
     cdef void reset(self):
         self.deck = self.create_deck()
         self.fisher_yates_shuffle()
-        
+
+
+cpdef list build_fast_forward_actions(list betting_history):
+    cdef list fast_forward_actions = betting_history[0][2:] + betting_history[1] + betting_history[2] + betting_history[3]
+    
+    # Sort of confusing function.. hence why it's a utility.
+    return [pos_w_action[1] for pos_w_action in fast_forward_actions]
 
 cdef unsigned long long card_to_int(str suit, str value):
     cdef unsigned long long one = 1

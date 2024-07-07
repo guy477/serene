@@ -122,9 +122,9 @@ def main():
     num_smoothing_iterations = 1
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 10
+    num_cfr_iterations = 10000
     realtime_cfr_iterations = 200
-    cfr_depth = 5
+    cfr_depth = 6
     cfr_realtime_depth = 6
     
     # Depth at which to start Monte Carlo Simulation.
@@ -133,7 +133,7 @@ def main():
     # Depth at which to start pruning regret and strategy sums.
     prune_depth = 9999
     # Chance-probability at which to start declaring a node "terminal"
-    prune_probability = 1e-10
+    prune_probability = 1e-6
 
     # Train the AI player using the CFR algorithm
     cfr_trainer = CFRTrainer(num_cfr_iterations, realtime_cfr_iterations, num_showdown_simulations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
