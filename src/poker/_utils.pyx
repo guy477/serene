@@ -1,3 +1,7 @@
+import pickle
+from collections import defaultdict
+from multiprocessing import Manager
+
 cdef public list SUITS = ['C', 'D', 'H', 'S']
 cdef public list VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 
@@ -12,19 +16,54 @@ cimport cython
 import hashlib
 
 
+cdef class ExternalManager:
+    def __init__(self, shared_dict_1, shared_dict_2):
+        self.regret_sum = HashTable(shared_dict_1)
+        self.strategy_sum = HashTable(shared_dict_2)
+    
+    def get_regret_sum(self):
+        return self.regret_sum
+    
+    def get_strategy_sum(self):
+        return self.strategy_sum
+
+    def set_regret_sum_table(self, regret_sum_other):
+        self.regret_sum.table = regret_sum_other
+
+    def set_strategy_sum_table(self, strategy_sum_other):
+        self.strategy_sum.table = strategy_sum_other
+    
+    def merge_dicts(self, hash_table, shared_dict):
+        for key, value in shared_dict.items():
+            hash_table.set(key, value)
+
+    def save(self, regret_sum_path, strategy_sum_path):
+        with open(regret_sum_path, 'wb') as f:
+            pickle.dump(self.regret_sum, f)
+
+        with open(strategy_sum_path, 'wb') as f:
+            pickle.dump(self.strategy_sum, f)
+    
+    def load(self, regret_sum_path, strategy_sum_path):
+        with open(regret_sum_path, 'rb') as f:
+            self.regret_sum = pickle.load(f)
+
+        with open(strategy_sum_path, 'rb') as f:
+            self.strategy_sum = pickle.load(f)
+
 # Define the hashing function
 cdef bytes hash_key_sha256(str key):
     """Hash a string using SHA-256 and return the hexadecimal representation as bytes."""
     return hashlib.sha256(key.encode('utf-8')).digest()
 
-cdef class HashTable(dict):
+cdef class HashTable:
     """
     HashTable class implementing a hash table with SHA-256 hashed keys.
     
     This class provides an option to mark items for pruning and a method to
     remove all items marked for pruning.
     
-    - `__init__(self, default=None)`: Initialize the hash table with an optional default value.
+    - `__init__(self)`: Initialize the hash table with an optional default value.
     - `__getitem__(self, key)`: Retrieve the value associated with the given key.
     - `__setitem__(self, key, value)`: Set the value for the given key. Value should be a tuple (actual_value, to_prune).
     - `__delitem__(self, key)`: Delete the item associated with the given key.
@@ -36,8 +75,8 @@ cdef class HashTable(dict):
     - `__len__(self)`: Get the number of items in the hash table.
     - `prune(self)`: Remove all items with `to_prune` set to `True`.
     """
-    def __init__(self, default=None):
-        self.table = {}
+    def __init__(self, shared_dict):
+        self.table = shared_dict
 
 
     def __getitem__(self, key):
@@ -62,7 +101,7 @@ cdef class HashTable(dict):
     def get(self, key, default=None):
         cdef bytes hashed_key = hash_key_sha256(key)
         if hashed_key not in self.table:
-            self.table[hashed_key] = (default if default is not None else self.default, False)
+            self.set(hashed_key, (default if default is not None else float(), False))
         return self.table[hashed_key][0]
 
     def update(self, other):
@@ -70,11 +109,15 @@ cdef class HashTable(dict):
             # We're assuming the other key is hashed already
             self.table[key] = value
 
+    def set(self, hashed_key, value):
+        self.table[hashed_key] = value
+
     def clear(self):
         self.table.clear()
 
     def items(self):
-        return [(key, value) for key, value in self.table.items()]
+        for key, value in self.table.items():
+            yield (key, value)
 
     def __len__(self):
         return len(self.table)

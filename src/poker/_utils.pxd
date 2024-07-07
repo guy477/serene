@@ -23,9 +23,14 @@ cpdef cy_evaluate_cpp(cards, num_cards)
 cpdef list build_fast_forward_actions(list betting_history)
 
 
-cdef class HashTable(dict):
-    cdef dict table
+cdef class HashTable:
+    cdef public object table
+    cdef object lock
+    cdef object manager
 
+cdef class ExternalManager:
+    cdef public HashTable regret_sum
+    cdef public HashTable strategy_sum
 
 cdef class Deck:
     cdef list suits

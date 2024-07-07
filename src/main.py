@@ -2,6 +2,9 @@
 from poker.poker_game import PokerGame
 from poker.cfr import CFRTrainer
 import poker.ccluster as ccluster
+from poker._utils import ExternalManager
+
+from multiprocessing import Manager
 
 import time
 import numpy as np
@@ -40,25 +43,26 @@ def _6_max_opening():
 
     positions_to_solve = [
         UTG_OPEN, 
-        MP_OPEN, 
-        CO_OPEN,  
-        BTN_OPEN, 
-        SB_OPEN, 
-        MP_DEF,  
-        CO_UTG_DEF,
-        CO_MP_DEF, 
-        BTN_UTG_DEF, 
-        BTN_MP_DEF, 
-        BTN_CO_DEF, 
-        SB_UTG_DEF, 
-        SB_MP_DEF, 
-        SB_CO_DEF,
-        SB_BTN_DEF,
-        BB_DEF,
-        BB_MP_DEF,
-        BB_CO_DEF,
-        BB_BTN_DEF,
-        BB_SB_DEF,
+        UTG_OPEN, 
+        # MP_OPEN, 
+        # CO_OPEN,  
+        # BTN_OPEN, 
+        # SB_OPEN, 
+        # MP_DEF,  
+        # CO_UTG_DEF,
+        # CO_MP_DEF, 
+        # BTN_UTG_DEF, 
+        # BTN_MP_DEF, 
+        # BTN_CO_DEF, 
+        # SB_UTG_DEF, 
+        # SB_MP_DEF, 
+        # SB_CO_DEF,
+        # SB_BTN_DEF,
+        # BB_DEF,
+        # BB_MP_DEF,
+        # BB_CO_DEF,
+        # BB_BTN_DEF,
+        # BB_SB_DEF,
     ]
 
     position_names = [
@@ -118,13 +122,14 @@ def main():
     # Pretty sure this is deprecated.. just leave it at 1.
     num_showdown_simulations = 1
 
-    # how many times iterations over positions to solve should we perform?
+    # Specify the number of times to iteratate over `positions_to_solve`.
+    ## Fun Fact: This is one way to construct a blueprint strategy.
     num_smoothing_iterations = 1
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 10000
+    num_cfr_iterations = 50
     realtime_cfr_iterations = 200
-    cfr_depth = 6
+    cfr_depth = 2
     cfr_realtime_depth = 6
     
     # Depth at which to start Monte Carlo Simulation.
@@ -133,7 +138,7 @@ def main():
     # Depth at which to start pruning regret and strategy sums.
     prune_depth = 9999
     # Chance-probability at which to start declaring a node "terminal"
-    prune_probability = 1e-6
+    prune_probability = 1e-8
 
     # Train the AI player using the CFR algorithm
     cfr_trainer = CFRTrainer(num_cfr_iterations, realtime_cfr_iterations, num_showdown_simulations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)

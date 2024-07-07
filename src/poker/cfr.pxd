@@ -21,8 +21,9 @@ cdef class CFRTrainer:
     cdef int big_blind
 
     cdef list bet_sizing
-    cdef HashTable regret_sum
-    cdef HashTable strategy_sum
+    # cdef HashTable regret_sum
+    # cdef HashTable strategy_sum
+    cdef ExternalManager external_manager
 
     cpdef default_double(self)
     
@@ -30,13 +31,12 @@ cdef class CFRTrainer:
 
     cpdef train(self, list positions_to_solve = *)
 
-    cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions)
+    cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions, ExternalManager external_manager)
 
-    cdef double[:] cfr_traverse(self, GameState game_state, double[:] probs, int depth, int max_depth, float epsilon = *)
+    cdef double[:] cfr_traverse(self, GameState game_state, double[:] probs, int depth, int max_depth, float epsilon, ExternalManager external_manager)
 
     cdef double[:] calculate_utilities(self, GameState game_state, int player)
-
-    cdef dict get_average_strategy(self, Player player, GameState game_state)
     
-    cdef dict get_strategy(self, list available_actions, double[:] probs, GameState game_state, Player player, bint get_strategy)
+    cdef dict get_strategy(self, list available_actions, double[:] probs, GameState game_state, Player player, bint get_strategy, ExternalManager external_manager)
     
+    cdef dict get_average_strategy(self, Player player, GameState game_state, ExternalManager external_manager)
