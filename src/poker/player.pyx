@@ -180,7 +180,6 @@ cdef class Player:
         if game_state.cur_round_index == 0:
             ## if no one has acted, or everyone has folded, we can't call. AKA NO LIMPING ALLOWED
             if (len(game_state.betting_history[0]) == 2 or all([('fold', 0) == x[1] for x in game_state.betting_history[0][2:]])):
-
                ret.remove(('call', 0))    # Prevent Limping
                ret.remove(('raise', 2.0)) # Prevent over raising (for now)
                return ret
@@ -190,11 +189,11 @@ cdef class Player:
 
                 ### NOTE NOTE guided preflop raises.                
                 ## If no one has opened, only allow 2.25bb open
-                if ('raise', 1.5) not in game_state.betting_history[0] and ('raise', 2.0) in ret:
+                if ('raise', 1.5) not in [x[1] for x in game_state.betting_history[0]] and ('raise', 2.0) in ret:
                     ret.remove(('raise', 2.0))
                     
                 ## If someone's raised already, remove open raise (1.5x) 
-                elif ('raise', 1.5) in game_state.betting_history[0] and ('raise', 1.5) in ret:
+                elif ('raise', 1.5) in [x[1] for x in game_state.betting_history[0]] and ('raise', 1.5) in ret:
                     ret.remove(('raise', 1.5))
 
             

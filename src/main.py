@@ -13,18 +13,20 @@ from scipy.special import comb
 from sklearn.cluster import MiniBatchKMeans
 
 def _6_max_opening():
-    # Positions to solve for (ORDER MATTERS)
+    # Unopened ranges (Early to Late)
     UTG_OPEN = []
     MP_OPEN = [('fold', 0)]  # Assuming UTG has folded
-    MP_DEF = [('raise', 1.5)]  # Assuming UTG has raised
     CO_OPEN = [('fold', 0), ('fold', 0)]  # Assuming UTG and MP have folded
+    BTN_OPEN = [('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG, MP, and CO have folded
+    SB_OPEN = [('fold', 0), ('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG, MP, CO, and BTN have folded
+
+    # Defensive ranges (Early vs. Early to Late vs. Late)
+    MP_DEF = [('raise', 1.5)]  # Assuming UTG has raised
     CO_UTG_DEF = [('raise', 1.5), ('fold', 0)]  # Assuming UTG has raised, MP has folded
     CO_MP_DEF = [('fold', 0), ('raise', 1.5)]  # Assuming UTG has folded, MP has raised
-    BTN_OPEN = [('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG, MP, and CO have folded
     BTN_UTG_DEF = [('raise', 1.5), ('fold', 0), ('fold', 0)]  # Assuming UTG has raised, MP and CO have folded
     BTN_MP_DEF = [('fold', 0), ('raise', 1.5), ('fold', 0)]  # Assuming UTG has folded, MP has raised, CO has folded
     BTN_CO_DEF = [('fold', 0), ('fold', 0), ('raise', 1.5)]  # Assuming UTG and MP have folded, CO has raised
-    SB_OPEN = [('fold', 0), ('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG, MP, CO, and BTN have folded
     SB_UTG_DEF = [('raise', 1.5), ('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG has raised, MP, CO, and BTN have folded
     SB_MP_DEF = [('fold', 0), ('raise', 1.5), ('fold', 0), ('fold', 0)]  # Assuming UTG has folded, MP has raised, CO and BTN have folded
     SB_CO_DEF = [('fold', 0), ('fold', 0), ('raise', 1.5), ('fold', 0)]  # Assuming UTG and MP have folded, CO has raised, BTN has folded
@@ -39,15 +41,15 @@ def _6_max_opening():
     positions_to_solve = [
         UTG_OPEN, 
         MP_OPEN, 
-        MP_DEF,  
         CO_OPEN,  
+        BTN_OPEN, 
+        SB_OPEN, 
+        MP_DEF,  
         CO_UTG_DEF,
         CO_MP_DEF, 
-        BTN_OPEN, 
         BTN_UTG_DEF, 
         BTN_MP_DEF, 
         BTN_CO_DEF, 
-        SB_OPEN, 
         SB_UTG_DEF, 
         SB_MP_DEF, 
         SB_CO_DEF,
@@ -62,15 +64,15 @@ def _6_max_opening():
     position_names = [
         "UTG_OPEN", 
         "MP_OPEN", 
-        "MP_DEF",  
         "CO_OPEN",  
+        "BTN_OPEN", 
+        "SB_OPEN", 
+        "MP_DEF",  
         "CO_UTG_DEF",
         "CO_MP_DEF", 
-        "BTN_OPEN", 
         "BTN_UTG_DEF", 
         "BTN_MP_DEF", 
         "BTN_CO_DEF", 
-        "SB_OPEN", 
         "SB_UTG_DEF", 
         "SB_MP_DEF", 
         "SB_CO_DEF",
@@ -85,6 +87,7 @@ def _6_max_opening():
     positions_dict = {str(pos): name for pos, name in zip(positions_to_solve, position_names)}
 
     return positions_to_solve, positions_dict
+
 
 def main():
     num_players = 6
@@ -112,9 +115,14 @@ def main():
     small_blind = 5
     big_blind = 10
 
+    # Pretty sure this is deprecated.. just leave it at 1.
     num_showdown_simulations = 1
 
-    num_cfr_iterations = 500
+    # how many times iterations over positions to solve should we perform?
+    num_smoothing_iterations = 1
+
+    # **Number of iterations to run the CFR algorithm**
+    num_cfr_iterations = 10
     realtime_cfr_iterations = 200
     cfr_depth = 5
     cfr_realtime_depth = 6
@@ -129,7 +137,7 @@ def main():
 
     # Train the AI player using the CFR algorithm
     cfr_trainer = CFRTrainer(num_cfr_iterations, realtime_cfr_iterations, num_showdown_simulations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
-    strategy_list = cfr_trainer.train(positions_to_solve)
+    strategy_list = cfr_trainer.train(positions_to_solve * num_smoothing_iterations)
     plot_hands(strategy_list, SUITS, VALUES, positions_dict)
 
 
@@ -157,7 +165,7 @@ def cluster():
 
     # If this is your first time running, make sure new_file is set to true.
     # This has only been tested on linux systems.
-    # Be sure your 'results/' directory has > 70G
+    # Be sure your '../results/' directory has > 70G
     # and that you have either 128G ram or 100G+ swap.
 
 
@@ -180,7 +188,7 @@ def cluster():
 
     #                      Load a memory mapping of the river scores.
 
-    z = np.memmap('results/river_f.npy', mode = 'c', dtype = np.float32, shape = (int(comb(n, 2)) * (int(comb(n, k)) - dupes), 1))
+    z = np.memmap('../results/river_f.npy', mode = 'c', dtype = np.float32, shape = (int(comb(n, 2)) * (int(comb(n, k)) - dupes), 1))
 
     # #########################################################################################################
     # #########################################################################################################
@@ -197,7 +205,7 @@ def cluster():
 
         print('precomputing river centers')
         centers = ccluster.kmc2(z, rvr_clstrs, chain_length=50, afkmc2=True)
-        np.save('results/cntrs_RIVER', centers)
+        np.save('../results/cntrs_RIVER', centers)
         print('Time spent' + str((time.time() - t)/60) + 'm')
     else:
         centers = None
@@ -215,12 +223,12 @@ def cluster():
     # #########################################################################################################
     # #########################################################################################################
 
-    np.save('results/adjcntrs_RIVER', miniK.cluster_centers_)
-    np.save('results/lbls_RIVER', miniK.labels_)
+    np.save('../results/adjcntrs_RIVER', miniK.cluster_centers_)
+    np.save('../results/lbls_RIVER', miniK.labels_)
 
 
-    adjcntrs = np.load('results/adjcntrs.npy', mmap_mode = 'r')
-    lbls = np.load('results/lbls.npy', mmap_mode = 'r')
+    adjcntrs = np.load('../results/adjcntrs.npy', mmap_mode = 'r')
+    lbls = np.load('../results/lbls.npy', mmap_mode = 'r')
 
     # #########################################################################################################
     # #########################################################################################################
@@ -248,7 +256,7 @@ def cluster():
 
 
 
-    turn_prob_dist = np.memmap('results/prob_dist_TURN.npy', mode = 'c', dtype = np.float32, shape = (int(comb(n, 2)) * ((int(comb(n, 4)) - dupes)), n - k - 2))
+    turn_prob_dist = np.memmap('../results/prob_dist_TURN.npy', mode = 'c', dtype = np.float32, shape = (int(comb(n, 2)) * ((int(comb(n, 4)) - dupes)), n - k - 2))
     print(turn_prob_dist)
 
 
@@ -261,7 +269,7 @@ def cluster():
         
         print('precomputing turn centers')
         centers_TURN = ccluster.kmc2(turn_prob_dist, trn_clstrs, chain_length=50, afkmc2=True)
-        np.save('results/cntrs_TURN', centers_TURN)
+        np.save('../results/cntrs_TURN', centers_TURN)
 
         print('Time spent precalculating centers: ' + str((time.time() - t)/60) + 'm')
     else:
@@ -277,11 +285,11 @@ def cluster():
     print('Time spent: ' + str((time.time() - t)/60) + 'm')
 
 
-    np.save('results/adjcntrs_TURN', miniK.cluster_centers_)
-    np.save('results/lbls_TURN', miniK.labels_)
+    np.save('../results/adjcntrs_TURN', miniK.cluster_centers_)
+    np.save('../results/lbls_TURN', miniK.labels_)
 
-    adjcntrs = np.load('results/adjcntrs_TURN.npy', mmap_mode = 'r')
-    lbls = np.load('results/lbls_TURN.npy', mmap_mode = 'r')
+    adjcntrs = np.load('../results/adjcntrs_TURN.npy', mmap_mode = 'r')
+    lbls = np.load('../results/lbls_TURN.npy', mmap_mode = 'r')
 
     #print(adjcntrs)
 
@@ -306,7 +314,7 @@ def cluster():
     print('Time spent: ' + str((time.time() - t)/60) + 'm')
 
 
-    flop_prob_dist = np.memmap('results/prob_dist_FLOP.npy', mode = 'c', dtype = np.float32, shape = (int(comb(n, 2)) * ((int(comb(n, 3)) - dupes)), n - k - 1))
+    flop_prob_dist = np.memmap('../results/prob_dist_FLOP.npy', mode = 'c', dtype = np.float32, shape = (int(comb(n, 2)) * ((int(comb(n, 3)) - dupes)), n - k - 1))
 
     print(flop_prob_dist)
     #########################################################################################################
@@ -321,7 +329,7 @@ def cluster():
         
         print('precomputing centers ---- FLOP')
         centers_FLOP = ccluster.kmc2(flop_prob_dist, flp_clstrs, chain_length=50, afkmc2=True)
-        np.save('results/cntrs_FLOP', centers_FLOP)
+        np.save('../results/cntrs_FLOP', centers_FLOP)
 
         print('Time spent precalculating centers: ' + str((time.time() - t)/60) + 'm')
     else:
@@ -333,12 +341,12 @@ def cluster():
     print('Time spent: ' + str((time.time() - t)/60) + 'm')
 
 
-    np.save('results/adjcntrs_FLOP', miniK.cluster_centers_)
-    np.save('results/lbls_FLOP', miniK.labels_)
+    np.save('../results/adjcntrs_FLOP', miniK.cluster_centers_)
+    np.save('../results/lbls_FLOP', miniK.labels_)
 
 
-    adjcntrs = np.load('results/adjcntrs_FLOP.npy', mmap_mode = 'r')
-    lbls = np.load('results/lbls_FLOP.npy', mmap_mode = 'r')
+    adjcntrs = np.load('../results/adjcntrs_FLOP.npy', mmap_mode = 'r')
+    lbls = np.load('../results/lbls_FLOP.npy', mmap_mode = 'r')
 
     #print(adjcntrs)
 
@@ -373,7 +381,7 @@ def plot_hands(strategy_list, suits=None, ranks=None, positions_dict={}):
     strategy_df = pd.DataFrame(strategy_list)
     strategy_df.columns = ['Position', 'Betting History', 'Hand', 'Strategy']
     strategy_df['Betting History'] = strategy_df['Betting History'].apply(lambda x: str(x))
-    strategy_df.to_csv('../dat/strategy.csv', index=False)
+    strategy_df.to_csv('../results/strategy.csv', index=False)
     strategy_df = strategy_df[strategy_df['Strategy'] != {}]
     strategy_df.reset_index(inplace=True, drop=True)
 
@@ -459,7 +467,7 @@ def plot_hands(strategy_list, suits=None, ranks=None, positions_dict={}):
         plt.tight_layout()
         plt.subplots_adjust(wspace=0.2, hspace=0.4)
         plt.suptitle(f'Strategy for Position: {positions_dict.get(betting_history, betting_history)}', fontsize=13, x=.95, y=.9, rotation=-90)        
-        plt.savefig(f'results/charts/{positions_dict.get(betting_history, betting_history)}_Range.png')
+        plt.savefig(f'../results/charts/{positions_dict.get(betting_history, betting_history)}_Range.png')
         plt.close()
     
 if __name__ == "__main__":

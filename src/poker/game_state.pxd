@@ -9,7 +9,7 @@ cdef class GameState:
     cdef public list values
    
     cdef public list positions
-    cdef public list players
+    cdef public list[Player] players
 
     cdef public int cur_round_index
 
@@ -55,7 +55,7 @@ cdef class GameState:
     cdef void draw_card(self)
     cdef bint board_has_five_cards(self)
     cdef int num_board_cards(self)
-    cdef void debug_output(self)
+    cpdef void debug_output(self)
     cdef void log_current_hand(self, object terminal = *)
     cpdef remove_str_card_from_deck(self, str card)
 

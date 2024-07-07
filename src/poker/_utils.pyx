@@ -91,7 +91,6 @@ cdef class Deck:
     def __init__(self, list suits, list values):
         self.suits = suits
         self.values = values
-        self.deck = self.create_deck()
 
     cdef list create_deck(self):
         cdef int size = len(self.suits) * len(self.values)
@@ -132,6 +131,10 @@ cdef class Deck:
         new_deck.deck = self.deck[:]
         return new_deck
 
+    cdef void reset(self):
+        self.deck = self.create_deck()
+        self.fisher_yates_shuffle()
+        
 
 cdef unsigned long long card_to_int(str suit, str value):
     cdef unsigned long long one = 1

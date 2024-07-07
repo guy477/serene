@@ -57,18 +57,16 @@ class PokerHandLogger:
 poker_logger = PokerHandLogger("poker_hand_history.log")
 
 cdef class GameState:
-    def __init__(self, list players, int small_blind, int big_blind, int num_simulations, bint silent=False, list suits=SUITS, list values=VALUES):
+    def __init__(self, list[Player] players, int small_blind, int big_blind, int num_simulations, bint silent=False, list suits=SUITS, list values=VALUES):
         self.players = players
         self.small_blind = small_blind
         self.big_blind = big_blind
         self.num_simulations = num_simulations
-        self.positions = self.generate_positions(len(players))
         self.suits = suits
         self.values = values
         self.silent = silent
         self.hand_id = 0
-        self.betting_history = [[], [], [], []]
-        self.reset()
+        self.deck = Deck(self.suits, self.values)  # Initialize the Deck object
 
     cdef void reset(self):
         self.cur_round_index = 0
@@ -81,14 +79,45 @@ cdef class GameState:
         self.winner_index = -1
         self.pot = 0
         self.board = 0
-        self.betting_history[0] = []
-        self.betting_history[1] = []
-        self.betting_history[2] = []
-        self.betting_history[3] = []
-        self.deck = Deck(self.suits, self.values)  # Reinitialize the Deck object
-        # self.deck.fisher_yates_shuffle()
+        self.betting_history = [[], [], [], []]
+        self.deck.reset()
         for player in self.players:
             player.reset()
+        self.positions = self.generate_positions(len(self.players))
+            
+
+    cpdef GameState clone(self):
+        # Clone players first
+        cdef list[Player] new_players = []
+        for i in range(len(self.players)):
+            new_players.append(self.players[i].clone())
+
+        # Create a new GameState instance
+        cdef GameState new_state = GameState(new_players, self.small_blind, self.big_blind, self.num_simulations, self.silent, self.suits, self.values)
+        
+        # Copy all relevant attributes
+        new_state.cur_round_index = self.cur_round_index
+        new_state.dealer_position = self.dealer_position
+        new_state.player_index = self.player_index
+        new_state.num_actions = self.num_actions
+        new_state.last_raiser = self.last_raiser
+        new_state.pot = self.pot
+        new_state.current_bet = self.current_bet
+        new_state.board = self.board
+        new_state.deck = self.deck.clone()
+        new_state.round_active_players = self.round_active_players
+
+        ### NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
+        ### Shuffing the deck between clones have drastic down stream affects. un comment if you know what you're doing
+        ## With a loose interpretation of "change node"... this will makes every node very chance-ie!
+        # new_state.deck.fisher_yates_shuffle()
+        
+        new_state.betting_history = [sublist[:] for sublist in self.betting_history]
+        new_state.round_active_players = self.round_active_players
+        new_state.winner_index = self.winner_index
+        new_state.hand_id = self.hand_id
+
+        return new_state
 
     cdef void log_current_hand(self, terminal=False):
         if self.silent:
@@ -390,39 +419,7 @@ cdef class GameState:
             temp_board >>= 1
         return count
 
-    cpdef GameState clone(self):
-        # Clone players first
-        new_players = []
-        for i in range(len(self.players)):
-            new_players.append(self.players[i].clone())
-
-        # Create a new GameState instance
-        cdef GameState new_state = GameState(new_players, self.small_blind, self.big_blind, self.num_simulations, self.silent, self.suits, self.values)
-
-        # Copy all relevant attributes
-        new_state.cur_round_index = self.cur_round_index
-        new_state.dealer_position = self.dealer_position
-        new_state.player_index = self.player_index
-        new_state.num_actions = self.num_actions
-        new_state.last_raiser = self.last_raiser
-        new_state.pot = self.pot
-        new_state.current_bet = self.current_bet
-        new_state.board = self.board
-        new_state.deck = self.deck.clone()
-
-        ### NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
-        ### Shuffing the deck between clones have drastic down stream affects. un comment if you know what you're doing
-        ## With a loose interpretation of "change node"... this will makes every node very chance-ie!
-        # new_state.deck.fisher_yates_shuffle()
-        
-        new_state.betting_history = [sublist[:] for sublist in self.betting_history]
-        new_state.round_active_players = self.round_active_players
-        new_state.winner_index = self.winner_index
-        new_state.hand_id = self.hand_id
-
-        return new_state
-
-    cdef void debug_output(self):
+    cpdef void debug_output(self):
         print(f"is_terminal(): {self.is_terminal()}")
         print(f"is_terminal_river(): {self.is_terminal_river()}")
         print(f"cur_round_index: {self.cur_round_index}")

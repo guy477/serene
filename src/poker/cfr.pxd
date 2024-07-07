@@ -29,7 +29,7 @@ cdef class CFRTrainer:
     
     cpdef train(self, list positions_to_solve = *)
 
-    cdef fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions)
+    cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions)
 
     cpdef train_realtime(self, GameState game_state)
 

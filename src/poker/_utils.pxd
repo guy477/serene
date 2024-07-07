@@ -41,4 +41,5 @@ cdef class Deck:
     cdef void fisher_yates_shuffle(self)
     cdef unsigned long long pop(self)
     cdef Deck clone(self)
+    cdef void reset(self)
     

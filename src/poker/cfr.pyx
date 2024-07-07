@@ -78,7 +78,7 @@ cdef class CFRTrainer:
 
         for fast_forward_actions in positions_to_solve:
             # Call the parallel training function
-            train_regret, train_strategy, hand_strategy_aggregate = self.parallel_train(hands_reduced, hand_mapping, players, game_state, fast_forward_actions)
+            train_regret, train_strategy, hand_strategy_aggregate = self.parallel_train(hands_reduced, hand_mapping, game_state, fast_forward_actions)
 
             # Set the global regret_sum and strategy_sum to the training values
             self.regret_sum.update(dict(train_regret))
@@ -94,7 +94,7 @@ cdef class CFRTrainer:
         
         return list(local_hand_strategy_aggregate)
 
-    def process_hand(self, hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions):
+    def process_hand(self, hand, hand_mapping, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions):
         """
         Solve for the current player in the gamestate for the given hand.
         """
@@ -102,8 +102,6 @@ cdef class CFRTrainer:
         if calculated.get(hand_mapping[hand], False):
             return
         calculated[hand_mapping[hand]] = True
-
-        game_state = game_state.clone()
         
         print(f'Current Hand: {hand}')
         print(game_state)
@@ -121,22 +119,28 @@ cdef class CFRTrainer:
 
             probs.fill(1)
 
-            # Set preflop so opponent sees new hand each iteration. 
-            game_state.setup_preflop(hand)
-
             # NOTE We want to fast forward to a valid GTO state.. TODO: Implement this.
-            self.fast_forward_gamestate(hand, game_state, fast_forward_actions)
+            ## TODO: Investigate if i need to clone the gamestate here to force a deref. 
+            ###         For context, I was having difficulties dereferencing across platforms (linux/mac)
+            game_state = self.fast_forward_gamestate(hand, game_state.clone(), fast_forward_actions)
+            
+            ## Validate dereference.
+            print(game_state)
+
+            game_state.debug_output()
 
             # Perform CFR traversal for the current hand
+            ## NOTE: Dereference the game_state as cfr_traverse will modify the game_state in place.
             self.cfr_traverse(game_state.clone(), probs, 0, self.cfr_depth, epsilon)
 
             # If using monte carlo - remove all monte carlo samples.
             self.strategy_sum.prune()
             self.regret_sum.prune()
-
+            
+        game_state.debug_output()
         # Extract current strategy.
         player_idx = game_state.player_index
-        player = players[player_idx]
+        player = game_state.players[player_idx]
         strategy = self.get_average_strategy(player, game_state)
         player_hash = player.hash(game_state)
         print(player_hash)
@@ -157,8 +161,12 @@ cdef class CFRTrainer:
         train_regret.update(local_regret_sum)
         train_strategy.update(local_strategy_sum)
         hand_strategy_aggregate.extend(local_hand_strategy_aggregate)
-
-    cdef fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions):
+    
+    
+    ### NOTE: I by cloning and returning the gamestate, we create a new reference which is important for parallel processing.
+    ## This is a bit of a hack, but it works for now. TODO: read a textbook about pointers or something.
+    cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions):
+        game_state.setup_preflop(hand)
         for action in fast_forward_actions:
             player_idx = game_state.player_index
             strategy = self.get_average_strategy(game_state.players[player_idx], game_state)
@@ -169,7 +177,6 @@ cdef class CFRTrainer:
             if strategy[action] < .10 or player_hash not in self.strategy_sum:
                 ## Current game_node is non-gto; reset and try again.
                 # TODO: Odds of never breaking out of this non zero?
-                game_state.setup_preflop(hand)
                 self.fast_forward_gamestate(hand, game_state, fast_forward_actions)
                 break
 
@@ -184,9 +191,13 @@ cdef class CFRTrainer:
             # Assume the hero got the the current game state with the given hand.
             game_state.update_current_hand(hand)
 
+        # print('Fast Forwarded Game State')
         # game_state.debug_output()
 
-    def parallel_train(self, hands, hand_mapping, players, game_state, fast_forward_actions, mem_efficient=True, batch_size=psutil.cpu_count(logical=True)):
+        # Dereference?
+        return game_state#.clone() 
+
+    def parallel_train(self, hands, hand_mapping, game_state, fast_forward_actions, mem_efficient=True, batch_size=1):#psutil.cpu_count(logical=True)
         manager = Manager()
         train_regret = manager.dict()
         train_strategy = manager.dict()
@@ -194,11 +205,10 @@ cdef class CFRTrainer:
         calculated = manager.dict()
 
         def process_batch(batch_hands):
-            with Pool(processes = psutil.cpu_count(logical=True)) as pool:
+            hands = [(hand, hand_mapping, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions) for hand in batch_hands]
+            with Pool(processes = 1) as pool: #psutil.cpu_count(logical=True)
                 pool.starmap(
-                    self.process_hand_wrapper,
-                    [(hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions) for hand in batch_hands]
-                )
+                    self.process_hand_wrapper, hands)
 
         num_batches = (len(hands) + batch_size - 1) // batch_size  # Calculate number of batches
 
@@ -222,8 +232,8 @@ cdef class CFRTrainer:
 
         return train_regret, train_strategy, hand_strategy_aggregate
 
-    def process_hand_wrapper(self, hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions):
-        self.process_hand(hand, hand_mapping, players, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions)
+    def process_hand_wrapper(self, hand, hand_mapping, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions):
+        self.process_hand(hand, hand_mapping, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions)
 
     cpdef train_realtime(self, GameState game_state):
         cdef double[:] probs

@@ -723,9 +723,9 @@ def do_calc(numpy.int64_t os, int16[:, :] x, int16[:, :] y, int dupes):
     cd = 0
 
     # cdef numpy.ndarray[int16, ndim=2] z = numpy.empty((x_shape * y_shape, x.shape[1] + y.shape[1] + 3), dtype=numpy.int16)
-    z_memmap = numpy.memmap('results/river.npy', mode = 'r+', dtype = numpy.int16, shape = (x_shape * (y_shape - dupes), 3), offset = os )
-    z_f_memmap = numpy.memmap('results/prob_dist_RIVER.npy', mode = 'r+', dtype = numpy.float32, shape = (x_shape * (y_shape - dupes), 1), offset = os//3 * 2)
-    #mp_memmap = numpy.memmap('results/map.npy', mode = 'r+', dtype = numpy.ulonglong, shape = (x_shape * (y_shape - dupes), 1), offset = os//3 * 2)
+    z_memmap = numpy.memmap('../results/river.npy', mode = 'r+', dtype = numpy.int16, shape = (x_shape * (y_shape - dupes), 3), offset = os )
+    z_f_memmap = numpy.memmap('../results/prob_dist_RIVER.npy', mode = 'r+', dtype = numpy.float32, shape = (x_shape * (y_shape - dupes), 1), offset = os//3 * 2)
+    #mp_memmap = numpy.memmap('../results/map.npy', mode = 'r+', dtype = numpy.ulonglong, shape = (x_shape * (y_shape - dupes), 1), offset = os//3 * 2)
     
     cdef int16 [:, :] z_view = z_memmap
     cdef numpy.float32_t [:, :] z_f_view = z_f_memmap
@@ -912,9 +912,9 @@ cpdef prob_dist_fun(int16[:, :] x, int16[:, :] y, float32[:, :] dist, float32[:,
     
     # for each possible remaining card, we will store the subsequent index of the river cluster to which it responds.
     if turn:
-        prob_dist = numpy.memmap('results/prob_dist_TURN.npy', mode = 'r+', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), N_CARDS - T_CARDS - 2))[:] # 9 col
+        prob_dist = numpy.memmap('../results/prob_dist_TURN.npy', mode = 'r+', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), N_CARDS - T_CARDS - 2))[:] # 9 col
     else:
-        prob_dist = numpy.memmap('results/prob_dist_FLOP.npy', mode = 'r+', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), N_CARDS - T_CARDS - 2))[:] # 10 col -- both will need to change according to proper histogram schematics..
+        prob_dist = numpy.memmap('../results/prob_dist_FLOP.npy', mode = 'r+', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), N_CARDS - T_CARDS - 2))[:] # 10 col -- both will need to change according to proper histogram schematics..
     
     cdef float32[:, :] prob_dist_memview = prob_dist[:]
     cdef float32[:] prob_dist_sing_memview = numpy.empty(N_CARDS-T_CARDS-1, dtype = numpy.float32)[:]
@@ -961,7 +961,7 @@ cpdef prob_dist_fun(int16[:, :] x, int16[:, :] y, float32[:, :] dist, float32[:,
     '''
     for i in range(x.shape[0]):
         # load current portion of dataset to memory using the offset. 
-        # fluff_view[:, :] = numpy.memmap('results/fluffy.npy', mode = 'c', dtype = numpy.float32, shape = (y_shape_river[0], 1), offset = i * y_shape_river[0] * 8)[:]
+        # fluff_view[:, :] = numpy.memmap('../results/fluffy.npy', mode = 'c', dtype = numpy.float32, shape = (y_shape_river[0], 1), offset = i * y_shape_river[0] * 8)[:]
         t1=time.time()
         
         for j in range(y.shape[0]):
@@ -1029,8 +1029,8 @@ cpdef prob_dist_fun(int16[:, :] x, int16[:, :] y, float32[:, :] dist, float32[:,
 @cython.boundscheck(False) 
 @cython.wraparound(False)
 cpdef flop_ehs(n, k, threads, new_file=False):
-    adjcntrs = numpy.load('results/adjcntrs_TURN.npy', mmap_mode = 'c')
-    lbls = numpy.load('results/lbls_TURN.npy', mmap_mode = 'c')
+    adjcntrs = numpy.load('../results/adjcntrs_TURN.npy', mmap_mode = 'c')
+    lbls = numpy.load('../results/lbls_TURN.npy', mmap_mode = 'c')
     
     cdef numpy.ndarray[float32, ndim = 2] cntrs = adjcntrs
     cdef int[:] lbs = lbls
@@ -1047,7 +1047,7 @@ cpdef flop_ehs(n, k, threads, new_file=False):
 
 
 
-    cdef numpy.ndarray[float32, ndim=2] dist = numpy.memmap('results/prob_dist_TURN.npy', mode = 'c', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), n - k - 2))
+    cdef numpy.ndarray[float32, ndim=2] dist = numpy.memmap('../results/prob_dist_TURN.npy', mode = 'c', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), n - k - 2))
     
     cdef float32[:, :] dist_view = dist[:]
 
@@ -1058,7 +1058,7 @@ cpdef flop_ehs(n, k, threads, new_file=False):
 
 
     if(new_file):
-        flop_dist = numpy.memmap('results/prob_dist_FLOP.npy', mode = 'w+', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), n - k - 1))
+        flop_dist = numpy.memmap('../results/prob_dist_FLOP.npy', mode = 'w+', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), n - k - 1))
         flop_dist.flush()
 
     prob_dist_fun(x, y, dist_view, cntrs, lbs, dupes,  False, 0 * (y.shape[0]-dupes))
@@ -1068,8 +1068,8 @@ cpdef flop_ehs(n, k, threads, new_file=False):
 @cython.boundscheck(False) 
 @cython.wraparound(False)
 cpdef turn_ehs(n, k, threads, new_file=False):
-    adjcntrs = numpy.load('results/adjcntrs.npy', mmap_mode = 'c')
-    lbls = numpy.load('results/lbls.npy', mmap_mode = 'c')
+    adjcntrs = numpy.load('../results/adjcntrs.npy', mmap_mode = 'c')
+    lbls = numpy.load('../results/lbls.npy', mmap_mode = 'c')
 
     cdef float32[:, :] cntrs = adjcntrs
     cdef int[:] lbs = lbls
@@ -1082,7 +1082,7 @@ cpdef turn_ehs(n, k, threads, new_file=False):
     cdef unsigned long long one = 1
     cdef unsigned long long keyy
 
-    cdef numpy.ndarray[float32, ndim=2] dist = numpy.memmap('results/prob_dist_RIVER.npy', mode = 'c', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), 1))
+    cdef numpy.ndarray[float32, ndim=2] dist = numpy.memmap('../results/prob_dist_RIVER.npy', mode = 'c', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), 1))
 
     cdef float32[:, :] dist_view = dist[:]
 
@@ -1091,7 +1091,7 @@ cpdef turn_ehs(n, k, threads, new_file=False):
     dupes = num_dupes_turn(x, y)
 
     if(new_file):
-        prob_dist = numpy.memmap('results/prob_dist_TURN.npy', mode = 'w+', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), n - k - 2))
+        prob_dist = numpy.memmap('../results/prob_dist_TURN.npy', mode = 'w+', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), n - k - 2))
         
         prob_dist.flush()
 
@@ -1210,9 +1210,9 @@ def river_ehs(n, k, threads, new_file=False):
     
 
     if(new_file):
-        z = numpy.memmap('results/river.npy', mode = 'w+', dtype = numpy.int16, shape = ((y.shape[0] - dupes) * x.shape[0], 3))
-        z_f = numpy.memmap('results/prob_dist_RIVER.npy', mode = 'w+', dtype = numpy.float32, shape = ((y.shape[0] - dupes) * x.shape[0], 1))
-        #mp = numpy.memmap('results/map.npy', mode = 'w+', dtype = numpy.ulonglong, shape = ((y.shape[0] - dupes) * x.shape[0], 1))
+        z = numpy.memmap('../results/river.npy', mode = 'w+', dtype = numpy.int16, shape = ((y.shape[0] - dupes) * x.shape[0], 3))
+        z_f = numpy.memmap('../results/prob_dist_RIVER.npy', mode = 'w+', dtype = numpy.float32, shape = ((y.shape[0] - dupes) * x.shape[0], 1))
+        #mp = numpy.memmap('../results/map.npy', mode = 'w+', dtype = numpy.ulonglong, shape = ((y.shape[0] - dupes) * x.shape[0], 1))
             
         z.flush()
         z_f.flush()
