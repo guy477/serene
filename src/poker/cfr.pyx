@@ -94,7 +94,7 @@ cdef class CFRTrainer:
         
         return list(local_hand_strategy_aggregate)
 
-    def process_hand(self, hand, hand_mapping, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions):
+    def process_hand(self, hand, hand_mapping, game_state_global, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions):
         """
         Solve for the current player in the gamestate for the given hand.
         """
@@ -102,8 +102,11 @@ cdef class CFRTrainer:
         if calculated.get(hand_mapping[hand], False):
             return
         calculated[hand_mapping[hand]] = True
+
+        process = psutil.Process()
         
-        print(f'Current Hand: {hand}')
+        print(f'Current Hand: {hand} - ')
+        cdef GameState game_state = game_state_global.clone() 
         print(game_state)
         
 
@@ -196,7 +199,7 @@ cdef class CFRTrainer:
         # Dereference?
         # return game_state#.clone() 
 
-    def parallel_train(self, hands, hand_mapping, game_state, fast_forward_actions, mem_efficient=True, batch_size=1):#psutil.cpu_count(logical=True)
+    def parallel_train(self, hands, hand_mapping, game_state, fast_forward_actions, mem_efficient=True, batch_size=2):#psutil.cpu_count(logical=True)
         manager = Manager()
         train_regret = manager.dict()
         train_strategy = manager.dict()
@@ -208,7 +211,7 @@ cdef class CFRTrainer:
         print(game_state)
         def process_batch(batch_hands):
             hands = [(hand, hand_mapping, game_state, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions) for hand in batch_hands]
-            with Pool(processes = 1) as pool: #psutil.cpu_count(logical=True)
+            with Pool(processes = 2) as pool: #psutil.cpu_count(logical=True)
                 pool.starmap(
                     self.process_hand_wrapper, hands)
 
