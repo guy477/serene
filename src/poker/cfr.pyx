@@ -37,11 +37,18 @@ cdef class CFRTrainer:
         # Use external manager for regret_sum and strategy_sum
         # self.external_manager = external_manager or ExternalManager()
 
-    def parallel_train(self, hands, hand_mapping, fast_forward_actions, managed_objects, mem_efficient=True, batch_size=psutil.cpu_count(logical=True) * 4):
-        hand_strategy_aggregate, calculated, external_manager = managed_objects
+    def parallel_train(self, hands, hand_mapping, fast_forward_actions, external_manager, mem_efficient=False, batch_size=psutil.cpu_count(logical=True) * 4):
+
+        ### Managed Objects
+        manager = Manager()
+        train_regret = manager.dict()
+        train_strategy = manager.dict()
+        hand_strategy_aggregate = manager.list()
+        calculated = manager.dict()
+
 
         def process_batch(batch_hands):
-            hands = [(hand, hand_mapping, hand_strategy_aggregate, calculated, fast_forward_actions, external_manager) for hand in batch_hands]
+            hands = [(hand, hand_mapping, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions, external_manager) for hand in batch_hands]
             with Pool(processes=psutil.cpu_count(logical=True)) as pool:
                 try:
                     pool.starmap(self.process_hand_wrapper, hands)
@@ -51,21 +58,29 @@ cdef class CFRTrainer:
 
         num_batches = (len(hands) + batch_size - 1) // batch_size
 
-        for i in range(num_batches):
+        for i in tqdm(range(num_batches)):
             start_index = i * batch_size
             end_index = min(start_index + batch_size, len(hands))
             batch_hands = hands[start_index:end_index]
 
             process_batch(batch_hands)
 
-            if mem_efficient:
-                gc.collect()
+            if not mem_efficient:
+                # Migrate local solutions to global solutions
+                external_manager.get_regret_sum().update(dict(train_regret))
+                external_manager.get_strategy_sum().update(dict(train_strategy))
+                external_manager.save('../dat/pickles/regret_sum.pkl', '../dat/pickles/strategy_sum.pkl')
+                
+            # Clear local solutions for next run
+            train_regret.clear()
+            train_strategy.clear()
+            gc.collect()
 
-        return hand_strategy_aggregate
+        return external_manager, hand_strategy_aggregate
 
 
-    def process_hand_wrapper(self, hand, hand_mapping, hand_strategy_aggregate, calculated, fast_forward_actions, external_manager):
-        self.process_hand(hand, hand_mapping, hand_strategy_aggregate, calculated, fast_forward_actions, external_manager)
+    def process_hand_wrapper(self, hand, hand_mapping, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions, external_manager):
+        self.process_hand(hand, hand_mapping, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions, external_manager)
 
 
     cpdef train(self, list positions_to_solve = []):
@@ -100,38 +115,39 @@ cdef class CFRTrainer:
             hands_reduced.append(hand)
 
 
-        ### Managed Objects
-        manager = Manager()
-        hand_strategy_aggregate = manager.list()
-        calculated = manager.dict()
-        external_manager = ExternalManager({}, {})
-
-        managed_objects = (hand_strategy_aggregate, calculated, external_manager)
+        ## TODO: Figure out how to use manager.dict() with ExternalManager
+        external_manager = ExternalManager('../dat/pickles/regret_sum.pkl', '../dat/pickles/strategy_sum.pkl')
 
         local_hand_strategy_aggregate = []
 
         for fast_forward_actions in positions_to_solve:
-            hand_strategy_aggregate = self.parallel_train(hands_reduced, hand_mapping, fast_forward_actions, managed_objects)
+            external_manager, hand_strategy_aggregate = self.parallel_train(hands_reduced, hand_mapping, fast_forward_actions, external_manager)
 
+            # external_manager.merge_dicts(external_manager.get_regret_sum(), train_regret)
+            # external_manager.merge_dicts(external_manager.get_strategy_sum(), train_strategy)
             local_hand_strategy_aggregate.extend(hand_strategy_aggregate)
 
-        external_manager.save('../dat/pickles/regret_sum.pkl', '../dat/pickles/strategy_sum.pkl')
+            external_manager.save('../dat/pickles/regret_sum.pkl', '../dat/pickles/strategy_sum.pkl')
 
         print(f'Time taken: {time.time() - FUNCTION_START_TIME}')
 
         return list(local_hand_strategy_aggregate)
 
 
-    def process_hand(self, hand, hand_mapping, hand_strategy_aggregate, calculated, fast_forward_actions, external_manager):
+    def process_hand(self, hand, hand_mapping, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions, external_manager):
         if calculated.get(hand_mapping[hand], False):
             return
         calculated[hand_mapping[hand]] = True
 
-        print(id(external_manager))
-        
-        print(f'Current Hand: {hand} - ')
         cdef GameState game_state = GameState([Player(self.initial_chips, self.bet_sizing, False) for _ in range(self.num_players)], self.small_blind, self.big_blind, self.num_simulations, True, self.suits, self.values) 
 
+        # Fastforward to current node for debug purposes.
+        self.fast_forward_gamestate(hand, game_state, fast_forward_actions, external_manager)
+        print(f'({game_state.get_current_player().position}) --- {hand}')
+        print(f'Current Regret Complexity: {len(external_manager.get_regret_sum())}')
+        print(f'Current Strategy Complexity: {len(external_manager.get_strategy_sum())}')
+        
+        
         probs = np.ones(self.num_players, dtype=np.float64)
 
         for iter_num in tqdm(range(self.iterations)):
@@ -142,8 +158,6 @@ cdef class CFRTrainer:
 
             self.cfr_traverse(game_state, probs, 0, self.cfr_depth, epsilon, external_manager)
 
-            external_manager.get_strategy_sum().prune()
-            external_manager.get_regret_sum().prune()
 
         player = game_state.get_current_player()
         strategy = self.get_average_strategy(player, game_state, external_manager)
@@ -151,20 +165,28 @@ cdef class CFRTrainer:
         print(player_hash)
         print(f"Regret sum: {external_manager.get_regret_sum()[player_hash]}")
         print(f"Strategy sum: {external_manager.get_strategy_sum()[player_hash]}")
-        print(f"External Manager: {external_manager.get_regret_sum()}")
         print(f"Average strategy for hand {hand_mapping[hand]}: {strategy}")
 
+        ### Prune local regret and strategy sums to save memory at the global level.
+        external_manager.get_regret_sum().prune()
+        external_manager.get_strategy_sum().prune()
+
+        ### Merge Local Results with Global Results
+        dynamic_merge_dicts(external_manager, train_regret)
+        dynamic_merge_dicts(external_manager, train_strategy)
+
         hand_strategy_aggregate.append((player.position, fast_forward_actions, hand_mapping[hand], strategy))
-        
+
 
     cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions, ExternalManager external_manager):
+        ### NOTE: This function is used to walk a gamestate to a possible point in the current GTO gametree.
         game_state.setup_preflop(hand)
         for action in fast_forward_actions:
             strategy = self.get_average_strategy(game_state.get_current_player(), game_state, external_manager)
 
             player_hash = game_state.get_current_player().hash(game_state)
 
-            if strategy[action] < .10 or player_hash not in self.external_manager.get_strategy_sum():
+            if strategy[action] < .10 or player_hash not in external_manager.get_strategy_sum():
                 self.fast_forward_gamestate(hand, game_state, fast_forward_actions, external_manager)
                 break
 

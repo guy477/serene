@@ -42,12 +42,11 @@ def _6_max_opening():
     BB_SB_DEF = [('fold', 0), ('fold', 0), ('fold', 0), ('fold', 0), ('raise', 1.5)]  # Assuming UTG, MP, CO, and BTN have folded, SB has raised
 
     positions_to_solve = [
-        UTG_OPEN, 
-        UTG_OPEN, 
-        # MP_OPEN, 
-        # CO_OPEN,  
-        # BTN_OPEN, 
-        # SB_OPEN, 
+        UTG_OPEN,
+        MP_OPEN, 
+        CO_OPEN,  
+        BTN_OPEN, 
+        SB_OPEN, 
         # MP_DEF,  
         # CO_UTG_DEF,
         # CO_MP_DEF, 
@@ -102,7 +101,7 @@ def main():
     
     # bet_sizing = [(1.5, ), (), (), ()]
 
-    bet_sizing = [(1.5, 2.0), (), (), ()]
+    bet_sizing = [(1.5, 2.0), (.5, 1), (), ()]
 
     # bet_sizing = [(1.5, ), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
 
@@ -124,19 +123,19 @@ def main():
 
     # Specify the number of times to iteratate over `positions_to_solve`.
     ## Fun Fact: This is one way to construct a blueprint strategy.
-    num_smoothing_iterations = 1
+    num_smoothing_iterations = 2
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 50
+    num_cfr_iterations = 10
     realtime_cfr_iterations = 200
-    cfr_depth = 2
+    cfr_depth = 1
     cfr_realtime_depth = 6
     
     # Depth at which to start Monte Carlo Simulation.
     monte_carlo_depth = 9999
 
     # Depth at which to start pruning regret and strategy sums.
-    prune_depth = 9999
+    prune_depth = 3
     # Chance-probability at which to start declaring a node "terminal"
     prune_probability = 1e-8
 

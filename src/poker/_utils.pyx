@@ -17,9 +17,8 @@ import hashlib
 
 
 cdef class ExternalManager:
-    def __init__(self, shared_dict_1, shared_dict_2):
-        self.regret_sum = HashTable(shared_dict_1)
-        self.strategy_sum = HashTable(shared_dict_2)
+    def __init__(self, pkl_path_regret = 'regret_sum.pkl', pkl_path_strategy = 'strategy_sum.pkl'):
+        self.load(pkl_path_regret, pkl_path_strategy)
     
     def get_regret_sum(self):
         return self.regret_sum
@@ -38,18 +37,28 @@ cdef class ExternalManager:
             hash_table.set(key, value)
 
     def save(self, regret_sum_path, strategy_sum_path):
+        print(f"Saving regret sum to {regret_sum_path} and strategy sum to {strategy_sum_path}")
         with open(regret_sum_path, 'wb') as f:
-            pickle.dump(self.regret_sum, f)
+            pickle.dump(self.regret_sum.table, f)
 
         with open(strategy_sum_path, 'wb') as f:
-            pickle.dump(self.strategy_sum, f)
+            pickle.dump(self.strategy_sum.table, f)
     
     def load(self, regret_sum_path, strategy_sum_path):
-        with open(regret_sum_path, 'rb') as f:
-            self.regret_sum = pickle.load(f)
+        print(f"Loading regret sum from {regret_sum_path} and strategy sum from {strategy_sum_path}")
+        try:
+            with open(regret_sum_path, 'rb') as f:
+                self.regret_sum = HashTable(pickle.load(f))
+        except Exception as e:
+            print(f"Error loading regret sum: {e}")
+            self.regret_sum = HashTable({})
 
-        with open(strategy_sum_path, 'rb') as f:
-            self.strategy_sum = pickle.load(f)
+        try:
+            with open(strategy_sum_path, 'rb') as f:
+                self.strategy_sum = HashTable(pickle.load(f))
+        except Exception as e:
+            print(f"Error loading regret sum: {e}")
+            self.strategy_sum = HashTable({})
 
 # Define the hashing function
 cdef bytes hash_key_sha256(str key):
@@ -127,6 +136,25 @@ cdef class HashTable:
         for key in keys_to_prune:
             del self.table[key]
 
+cpdef dynamic_merge_dicts(external_manager, train_regret):
+    regret_sum_table = external_manager.get_regret_sum()
+    
+    for key, (inner_dict, to_prune) in regret_sum_table.items():
+        if key in train_regret:
+            existing_inner_dict, existing_to_prune = train_regret[key]
+            
+            # Merge the internal dictionaries by averaging
+            for inner_key, inner_value in inner_dict.items():
+                if inner_key in existing_inner_dict:
+                    existing_inner_dict[inner_key] = (existing_inner_dict[inner_key] + inner_value) / 2.0
+                else:
+                    existing_inner_dict[inner_key] = inner_value
+            
+            # Update the prune flag if necessary
+            train_regret[key] = (existing_inner_dict, to_prune or existing_to_prune)
+        else:
+            # If key does not exist, simply add the new entry
+            train_regret[key] = (inner_dict, to_prune)
 
 cdef class Deck:
 

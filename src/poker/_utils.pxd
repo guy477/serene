@@ -25,12 +25,12 @@ cpdef list build_fast_forward_actions(list betting_history)
 
 cdef class HashTable:
     cdef public object table
-    cdef object lock
-    cdef object manager
 
 cdef class ExternalManager:
     cdef public HashTable regret_sum
     cdef public HashTable strategy_sum
+
+cpdef dynamic_merge_dicts(external_manager, train_regret)
 
 cdef class Deck:
     cdef list suits
