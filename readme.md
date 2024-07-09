@@ -41,10 +41,18 @@ This repository contains a long-running personal project of mine that explores T
 ```* = WIP```
 
 ## Things to do (maybe)
-- Adjust pruning logic to feed back to the global regret and strategy sums. i.e. dont just copy the root node's sums.
-- Formalize preflop blueprint construction process
-- Implement postflop abstractions
-- More to come...
+- [ ] Build out External Manager
+    - [ ] Load/Save blueprint based on action space
+    - [ ] Perform gamestate abstraction based on the player hash.
+- [ ] Formalize preflop blueprint construction process
+    - [x] Adjust pruning logic to feed back to the global regret and strategy sums. i.e. dont just copy the root node's sums.
+        - Pruning is turning into the blueprint strategy. i.e. Prune depth == Blueprint strategy depth.
+        - Blueprints, or strategies, can be chunked and loaded dynamically through the ExternalManager. Even abstraction can be handled here.
+- [ ] Environment to play the AI
+    - [x] Barebones
+    - [ ] Leverage interactive environment to build test framework
+- [ ] Implement postflop abstractions
+- [ ] More to come...
 
 ## Example
 

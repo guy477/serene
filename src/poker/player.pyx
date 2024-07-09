@@ -29,6 +29,7 @@ cdef class Player:
     cpdef bint get_action(self, GameState game_state):
         cdef str user_input
         cdef float raise_amount
+        cdef object action
         cdef bint valid = 0
         cdef bint raize = 0
         
@@ -37,7 +38,7 @@ cdef class Player:
                 user_input = self.get_user_input("Enter action (call, raise, all-in, fold): ")
                 
                 if user_input == "call":
-                    self.take_action(game_state, ("call", 0))
+                    action = game_state, ("call", 0)
                     valid = 1
                 elif user_input == "raise":
                     user_input = self.get_user_input("Enter sizing: " + str(self.bet_sizing[game_state.cur_round_index]) + " : ")
@@ -46,21 +47,20 @@ cdef class Player:
                     except Exception as e:
                         print(str(e))
                         continue
-                    self.take_action(game_state, ("raise", raise_amount))
-                    raize = 1
+                    action = ("raise", raise_amount)
                     valid = 1
                 elif user_input == "all-in":
-                    self.take_action(game_state, ("all-in", 0))
-                    raize = 1
+                    action = ("all-in", 0)
                     valid = 1
                 elif user_input == "fold":
-                    self.take_action(game_state, ("fold", 0))
+                    action = ("fold", 0)
                     valid = 1
                 else:
-                    print("Invalid input. Please enter call, raise, or fold.")
+                    print("Invalid input.")
             else:
                 valid = 1
-        return raize
+        
+        return action
 
     cpdef bint take_action(self, GameState game_state, object action):
         cdef int call_amount
@@ -69,6 +69,9 @@ cdef class Player:
         # We want the current betting history to have the player's position as well.
         # This can probably be restricted to the first round if complexity in future states becomes too much of an issue.
         game_state.betting_history[game_state.cur_round_index].append((self.position, action))
+
+        if self.folded:
+            return 0
 
         if action[0] == "call":
             call_amount = game_state.current_bet - self.contributed_to_pot
@@ -81,15 +84,19 @@ cdef class Player:
             self.tot_contributed_to_pot += call_amount
 
         elif action[0] == "raise" or action[0] == "all-in":
+
             if action[0] == "raise":
                 bet_amount = int((action[1]) * (game_state.pot))
-                raize = True
+                
             else:
                 bet_amount = self.chips
 
             if bet_amount < game_state.current_bet:
                 if bet_amount != self.chips:
+                    game_state.debug_output()
                     raise ValueError("Raise amount must be at least equal to the current bet or an all-in.")
+            else:
+                raize = True
 
             if bet_amount > self.chips:
                 bet_amount = self.chips
@@ -167,7 +174,8 @@ cdef class Player:
             ## Add raises that dont put us all in
             for i in self.bet_sizing[cur_round_index]:
                 raise_amount = int(pot * i)
-                if chips >= (current_bet + raise_amount) and raise_amount > current_bet and chips > raise_amount:
+                # If we have enough chips to raise, the suggested raise is strictly larger than the current gamestate bet + our current contribution to the pot.
+                if chips > raise_amount and (raise_amount > (current_bet + self.contributed_to_pot)):
                     # Represent the raise as a proportion rather than the actual amount.
                     ret.append(('raise', i))
         else:
@@ -178,9 +186,9 @@ cdef class Player:
         if game_state.cur_round_index == 0:
             ## if no one has acted, or everyone has folded, we can't call. AKA NO LIMPING ALLOWED
             if (len(game_state.betting_history[0]) == 2 or all([('fold', 0) == x[1] for x in game_state.betting_history[0][2:]])):
-               ret.remove(('call', 0))    # Prevent Limping
-               ret.remove(('raise', 2.0)) # Prevent over raising (for now)
-               return ret
+                ret.remove(('call', 0))    # Prevent Limping
+                ret.remove(('raise', 2.0)) # Prevent over raising (for now)
+                return ret
             
             ## otherwise, it's the first round and someone's made a bet
             else:
@@ -230,5 +238,12 @@ cdef class Player:
     cpdef str hash(self, GameState game_state):
         ### NOTE we want to get abstracted hands here
         ### NOTE NOTE this hsh is further hashed in the HashTable object. If you're worried about collisions, consider disable hashing (_utils.pyx => HashTable()) to debug.
-        hsh = str((self.abstracted_hand, self.position, game_state.pot//200, tuple(self.get_available_actions(game_state)), str(game_state.betting_history[0])))
+
+        ### NOTE/TODO: Add "player type" that can be referenced in ExternalManager to give a unique regret/strategy for the unique player type.
+        if game_state.cur_round_index == 0:
+            ## TODO; Update standardize hash methodology (return object of all pertinent information then offload to External Manager?)
+            hsh = str((self.abstracted_hand, self.position, game_state.pot//200, tuple(self.get_available_actions(game_state)), str(game_state.betting_history[0])))
+        else:
+            hsh = str((self.abstracted_hand, self.position, game_state.pot, tuple(self.get_available_actions(game_state)), str(game_state.betting_history)))
+
         return hsh

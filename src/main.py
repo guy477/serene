@@ -47,21 +47,21 @@ def _6_max_opening():
         CO_OPEN,  
         BTN_OPEN, 
         SB_OPEN, 
-        # MP_DEF,  
-        # CO_UTG_DEF,
-        # CO_MP_DEF, 
-        # BTN_UTG_DEF, 
-        # BTN_MP_DEF, 
-        # BTN_CO_DEF, 
-        # SB_UTG_DEF, 
-        # SB_MP_DEF, 
-        # SB_CO_DEF,
-        # SB_BTN_DEF,
-        # BB_DEF,
-        # BB_MP_DEF,
-        # BB_CO_DEF,
-        # BB_BTN_DEF,
-        # BB_SB_DEF,
+        MP_DEF,  
+        CO_UTG_DEF,
+        CO_MP_DEF, 
+        BTN_UTG_DEF, 
+        BTN_MP_DEF, 
+        BTN_CO_DEF, 
+        SB_UTG_DEF, 
+        SB_MP_DEF, 
+        SB_CO_DEF,
+        SB_BTN_DEF,
+        BB_DEF,
+        BB_MP_DEF,
+        BB_CO_DEF,
+        BB_BTN_DEF,
+        BB_SB_DEF,
     ]
 
     position_names = [
@@ -92,16 +92,15 @@ def _6_max_opening():
     return positions_to_solve, positions_dict
 
 
-def main():
+def train():
     num_players = 6
-    num_ai_players = 5
 
     # pot relative bet-sizings for preflop, flop, turn, and river
     # bet_sizing = [(1.5, 5), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
     
     # bet_sizing = [(1.5, ), (), (), ()]
 
-    bet_sizing = [(1.5, 2.0), (.5, 1), (), ()]
+    bet_sizing = [(1.5, 2.0,), (.5, 1,), (), ()]
 
     # bet_sizing = [(1.5, ), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
 
@@ -123,32 +122,64 @@ def main():
 
     # Specify the number of times to iteratate over `positions_to_solve`.
     ## Fun Fact: This is one way to construct a blueprint strategy.
-    num_smoothing_iterations = 2
+    num_smoothing_iterations = 3
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 10
-    realtime_cfr_iterations = 200
-    cfr_depth = 1
-    cfr_realtime_depth = 6
+    num_cfr_iterations = 2500
+    cfr_depth = 6
     
     # Depth at which to start Monte Carlo Simulation.
     monte_carlo_depth = 9999
 
     # Depth at which to start pruning regret and strategy sums.
-    prune_depth = 3
+    prune_depth = 4
     # Chance-probability at which to start declaring a node "terminal"
     prune_probability = 1e-8
 
     # Train the AI player using the CFR algorithm
-    cfr_trainer = CFRTrainer(num_cfr_iterations, realtime_cfr_iterations, num_showdown_simulations, cfr_depth, cfr_realtime_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
-    strategy_list = cfr_trainer.train(positions_to_solve * num_smoothing_iterations)
+    cfr_trainer = CFRTrainer(num_cfr_iterations, num_showdown_simulations, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
+    strategy_list, _external_manager = cfr_trainer.train(positions_to_solve * num_smoothing_iterations, save_pickle = False) # TODO add pickle paths to regret/strat solves.
     plot_hands(strategy_list, SUITS, VALUES, positions_dict)
 
 
-    # num_hands = 5
-    # game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer, SUITS, VALUES)
+def play():
+    num_players = 6
+    num_ai_players = 6
+
+    # pot relative bet-sizings for preflop, flop, turn, and river
+    bet_sizing = [(1.5, 2.0,), (.5, 1,), (.40, .82, 1.2,), (.75, 1.2, 2,)]
+
+    # set the deck (if you use a restricted deck, the evaluation will incorrectly evaluate against a full deck)
+    SUITS = ['C', 'D', 'H', 'S']
+    VALUES = [ '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
+
+    # 100 big blinds
+    initial_chips = 1000
+    small_blind = 5
+    big_blind = 10
+
+    # **Number of iterations to run the CFR algorithm**
+    num_cfr_iterations = 1000
+    cfr_depth = 6
+    
+    # Depth at which to start Monte Carlo Simulation.
+    monte_carlo_depth = 9999
+
+    # Depth at which to start pruning regret and strategy sums.
+    prune_depth = 5
+    # Chance-probability at which to start declaring a node "terminal"
+    prune_probability = 1e-8
+
+    
+    # The cfr_trainer will handle blueprint strategy management. Strategies are saved to disk, so we can just define a new CFR trainer
+    # For an AI player who will play in realtime.
+    cfr_trainer = CFRTrainer(num_cfr_iterations, 1, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
+
+
+    num_hands = 100
+    game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer, SUITS, VALUES)
     # # Play the game
-    # game.play_game(num_hands)
+    game.play_game(num_hands)
     print('\n\n')
 
 def cluster():
@@ -476,4 +507,5 @@ def plot_hands(strategy_list, suits=None, ranks=None, positions_dict={}):
     
 if __name__ == "__main__":
     # cluster()
-    main()
+    # train()
+    play()

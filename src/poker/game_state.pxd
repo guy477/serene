@@ -12,7 +12,7 @@ cdef class GameState:
     cdef list positions
     cdef list[Player] players
 
-    cdef int cur_round_index
+    cdef public int cur_round_index
 
     cdef int small_blind
     cdef int big_blind
@@ -28,12 +28,12 @@ cdef class GameState:
     cdef int current_bet
 
     cdef int winner_index
-    cdef int pot
+    cdef public int pot
     
-    cdef unsigned long long board
+    cdef public unsigned long long board
     cdef public Deck deck
 
-    cdef list betting_history
+    cdef public list betting_history
 
 
 
@@ -49,7 +49,7 @@ cdef class GameState:
 
     cpdef void setup_postflop(self, str round_name)
 
-    cpdef bint handle_action(self, object action = *, object strategy_trainer = *)
+    cdef bint handle_action(self, object action)
 
     cpdef bint step(self, action)
 
@@ -59,9 +59,9 @@ cdef class GameState:
 ###### Utility
 
     cdef void progress_to_showdown(self)
-    cdef bint is_terminal(self)
-    cdef bint is_terminal_river(self)
-    cdef Player get_current_player(self)
+    cpdef bint is_terminal(self)
+    cpdef bint is_terminal_river(self)
+    cpdef Player get_current_player(self)
     cdef list generate_positions(self, int num_players)
     cdef int active_players(self)
     cdef int folded_players(self)
@@ -73,7 +73,6 @@ cdef class GameState:
 
     ### CFR
     cdef void update_current_hand(self, object hand)  
-    cdef str abstract_hand(self, unsigned long long card1, unsigned long long card2)
     
     ### self
     cdef void reset(self)

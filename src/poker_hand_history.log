@@ -1,0 +1,45 @@
+Hand #0 - Holdem (No Limit) - 2024/07/08 19:25:12 UTC
+Firestone 6-max Seat #1 is the button
+Seat 1: D ($4000.00)
+Seat 2: SB ($0.00)
+Seat 3: BB ($0.00)
+Seat 4: UTG ($1000.00)
+Seat 5: MP ($0.00)
+Seat 6: CO ($1000.00)
+SB posts the small blind $5.00
+BB posts the big blind $10.00
+*** HOLE CARDS ***
+Dealt to D [KC AH]
+Dealt to SB [2H KH]
+Dealt to BB [5H 6H]
+Dealt to MP [JH QS]
+*** PRE-FLOP ***
+('SB', ('blinds', 5))
+('BB', ('blinds', 10))
+('UTG', ('fold', 0))
+('MP', ('raise', 1.5))
+('CO', ('fold', 0))
+('D', ('raise', 2.0))
+('SB', ('call', 0))
+('BB', ('raise', 2.0))
+('UTG', ('call', 0))
+('MP', ('call', 0))
+('CO', ('call', 0))
+('D', ('all-in', 0))
+('SB', ('all-in', 0))
+('BB', ('all-in', 0))
+('UTG', ('call', 0))
+('MP', ('all-in', 0))
+Board 5C 8C 3D AD TS
+*** SHOW DOWN ***
+D shows [KC AH] (player.hand_description())
+SB shows [2H KH] (player.hand_description())
+BB shows [5H 6H] (player.hand_description())
+MP shows [JH QS] (player.hand_description())
+*** SUMMARY ***
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()

@@ -68,6 +68,7 @@ cdef class GameState:
         self.hand_id = 0
         self.deck = Deck(self.suits, self.values)  # Initialize the Deck object
         self.positions = self.generate_positions(len(self.players))
+        self.betting_history = [[], [], [], []]
         self.assign_positions()
         self.reset()
 
@@ -119,7 +120,7 @@ cdef class GameState:
                 card2 = self.deck.pop()
                 player.add_card(card1)
                 player.add_card(card2)
-                player.abstracted_hand = self.abstract_hand(card1, card2)
+                player.abstracted_hand = abstract_hand(card1, card2)
             else:
                 player.folded = True
 
@@ -144,21 +145,18 @@ cdef class GameState:
         self.last_raiser = -1
         self.num_actions = 0
 
-    cpdef bint handle_action(self, object action=None, object strategy_trainer = None):
+    cdef bint handle_action(self, object action):
         if self.is_terminal() or self.is_terminal_river():
             return True
 
-        if self.get_current_player().folded or self.get_current_player().chips == 0:
-            self.player_index = (self.player_index + 1) % len(self.players)
-            return self.is_terminal()
+        # if self.get_current_player().folded or self.get_current_player().chips == 0:
 
-        if action:
-            if self.get_current_player().take_action(self, action):
-                self.last_raiser = self.player_index
-        else:
-            ## TODO: Update "get_action" to take a CFR Trainer... if possible.
-            if self.get_current_player().get_action(self):
-                self.last_raiser = self.player_index
+        #     self.player_index = (self.player_index + 1) % len(self.players)
+        #     return self.is_terminal()
+
+
+        if self.get_current_player().take_action(self, action):
+            self.last_raiser = self.player_index
 
         self.num_actions += 1
         self.player_index = (self.player_index + 1) % len(self.players)
@@ -173,7 +171,7 @@ cdef class GameState:
         if self.handle_action(action):
             if self.num_board_cards() == 0:
                 self.setup_postflop('flop')
-            else:
+            elif self.cur_round_index < 4:
                 self.setup_postflop('postflop')
 
             return True
@@ -245,7 +243,8 @@ cdef class GameState:
 #############################################
 
     cdef void progress_to_showdown(self):
-        
+        self.cur_round_index = 4
+
         ## Progress to a terminal state
         # Case: progress_to_showdown called during CFR Training at a depth limit - with the prior action being a raise.
         # TLDR: Get showdown utility to a true terminal state.
@@ -258,23 +257,23 @@ cdef class GameState:
         while self.num_board_cards() < 5:
             self.draw_card()
 
-        self.cur_round_index = 4
+        
         self.showdown()
 
-    cdef bint is_terminal(self):
-        if ((self.num_actions >= self.round_active_players and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or
-            self.active_players() == 1 or self.allin_players() == self.active_players()):
+    cpdef bint is_terminal(self):
+        if (((self.num_actions >= self.round_active_players) and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or
+            (self.active_players() == 1 or self.allin_players() == self.active_players())):
             return True
         return False
 
-    cdef bint is_terminal_river(self):
+    cpdef bint is_terminal_river(self):
         if (self.cur_round_index >= 4 or
             (self.board_has_five_cards() and self.is_terminal()) or
             self.active_players() == 1 or self.allin_players() == self.active_players()):
             return True
         return False
 
-    cdef Player get_current_player(self):
+    cpdef Player get_current_player(self):
         return self.players[self.player_index]
 
     cdef int allin_players(self):
@@ -347,26 +346,7 @@ cdef class GameState:
         # Update the player's hand with new hand
         self.get_current_player().add_card(card1)
         self.get_current_player().add_card(card2)
-        self.get_current_player().abstracted_hand = self.abstract_hand(card1, card2)
-
-
-
-    cdef str abstract_hand(self, unsigned long long card1, unsigned long long card2):
-        cdef str card1_str = int_to_card(card1)
-        cdef str card2_str = int_to_card(card2)
-
-        # Temporary variables for the card values
-        cdef str card1_val = card1_str[0]
-        cdef str card2_val = card2_str[0]
-
-        # Now use the temporary variables in your comparison
-        cdef str high_card = card1_val if VALUES_INDEX[card1_val] > VALUES_INDEX[card2_val] else card2_val
-        cdef str low_card = card1_val if VALUES_INDEX[card1_val] < VALUES_INDEX[card2_val] else card2_val
-        cdef str suited = 's' if card1_str[1] == card2_str[1] else 'o'
-        
-        return high_card + low_card + suited
-
-
+        self.get_current_player().abstracted_hand = abstract_hand(card1, card2)
 
 
     cdef void reset(self):
@@ -380,7 +360,10 @@ cdef class GameState:
         self.winner_index = -1
         self.pot = 0
         self.board = 0
-        self.betting_history = [[], [], [], []]
+        self.betting_history[0] = []
+        self.betting_history[1] = []
+        self.betting_history[2] = []
+        self.betting_history[3] = []
         self.deck.reset()
         for i in range(len(self.players)):
             self.players[i].reset()
@@ -407,7 +390,10 @@ cdef class GameState:
         ## With a loose interpretation of "change node"... this will makes every node very chance-ie!
         # new_state.deck.fisher_yates_shuffle()
         
-        new_state.betting_history = [sublist[:] for sublist in self.betting_history]
+        new_state.betting_history[0][:] = self.betting_history[0]
+        new_state.betting_history[1][:] = self.betting_history[1]
+        new_state.betting_history[2][:] = self.betting_history[2]
+        new_state.betting_history[3][:] = self.betting_history[3]
         new_state.round_active_players = self.round_active_players
         new_state.winner_index = self.winner_index
         new_state.hand_id = self.hand_id

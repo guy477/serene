@@ -9,9 +9,7 @@ cdef class CFRTrainer:
     cdef list suits
     cdef list values
     cdef int iterations
-    cdef int realtime_iterations
     cdef int cfr_depth
-    cdef int cfr_realtime_depth
 
     cdef int num_simulations
 
@@ -29,7 +27,7 @@ cdef class CFRTrainer:
     
     cdef progress_gamestate_to_showdown(self, GameState game_state, float epsilon = *)
 
-    cpdef train(self, list positions_to_solve = *)
+    cpdef train(self, list positions_to_solve = *, list hands = *, bint save_pickle=*, bint mem_efficient=*)
 
     cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions, ExternalManager external_manager)
 
@@ -39,4 +37,4 @@ cdef class CFRTrainer:
     
     cdef dict get_strategy(self, list available_actions, double[:] probs, GameState game_state, Player player, bint get_strategy, ExternalManager external_manager)
     
-    cdef dict get_average_strategy(self, Player player, GameState game_state, ExternalManager external_manager)
+    cpdef dict get_average_strategy(self, Player player, GameState game_state, ExternalManager external_manager)

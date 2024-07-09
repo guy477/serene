@@ -1,6 +1,6 @@
 import pickle
+import random
 from collections import defaultdict
-from multiprocessing import Manager
 
 cdef public list SUITS = ['C', 'D', 'H', 'S']
 cdef public list VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
@@ -39,10 +39,10 @@ cdef class ExternalManager:
     def save(self, regret_sum_path, strategy_sum_path):
         print(f"Saving regret sum to {regret_sum_path} and strategy sum to {strategy_sum_path}")
         with open(regret_sum_path, 'wb') as f:
-            pickle.dump(self.regret_sum.table, f)
+            pickle.dump(convert_defaultdict(self.regret_sum.table), f)
 
         with open(strategy_sum_path, 'wb') as f:
-            pickle.dump(self.strategy_sum.table, f)
+            pickle.dump(convert_defaultdict(self.strategy_sum.table), f)
     
     def load(self, regret_sum_path, strategy_sum_path):
         print(f"Loading regret sum from {regret_sum_path} and strategy sum from {strategy_sum_path}")
@@ -59,6 +59,24 @@ cdef class ExternalManager:
         except Exception as e:
             print(f"Error loading regret sum: {e}")
             self.strategy_sum = HashTable({})
+
+# Make the defaultdict environment agnostic
+def convert_defaultdict(d):
+    if isinstance(d, defaultdict):
+        # Check if the defaultdict uses a bound method `default_double` and replace it with float
+        if d.default_factory and d.default_factory.__name__ == 'default_double':
+            new_d = defaultdict(float, {k: convert_defaultdict(v) for k, v in d.items()})
+        else:
+            new_d = defaultdict(d.default_factory, {k: convert_defaultdict(v) for k, v in d.items()})
+        return new_d
+    elif isinstance(d, dict):
+        # Recursively convert each value in the dict
+        return {k: convert_defaultdict(v) for k, v in d.items()}
+    elif isinstance(d, tuple):
+        # Recursively convert each item in the tuple
+        return tuple(convert_defaultdict(v) for v in d)
+    else:
+        return d
 
 # Define the hashing function
 cdef bytes hash_key_sha256(str key):
@@ -136,10 +154,10 @@ cdef class HashTable:
         for key in keys_to_prune:
             del self.table[key]
 
-cpdef dynamic_merge_dicts(external_manager, train_regret):
-    regret_sum_table = external_manager.get_regret_sum()
+cpdef dynamic_merge_dicts(external_manager_table, train_regret):
     
-    for key, (inner_dict, to_prune) in regret_sum_table.items():
+    
+    for key, (inner_dict, to_prune) in external_manager_table.items():
         if key in train_regret:
             existing_inner_dict, existing_to_prune = train_regret[key]
             
@@ -212,6 +230,28 @@ cpdef list build_fast_forward_actions(list betting_history):
     # Sort of confusing function.. hence why it's a utility.
     return [pos_w_action[1] for pos_w_action in fast_forward_actions]
 
+
+cdef str abstract_hand(unsigned long long card1, unsigned long long card2):
+    cdef str card1_str = int_to_card(card1)
+    cdef str card2_str = int_to_card(card2)
+
+    # Temporary variables for the card values
+    cdef str card1_val = card1_str[0]
+    cdef str card2_val = card2_str[0]
+
+    # Now use the temporary variables in your comparison
+    cdef str high_card = card1_val if VALUES_INDEX[card1_val] > VALUES_INDEX[card2_val] else card2_val
+    cdef str low_card = card1_val if VALUES_INDEX[card1_val] < VALUES_INDEX[card2_val] else card2_val
+    cdef str suited = 's' if card1_str[1] == card2_str[1] else 'o'
+    
+    return high_card + low_card + suited
+
+cpdef object select_action(average_strategy):
+    actions = list(average_strategy.keys())
+    probabilities = list(average_strategy.values())
+    selected_action = random.choices(actions, probabilities)[0]
+    return selected_action
+
 cdef unsigned long long card_to_int(str suit, str value):
     cdef unsigned long long one = 1
     cdef int suit_index = SUITS_INDEX[suit]
@@ -246,10 +286,13 @@ cdef str format_hand(unsigned long long hand):
 
 cdef display_game_state(object game_state, int player_index):
     print(f"______________________________________________________________________________")
-    print(f"({game_state.players[player_index].position})Player {player_index + 1}: {format_hand(game_state.players[player_index].hand)}")
+    print(f"({game_state.get_current_player().position}): {format_hand(game_state.get_current_player().hand)} --- {'folded' if game_state.get_current_player().folded else 'active'}")
+                        
+                        # Asking chatgpt to turn a function into a oneliner is 22 century humor. utility functions go burrr
+    print(f"Last move: {next((item for sublist in reversed(game_state.betting_history) for item in reversed(sublist) if item is not None), None)}")   
     print(f"Board: {format_hand(game_state.board)}")
     print(f"Pot: {game_state.pot}")
-    print(f"Chips: {game_state.players[player_index].chips}")
+    print(f"Chips: {game_state.get_current_player().chips}")
 
     # print("______GAMESTATE______")
     # print(f"Active Players: {game_state.active_players()}")
