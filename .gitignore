@@ -11,3 +11,4 @@ src/poker/*.h
 *.h
 __BAK/
 .DS_Store
+.vscode/
