@@ -171,7 +171,7 @@ cdef class GameState:
         if self.handle_action(action):
             if self.num_board_cards() == 0:
                 self.setup_postflop('flop')
-            elif self.cur_round_index < 4:
+            elif self.cur_round_index < 3: # 0-pre; 1-flop; 2-turn; 3-river.
                 self.setup_postflop('postflop')
 
             return True
@@ -243,14 +243,14 @@ cdef class GameState:
 #############################################
 
     cdef void progress_to_showdown(self):
-        self.cur_round_index = 4
-
         ## Progress to a terminal state
         # Case: progress_to_showdown called during CFR Training at a depth limit - with the prior action being a raise.
         # TLDR: Get showdown utility to a true terminal state.
         action = ('call', 0) if self.cur_round_index != 0 else ('call', 0)
         while not self.step(action):
             continue
+        
+        self.cur_round_index = 4
 
         ## Deal out remaining cards
         # NOTE: Showdown function automatically simulates drawing cards.. but we need to validate it works.

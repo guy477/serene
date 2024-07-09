@@ -19,10 +19,12 @@ cdef str format_hand(unsigned long long hand)
 cdef list hand_to_cards(unsigned long long hand)
 cdef display_game_state(object game_state, int player_index)
 cdef unsigned int cy_evaluate(unsigned long long cards, unsigned int num_cards) nogil
+cpdef handtype(unsigned int value)
 cpdef cy_evaluate_cpp(cards, num_cards)
 cpdef list build_fast_forward_actions(list betting_history)
 cpdef object select_action(average_strategy)
 cdef str abstract_hand(unsigned long long card1, unsigned long long card2)
+cpdef double default_double()
 
 cdef class HashTable:
     cdef public object table

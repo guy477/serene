@@ -78,7 +78,7 @@ cdef class CFRTrainer:
 
         return list(local_hand_strategy_aggregate), external_manager
 
-    def parallel_train(self, hands, hand_mapping, fast_forward_actions, external_manager, save_pickle, mem_efficient, batch_size=psutil.cpu_count(logical=True) * 4):
+    def parallel_train(self, hands, hand_mapping, fast_forward_actions, external_manager, save_pickle, mem_efficient, batch_size=(psutil.cpu_count(logical=True) -1) * 2):
 
         ### Managed Objects
         manager = Manager()
@@ -90,9 +90,12 @@ cdef class CFRTrainer:
 
         def process_batch(batch_hands):
             hands = [(hand, hand_mapping, train_regret, train_strategy, hand_strategy_aggregate, calculated, fast_forward_actions, external_manager) for hand in batch_hands]
-            with Pool(processes=psutil.cpu_count(logical=True)) as pool:
+            with Pool(processes=psutil.cpu_count(logical=True) - 1) as pool:
                 try:
                     pool.starmap(self.process_hand_wrapper, hands)
+                except Exception as e:
+                    pool.terminate()
+                    raise
                 finally:
                     pool.close()
                     pool.join()
@@ -133,6 +136,7 @@ cdef class CFRTrainer:
 
         cdef GameState game_state = GameState([Player(self.initial_chips, self.bet_sizing, False) for _ in range(self.num_players)], self.small_blind, self.big_blind, self.num_simulations, True, self.suits, self.values) 
         # Fastforward to current node for debug purposes.
+        print('fastforwarding')
         self.fast_forward_gamestate(hand, game_state, fast_forward_actions, external_manager)
         print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-')
         print(f'TRAINING: ({game_state.get_current_player().position}) --- {hand}')
@@ -176,41 +180,47 @@ cdef class CFRTrainer:
         hand_strategy_aggregate.append((player.position, fast_forward_actions, hand_mapping[hand], strategy))
 
 
-    cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions, ExternalManager external_manager):
+    cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions, ExternalManager external_manager, int attempts = 0):
         ### NOTE: This function is used to walk a gamestate to a possible point in the current GTO gametree.
         ### TODO: Incorporate construction of PROBS array.
         game_state.setup_preflop(hand)
         for action in fast_forward_actions:
+            
             strategy = self.get_average_strategy(game_state.get_current_player(), game_state, external_manager)
 
             player_hash = game_state.get_current_player().hash(game_state)
 
             # Define an arbitrary 'optimal threshold' that ensures the selected strategy isn't completely arbitrary given the action space
-            optim_thresh = 1/max(len(strategy), 1)**2
+            optim_thresh = 1/max(len(strategy), 3)**2
             
             # if the action is not in the current blueprint, that's ok. Just means we didnt visit this node during training.
             #  Especially if you're training in realtime and the blueprint hasn't been updated yet.
-            if action not in strategy:
+            if action not in strategy or attempts >= 10:
                 pass # No-ops are cool if the alternative is making
-                     # excessively long conditionals like below worse.
+                     # excessively long conditionals
             
             elif strategy[action] < optim_thresh:
                 # The selected action is not optimal. Construct new gamestate
-                self.fast_forward_gamestate(hand, game_state, fast_forward_actions, external_manager)
-                break
+                self.fast_forward_gamestate(hand, game_state, fast_forward_actions, external_manager, attempts + 1)
+                return
 
-
-            # action is blueprint compliant
+            # (if attempts < 30): action is blueprint compliant.
+            # (otherwise): the provided action set does not reflect a known GTO line
             game_state.step(action)
 
         if hand:
             game_state.update_current_hand(hand)
 
-    cpdef default_double(self):
+    cpdef double default_double(self):
         ### 
         return 0.0
 
     cdef progress_gamestate_to_showdown(self, GameState game_state, float epsilon = 1):
+        ###
+        ### wrapper; i considered performing monte-carlo sampling for a number of iterations
+        ###    But i figured that would be too much too soon.
+        ### TODO Investigate the feasibility of montecarlo terminal sampling
+        ###
         game_state.progress_to_showdown()
 
     cdef double[:] cfr_traverse(self, GameState game_state, double[:] probs, int depth, int max_depth, float epsilon, ExternalManager external_manager):
@@ -276,22 +286,40 @@ cdef class CFRTrainer:
         return node_util
 
     cdef double[:] calculate_utilities(self, GameState game_state, int winner_index):
-        cdef int num_players = len(game_state.players)
-        cdef double[:] utilities = np.zeros(num_players, dtype=np.float64)
+        cdef int num_players
+        cdef double[:] utilities
+        cdef double rake
+        cdef double pot
+        cdef int i
+        cdef Player p
+
+        num_players = len(game_state.players)
+        utilities = np.zeros(num_players, dtype=np.float64)
 
         rake = game_state.pot * .03
         rake = rake if rake < 4 else 4
         pot = game_state.pot - rake
+
         for i, p in enumerate(game_state.players):
             if i == winner_index:
-                                                                # NOTE: the idea is to punish the CFR more for participating in multiway pots.
-                utilities[i] = (pot - p.tot_contributed_to_pot)#/(game_state.active_players() if game_state.active_players() > 2 else 1)
+                # NOTE: the idea is to punish the CFR more for participating in multiway pots.
+                utilities[i] = (pot - p.tot_contributed_to_pot)  # /(game_state.active_players() if game_state.active_players() > 2 else 1)
             else:
                 utilities[i] = -(p.tot_contributed_to_pot)
 
         return utilities
 
+
     cdef dict get_strategy(self, list available_actions, double[:] probs, GameState game_state, Player player, bint prune, ExternalManager external_manager):
+        cdef int current_player
+        cdef player_hash
+        cdef dict strategy
+        cdef double normalization_sum
+        cdef list regrets
+        cdef list regrets_norm
+        cdef double uniform_prob
+        cdef action, regret
+
         current_player = game_state.player_index
         player_hash = player.hash(game_state)
         external_manager.get_strategy_sum()[player_hash] = (external_manager.get_strategy_sum().get(player_hash, defaultdict(self.default_double)), prune)
@@ -325,14 +353,22 @@ cdef class CFRTrainer:
                 for action in strategy:
                     strategy[action] = 1.0 if action[0] == 'call' else 0.0
         else:
-            raise 'Unexpected regret combination. Please see "get_strategy'
-
-
+            raise 'Unexpected regret combination. Please see "get_strategy"'
 
         return strategy
 
-
     cpdef dict get_average_strategy(self, Player player, GameState game_state, ExternalManager external_manager):
+        cdef object average_strategy
+        cdef int current_player
+        cdef game_state_hash
+        cdef list available_actions
+        cdef object cur_gamestate_strategy
+        cdef double normalization_sum
+        cdef list regrets
+        cdef list regrets_norm
+        cdef double uniform_prob
+        cdef action, regret
+
         average_strategy = {}
         current_player = game_state.player_index
         game_state_hash = player.hash(game_state)
@@ -365,4 +401,3 @@ cdef class CFRTrainer:
             raise 'Unexpected regret combination. Please see "get_average_strategy"'
 
         return average_strategy
-

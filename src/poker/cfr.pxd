@@ -19,17 +19,16 @@ cdef class CFRTrainer:
     cdef int big_blind
 
     cdef list bet_sizing
-    # cdef HashTable regret_sum
-    # cdef HashTable strategy_sum
+    
     cdef ExternalManager external_manager
 
-    cpdef default_double(self)
+    cpdef double default_double(self)
     
     cdef progress_gamestate_to_showdown(self, GameState game_state, float epsilon = *)
 
     cpdef train(self, list positions_to_solve = *, list hands = *, bint save_pickle=*, bint mem_efficient=*)
 
-    cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions, ExternalManager external_manager)
+    cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions, ExternalManager external_manager, int attempts = *)
 
     cdef double[:] cfr_traverse(self, GameState game_state, double[:] probs, int depth, int max_depth, float epsilon, ExternalManager external_manager)
 

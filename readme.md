@@ -1,7 +1,7 @@
 
 ---
 
-# Texas Hold'em Solvers
+# Texas Hold'em CFR
 
 This repository contains a long-running personal project of mine that explores Texas Hold'em solvers using my personal 'research' build of CFR written in Cython 0.29.28 (Python 3.8.8) for my Macbook Pro M1.
 
@@ -9,7 +9,6 @@ This repository contains a long-running personal project of mine that explores T
 - **Note:** The code is not optimized for interpretability.
 
 ## Things It Does (sort of)
-- Abstraction (Preflop) (Postflop\* abstraction is not current)
 - Blueprint Training (solve positions iteratively to build a solution index)\*
 - CFR Minimization:
     - **Monte Carlo sampling**
@@ -41,9 +40,15 @@ This repository contains a long-running personal project of mine that explores T
 ```* = WIP```
 
 ## Things to do (maybe)
-- [ ] Build out External Manager
+- [ ] Optimize GameState.betting_history 
+    - Dynamic lists of 'objects' is not good
+- [ ] Optimize _utils.dynamic_merge_dicts() 
+    - Having 15 threads write to 1 shared object is not good
+        - Write to N objects in a queue on a seperate thread which constantly merges. Pause when queue is full.
+- [ ] Build out ExternalManager
     - [ ] Load/Save blueprint based on action space
     - [ ] Perform gamestate abstraction based on the player hash.
+    - [ ] OPTIMIZE
 - [ ] Formalize preflop blueprint construction process
     - [x] Adjust pruning logic to feed back to the global regret and strategy sums. i.e. dont just copy the root node's sums.
         - Pruning is turning into the blueprint strategy. i.e. Prune depth == Blueprint strategy depth.
@@ -52,15 +57,16 @@ This repository contains a long-running personal project of mine that explores T
     - [x] Barebones
     - [ ] Leverage interactive environment to build test framework
 - [ ] Implement postflop abstractions
+    - [ ] See _util.pyx.handtype(...)
 - [ ] More to come...
 
 ## Example
 
-**See [src/../results/charts/](src/../results/charts) for proof of concept**
+**See [results/charts/](results/charts) for proof of concept**
 
 The following is a range chart that displays how often the (UTG) should open raise 1.5x the pot (1.5bb * 1.5 = 2.25bb) in 6-Max Texas Hold'em. Iterations Search depth and gamestate hashing are heavily restricted due to memory limitations and performance constraints. Regardless, the sampled range below reflects a loose version of what you might see on GTO Wizard.
 
-![Preflop range for current commit](./dat/EX%20Preflop%20UTG%20Open%206%20Max.png)
+![Preflop UTG Example](results/EX%20Preflop%20UTG%20Open%206%20Max.png)
 
 ## Installation
 To install the current implementation, please follow the steps below:

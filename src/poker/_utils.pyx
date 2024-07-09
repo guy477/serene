@@ -60,12 +60,22 @@ cdef class ExternalManager:
             print(f"Error loading regret sum: {e}")
             self.strategy_sum = HashTable({})
 
+
+cpdef double default_double():
+    ### 
+    ### NOTE Hacky fix to de-reference the CFTrainer.default_double modeul.
+    ### NOTE Global modules are not available to multiproceeses. But we can
+    ### NOTE Package this one and send it in. For simplicity, CFTrainer will
+    ### NOTE keep its own default_double and convert before offloading to disk.
+    ###
+    return 0.0
+
 # Make the defaultdict environment agnostic
 def convert_defaultdict(d):
     if isinstance(d, defaultdict):
         # Check if the defaultdict uses a bound method `default_double` and replace it with float
         if d.default_factory and d.default_factory.__name__ == 'default_double':
-            new_d = defaultdict(float, {k: convert_defaultdict(v) for k, v in d.items()})
+            new_d = defaultdict(default_double, {k: convert_defaultdict(v) for k, v in d.items()})
         else:
             new_d = defaultdict(d.default_factory, {k: convert_defaultdict(v) for k, v in d.items()})
         return new_d
@@ -77,6 +87,7 @@ def convert_defaultdict(d):
         return tuple(convert_defaultdict(v) for v in d)
     else:
         return d
+
 
 # Define the hashing function
 cdef bytes hash_key_sha256(str key):
@@ -155,7 +166,6 @@ cdef class HashTable:
             del self.table[key]
 
 cpdef dynamic_merge_dicts(external_manager_table, train_regret):
-    
     
     for key, (inner_dict, to_prune) in external_manager_table.items():
         if key in train_regret:
@@ -321,8 +331,6 @@ cdef extern from "arrays.h":
     unsigned int TOP_FIVE_CARDS_TABLE[8192]
     unsigned short TOP_CARD_TABLE[8192]
 
-
-
 cdef int CLUB_OFFSET = 0
 cdef int DIAMOND_OFFSET = 13
 cdef int HEART_OFFSET = 26
@@ -333,9 +341,9 @@ cdef int TOP_CARD_SHIFT = 16
 cdef int SECOND_CARD_SHIFT = 12 
 cdef int THIRD_CARD_SHIFT = 8 
 cdef int CARD_WIDTH = 4 
-cdef unsigned int TOP_CARD_MASK = 0x000F0000
-cdef unsigned int SECOND_CARD_MASK = 0x0000F000
-cdef unsigned int FIFTH_CARD_MASK = 0x0000000F
+cdef unsigned int TOP_CARD_MASK = 0x000F0000 
+cdef unsigned int SECOND_CARD_MASK = 0x0000F000 
+cdef unsigned int FIFTH_CARD_MASK = 0x0000000F 
 
 cdef unsigned int HANDTYPE_VALUE_STRAIGHTFLUSH = ((<unsigned int>8) << HANDTYPE_SHIFT)
 cdef unsigned int HANDTYPE_VALUE_FOUR_OF_A_KIND = ((<unsigned int>7) << HANDTYPE_SHIFT)
@@ -347,9 +355,7 @@ cdef unsigned int HANDTYPE_VALUE_TWOPAIR = ((<unsigned int>2) << HANDTYPE_SHIFT)
 cdef unsigned int HANDTYPE_VALUE_PAIR = ((<unsigned int>1) << HANDTYPE_SHIFT)
 cdef unsigned int HANDTYPE_VALUE_HIGHCARD = ((<unsigned int>0) << HANDTYPE_SHIFT)
 
-#@cython.profile(True)
-@cython.boundscheck(False) 
-@cython.wraparound(False)
+
 cdef unsigned int cy_evaluate(unsigned long long cards, unsigned int num_cards) nogil:
     """
     7-card evaluation function based on Keith Rule's port of PokerEval.
@@ -453,6 +459,33 @@ cdef unsigned int cy_evaluate(unsigned long long cards, unsigned int num_cards) 
             retval += <unsigned int>((TOP_CARD_TABLE[ranks ^ (1U << <int>top) ^ (1 << <int>second)]) << THIRD_CARD_SHIFT)
             return retval
 
+
+""" TODO: Leverage for abstractions
+Heres the idea: 
+    On the flop, you have 5 cards, run it through cy_evaluate to get a hand value.
+     and then determin the hand type using this function. Next, draw a card from the deck
+     and determin the hand type. Do this for all remaining cards; mapping hand type to count.
+"""
+cpdef handtype(unsigned int value):
+    cdef unsigned int ht = (value >> HANDTYPE_SHIFT)
+    if ht == HANDTYPE_VALUE_HIGHCARD >> HANDTYPE_SHIFT:
+        return "High Card"
+    elif ht == HANDTYPE_VALUE_PAIR >> HANDTYPE_SHIFT:
+        return "Pair"
+    elif ht == HANDTYPE_VALUE_TWOPAIR >> HANDTYPE_SHIFT:
+        return "Two Pair"
+    elif ht == HANDTYPE_VALUE_TRIPS >> HANDTYPE_SHIFT:
+        return "Trips"
+    elif ht == HANDTYPE_VALUE_STRAIGHT >> HANDTYPE_SHIFT:
+        return "Straight"
+    elif ht == HANDTYPE_VALUE_FLUSH >> HANDTYPE_SHIFT:
+        return "Flush"
+    elif ht == HANDTYPE_VALUE_FULLHOUSE >> HANDTYPE_SHIFT:
+        return "Full House"
+    elif ht == HANDTYPE_VALUE_FOUR_OF_A_KIND >> HANDTYPE_SHIFT:
+        return "Quads"
+    else:
+        return "Straight Flush"
 
 '''
 Enable calling cy-evaluate from the main process for testing purposes.

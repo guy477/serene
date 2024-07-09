@@ -143,7 +143,6 @@ cdef class Player:
         if game_state.is_terminal_river():
             return [('call', 0)]
 
-        # Initialize the list of possible actions with call and fold
         cdef list ret = [('call', 0), ('fold', 0)]
         cdef int current_bet = game_state.current_bet
         cdef int cur_round_index = game_state.cur_round_index
@@ -229,21 +228,20 @@ cdef class Player:
         # if self.chips == 0:
         self.expected_hand_strength = 1
         self.chips = 1000
+
+        ## Assigned by gamestate on initialization
         # self.position = ''
         # self.player_index = 0
+        
         self.contributed_to_pot = 0
         self.tot_contributed_to_pot = 0
         self.prior_gains = 0
     
     cpdef str hash(self, GameState game_state):
-        ### NOTE we want to get abstracted hands here
-        ### NOTE NOTE this hsh is further hashed in the HashTable object. If you're worried about collisions, consider disable hashing (_utils.pyx => HashTable()) to debug.
-
         ### NOTE/TODO: Add "player type" that can be referenced in ExternalManager to give a unique regret/strategy for the unique player type.
-        if game_state.cur_round_index == 0:
-            ## TODO; Update standardize hash methodology (return object of all pertinent information then offload to External Manager?)
-            hsh = str((self.abstracted_hand, self.position, game_state.pot//200, tuple(self.get_available_actions(game_state)), str(game_state.betting_history[0])))
-        else:
-            hsh = str((self.abstracted_hand, self.position, game_state.pot, tuple(self.get_available_actions(game_state)), str(game_state.betting_history)))
+
+        # TODO: return object of all pertinent information then offload to External Manager?
+        
+        hsh = str((self.abstracted_hand, self.position, tuple(self.get_available_actions(game_state)), str(game_state.betting_history)))
 
         return hsh
