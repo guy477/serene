@@ -235,10 +235,12 @@ cdef class Player:
         
         self.contributed_to_pot = 0
         self.tot_contributed_to_pot = 0
-        self.prior_gains = 0
+        
+        ### NOTE: This shouldnt accumulate to insane values, right?
+        # self.prior_gains = 0
     
     cpdef str hash(self, GameState game_state):
-        ### NOTE/TODO: Add "player type" that can be referenced in ExternalManager to give a unique regret/strategy for the unique player type.
+        ### NOTE/TODO: Add "player type" that can be referenced in LocalManager to give a unique regret/strategy for the unique player type.
 
         # TODO: return object of all pertinent information then offload to External Manager?
         

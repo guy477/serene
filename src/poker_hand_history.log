@@ -1,588 +1,61 @@
-Hand #0 - Holdem (No Limit) - 2024/07/08 19:25:12 UTC
+Hand #3 - Holdem (No Limit) - 2024/07/10 00:48:53 UTC
 Firestone 6-max Seat #1 is the button
-Seat 1: D ($4000.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($0.00)
+Seat 1: D ($0.00)
+Seat 2: SB ($995.00)
+Seat 3: BB ($2005.00)
 Seat 4: UTG ($1000.00)
-Seat 5: MP ($0.00)
+Seat 5: MP ($1000.00)
 Seat 6: CO ($1000.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to D [KC AH]
-Dealt to SB [2H KH]
-Dealt to BB [5H 6H]
-Dealt to MP [JH QS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('raise', 2.0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('all-in', 0))
-('SB', ('all-in', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-Board 5C 8C 3D AD TS
-*** SHOW DOWN ***
-D shows [KC AH] (player.hand_description())
-SB shows [2H KH] (player.hand_description())
-BB shows [5H 6H] (player.hand_description())
-MP shows [JH QS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #1 - Holdem (No Limit) - 2024/07/08 19:28:04 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($926.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($3074.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [JS KS]
-Dealt to SB [3D AH]
-Dealt to CO [7H 7S]
+Dealt to D [JH QH]
+Dealt to BB [2C 2S]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
 ('UTG', ('fold', 0))
 ('MP', ('fold', 0))
-('CO', ('raise', 1.5))
-('D', ('raise', 2.0))
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('raise', 2.0))
-('D', ('all-in', 0))
-('SB', ('all-in', 0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-Board 2C 9C TC 9H 3S
-*** SHOW DOWN ***
-D shows [JS KS] (player.hand_description())
-SB shows [3D AH] (player.hand_description())
-CO shows [7H 7S] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #2 - Holdem (No Limit) - 2024/07/08 19:32:05 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($990.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($2010.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [5H AH]
-Dealt to CO [8D 6H]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('raise', 1.5))
-('D', ('fold', 0))
-('SB', ('raise', 2.0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** FLOP ***
-('SB', ('raise', 1.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** TURN ***
-('SB', ('raise', 0.8199999928474426))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('raise', 0.8199999928474426))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-Board 6C 9D TD 4H 3S TS
-*** SHOW DOWN ***
-SB shows [5H AH] (player.hand_description())
-CO shows [8D 6H] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #3 - Holdem (No Limit) - 2024/07/08 19:34:41 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($995.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($3005.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [KC 9D]
-Dealt to BB [5S 7S]
-Dealt to MP [3H AH]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
 ('CO', ('fold', 0))
-('D', ('raise', 2.0))
+('D', ('raise', 1.5))
 ('SB', ('fold', 0))
 ('BB', ('call', 0))
 ('UTG', ('call', 0))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-('CO', ('call', 0))
-('D', ('all-in', 0))
-Board 4C AC KD 4H 9S
-*** SHOW DOWN ***
-D shows [KC 9D] (player.hand_description())
-BB shows [5S 7S] (player.hand_description())
-MP shows [3H AH] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #4 - Holdem (No Limit) - 2024/07/08 19:39:04 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($990.00)
-Seat 4: UTG ($4128.00)
-Seat 5: MP ($0.00)
-Seat 6: CO ($882.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [7C 9C]
-Dealt to SB [8H KS]
-Dealt to UTG [9S TS]
-Dealt to MP [6H 6S]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('raise', 1.5))
-('MP', ('call', 0))
-('CO', ('raise', 2.0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('fold', 0))
-('UTG', ('raise', 2.0))
-('MP', ('all-in', 0))
-('CO', ('fold', 0))
-('D', ('all-in', 0))
-('SB', ('all-in', 0))
-('BB', ('call', 0))
-('UTG', ('all-in', 0))
-Board 4C 8D JD QH 4S
-*** SHOW DOWN ***
-D shows [7C 9C] (player.hand_description())
-SB shows [8H KS] (player.hand_description())
-UTG shows [9S TS] (player.hand_description())
-MP shows [6H 6S] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #5 - Holdem (No Limit) - 2024/07/08 19:42:54 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($3010.00)
-Seat 3: BB ($990.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($0.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [7D AD]
-Dealt to MP [5D JD]
-Dealt to CO [TD KS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('raise', 2.0))
-('D', ('fold', 0))
-('SB', ('raise', 2.0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
-('D', ('call', 0))
-*** FLOP ***
-('SB', ('raise', 1.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-Board 7C 8D 9D QD 2S
-*** SHOW DOWN ***
-SB shows [7D AD] (player.hand_description())
-MP shows [5D JD] (player.hand_description())
-CO shows [TD KS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #6 - Holdem (No Limit) - 2024/07/08 19:46:19 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($3005.00)
-Seat 2: SB ($995.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [5H AS]
-Dealt to BB [6C 7H]
-Dealt to CO [QC 8S]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('raise', 1.5))
-('D', ('raise', 2.0))
-('SB', ('fold', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
 *** FLOP ***
 ('SB', ('call', 0))
 ('BB', ('raise', 0.5))
 ('UTG', ('call', 0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
-('D', ('all-in', 0))
+('D', ('raise', 1.0))
 ('SB', ('call', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-Board 7C AC 6D KH KS
-*** SHOW DOWN ***
-D shows [5H AS] (player.hand_description())
-BB shows [6C 7H] (player.hand_description())
-CO shows [QC 8S] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #7 - Holdem (No Limit) - 2024/07/08 19:49:34 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($3010.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($990.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($0.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [QC AC]
-Dealt to SB [JH AH]
-Dealt to MP [4H KH]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('raise', 2.0))
-('SB', ('raise', 2.0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** FLOP ***
-('SB', ('raise', 1.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-('CO', ('call', 0))
-('D', ('all-in', 0))
-('SB', ('all-in', 0))
-Board 2C 9D 9H 6S TS
-*** SHOW DOWN ***
-D shows [QC AC] (player.hand_description())
-SB shows [JH AH] (player.hand_description())
-MP shows [4H KH] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #8 - Holdem (No Limit) - 2024/07/08 19:53:10 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1502.00)
-Seat 2: SB ($530.00)
-Seat 3: BB ($990.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($978.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [9C KD]
-Dealt to SB [TC KS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('raise', 2.0))
-('SB', ('raise', 2.0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-('MP', ('fold', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** FLOP ***
-('SB', ('raise', 0.5))
 ('BB', ('call', 0))
 ('UTG', ('call', 0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
-('D', ('call', 0))
-*** TURN ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-Board 4C 4D 2H 3H 4H 9H
-*** SHOW DOWN ***
-D shows [9C KD] (player.hand_description())
-SB shows [TC KS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #9 - Holdem (No Limit) - 2024/07/08 19:55:29 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($995.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($3005.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [AC QD]
-Dealt to BB [JD JH]
-Dealt to CO [8C 8S]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('raise', 1.5))
-('D', ('raise', 2.0))
-('SB', ('fold', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('raise', 2.0))
-('D', ('all-in', 0))
-('SB', ('call', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-Board 4C 4D 8H 4S AS
-*** SHOW DOWN ***
-D shows [AC QD] (player.hand_description())
-BB shows [JD JH] (player.hand_description())
-CO shows [8C 8S] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #10 - Holdem (No Limit) - 2024/07/08 19:59:35 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($882.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($2118.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [4C 2S]
-Dealt to CO [TH KS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('raise', 1.5))
-('D', ('fold', 0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('raise', 2.0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-*** TURN ***
-('SB', ('raise', 0.4000000059604645))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('raise', 0.4000000059604645))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-Board 6C TC KC 5D QD KH
-*** SHOW DOWN ***
-SB shows [4C 2S] (player.hand_description())
-CO shows [TH KS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #0 - Holdem (No Limit) - 2024/07/08 20:06:43 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($995.00)
-Seat 3: BB ($1111.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($894.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to BB [JC 4D]
-Dealt to MP [6S 7S]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('fold', 0))
-('SB', ('fold', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('raise', 0.5))
-('UTG', ('call', 0))
-('MP', ('raise', 0.5))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
 *** TURN ***
 ('SB', ('call', 0))
 ('BB', ('raise', 0.4000000059604645))
 ('UTG', ('call', 0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
-('D', ('call', 0))
+('D', ('raise', 1.2000000476837158))
+('SB', ('call', 0))
+('BB', ('raise', 1.2000000476837158))
+('UTG', ('call', 0))
+('MP', ('call', 0))
+('CO', ('call', 0))
+('D', ('all-in', 0))
 ('SB', ('call', 0))
 *** RIVER ***
 ('SB', ('call', 0))
 ('BB', ('call', 0))
-Board TC QD 5H QH 2S
+Board KC 4D KD 5H AS
 *** SHOW DOWN ***
-BB shows [JC 4D] (player.hand_description())
-MP shows [6S 7S] (player.hand_description())
+D shows [JH QH] (player.hand_description())
+BB shows [2C 2S] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
@@ -590,85 +63,41 @@ player.result_description()
 player.result_description()
 player.result_description()
 player.result_description()
-Hand #1 - Holdem (No Limit) - 2024/07/08 20:09:12 UTC
+Hand #4 - Holdem (No Limit) - 2024/07/10 00:51:12 UTC
 Firestone 6-max Seat #1 is the button
-Seat 1: D ($926.00)
-Seat 2: SB ($0.00)
+Seat 1: D ($4375.00)
+Seat 2: SB ($625.00)
 Seat 3: BB ($0.00)
-Seat 4: UTG ($3074.00)
+Seat 4: UTG ($0.00)
 Seat 5: MP ($1000.00)
-Seat 6: CO ($1000.00)
+Seat 6: CO ($0.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to SB [JD TS]
-Dealt to BB [8C QS]
-Dealt to UTG [JC JS]
+Dealt to D [7H QH]
+Dealt to BB [TC TD]
+Dealt to UTG [KC 9D]
+Dealt to CO [TH JH]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
 ('UTG', ('raise', 1.5))
 ('MP', ('fold', 0))
-('CO', ('fold', 0))
-('D', ('raise', 2.0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
+('CO', ('raise', 2.0))
+('D', ('call', 0))
+('SB', ('raise', 2.0))
+('BB', ('all-in', 0))
 ('UTG', ('all-in', 0))
 ('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('fold', 0))
-('SB', ('all-in', 0))
-('BB', ('all-in', 0))
-Board 3C 2D 3D TD AH
-*** SHOW DOWN ***
-SB shows [JD TS] (player.hand_description())
-BB shows [8C QS] (player.hand_description())
-UTG shows [JC JS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #2 - Holdem (No Limit) - 2024/07/08 20:11:51 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($995.00)
-Seat 3: BB ($3005.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($0.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [5C QD]
-Dealt to BB [5S KS]
-Dealt to MP [AC 4S]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('call', 0))
-('SB', ('fold', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-('CO', ('call', 0))
+('CO', ('all-in', 0))
 ('D', ('all-in', 0))
-Board 3D JD 8H KH 8S
+('SB', ('fold', 0))
+Board 6C JD QD 6H 9S
 *** SHOW DOWN ***
-D shows [5C QD] (player.hand_description())
-BB shows [5S KS] (player.hand_description())
-MP shows [AC 4S] (player.hand_description())
+D shows [7H QH] (player.hand_description())
+BB shows [TC TD] (player.hand_description())
+UTG shows [KC 9D] (player.hand_description())
+CO shows [TH JH] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
@@ -676,19 +105,19 @@ player.result_description()
 player.result_description()
 player.result_description()
 player.result_description()
-Hand #3 - Holdem (No Limit) - 2024/07/08 20:16:50 UTC
+Hand #0 - Holdem (No Limit) - 2024/07/10 01:02:25 UTC
 Firestone 6-max Seat #1 is the button
 Seat 1: D ($1000.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($2000.00)
+Seat 2: SB ($1967.00)
+Seat 3: BB ($33.00)
 Seat 4: UTG ($1000.00)
 Seat 5: MP ($1000.00)
 Seat 6: CO ($1000.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to SB [3C AH]
-Dealt to BB [TH 4S]
+Dealt to SB [KC 7H]
+Dealt to BB [7D QH]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
@@ -697,31 +126,21 @@ Dealt to BB [TH 4S]
 ('CO', ('fold', 0))
 ('D', ('fold', 0))
 ('SB', ('raise', 1.5))
-('BB', ('call', 0))
+('BB', ('raise', 2.0))
 ('UTG', ('call', 0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
 ('D', ('call', 0))
-*** FLOP ***
 ('SB', ('call', 0))
+*** FLOP ***
+('SB', ('raise', 0.5))
 ('BB', ('raise', 0.5))
 ('UTG', ('call', 0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
 ('D', ('call', 0))
-('SB', ('raise', 1.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** TURN ***
 ('SB', ('call', 0))
-('BB', ('raise', 0.4000000059604645))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
+*** TURN ***
 ('SB', ('raise', 1.2000000476837158))
 ('BB', ('raise', 0.8199999928474426))
 ('UTG', ('call', 0))
@@ -732,10 +151,10 @@ Dealt to BB [TH 4S]
 *** RIVER ***
 ('SB', ('call', 0))
 ('BB', ('call', 0))
-Board TC 6D 8D 9D 9H
+Board 7C TC KD 4H 2S
 *** SHOW DOWN ***
-SB shows [3C AH] (player.hand_description())
-BB shows [TH 4S] (player.hand_description())
+SB shows [KC 7H] (player.hand_description())
+BB shows [7D QH] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
@@ -743,435 +162,19 @@ player.result_description()
 player.result_description()
 player.result_description()
 player.result_description()
-Hand #4 - Holdem (No Limit) - 2024/07/08 20:19:54 UTC
+Hand #0 - Holdem (No Limit) - 2024/07/10 01:08:25 UTC
 Firestone 6-max Seat #1 is the button
-Seat 1: D ($4010.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($990.00)
-Seat 4: UTG ($0.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [KC AD]
-Dealt to SB [KH 7S]
-Dealt to UTG [9H JH]
-Dealt to CO [2D 3D]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('raise', 1.5))
-('MP', ('fold', 0))
-('CO', ('raise', 2.0))
-('D', ('raise', 2.0))
-('SB', ('raise', 2.0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('all-in', 0))
-('SB', ('all-in', 0))
-('BB', ('call', 0))
-('UTG', ('all-in', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-Board AC QD 8H 4S 8S
-*** SHOW DOWN ***
-D shows [KC AD] (player.hand_description())
-SB shows [KH 7S] (player.hand_description())
-UTG shows [9H JH] (player.hand_description())
-CO shows [2D 3D] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #5 - Holdem (No Limit) - 2024/07/08 20:25:14 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($2914.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($86.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [JD 8H]
-Dealt to BB [3C AD]
-Dealt to CO [KC 2S]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('raise', 1.5))
-('D', ('fold', 0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('raise', 0.5))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('raise', 0.5))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('raise', 0.5))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-*** TURN ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-Board 5C QC TD 3H 7H
-*** SHOW DOWN ***
-SB shows [JD 8H] (player.hand_description())
-BB shows [3C AD] (player.hand_description())
-CO shows [KC 2S] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #6 - Holdem (No Limit) - 2024/07/08 20:28:54 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($2000.00)
+Seat 1: D ($978.00)
+Seat 2: SB ($995.00)
+Seat 3: BB ($1027.00)
 Seat 4: UTG ($1000.00)
 Seat 5: MP ($1000.00)
 Seat 6: CO ($1000.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to SB [TD 9S]
-Dealt to BB [8D QS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('fold', 0))
-('D', ('fold', 0))
-('SB', ('raise', 1.5))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('raise', 2.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('raise', 0.5))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('raise', 0.5))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-Board 3C 7C 2D 2H AH
-*** SHOW DOWN ***
-SB shows [TD 9S] (player.hand_description())
-BB shows [8D QS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #7 - Holdem (No Limit) - 2024/07/08 20:33:31 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($5000.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($0.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [9C TC]
-Dealt to SB [4D 7S]
-Dealt to BB [8C AH]
-Dealt to MP [TS QS]
-Dealt to CO [QH KS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('raise', 2.0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-('CO', ('all-in', 0))
-('D', ('all-in', 0))
-('SB', ('all-in', 0))
-Board KD 4H 5H 9H AS
-*** SHOW DOWN ***
-D shows [9C TC] (player.hand_description())
-SB shows [4D 7S] (player.hand_description())
-BB shows [8C AH] (player.hand_description())
-MP shows [TS QS] (player.hand_description())
-CO shows [QH KS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #8 - Holdem (No Limit) - 2024/07/08 20:39:57 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($1998.00)
-Seat 3: BB ($2.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [5C 6C]
-Dealt to BB [9H 3S]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('fold', 0))
-('D', ('fold', 0))
-('SB', ('raise', 1.5))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('raise', 0.5))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('raise', 0.5))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** TURN ***
-('SB', ('call', 0))
-('BB', ('raise', 0.4000000059604645))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('raise', 0.4000000059604645))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('raise', 0.75))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('raise', 0.75))
-('BB', ('raise', 0.75))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-Board 4C 3H 4H 6H AS
-*** SHOW DOWN ***
-SB shows [5C 6C] (player.hand_description())
-BB shows [9H 3S] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #9 - Holdem (No Limit) - 2024/07/08 20:44:02 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($2000.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [9C JH]
-Dealt to BB [7C QS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('fold', 0))
-('D', ('fold', 0))
-('SB', ('raise', 1.5))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** FLOP ***
-('SB', ('raise', 1.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** TURN ***
-('SB', ('call', 0))
-('BB', ('raise', 0.4000000059604645))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('raise', 1.2000000476837158))
-('BB', ('raise', 1.2000000476837158))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-Board 2C 4C TD 3H 4S
-*** SHOW DOWN ***
-SB shows [9C JH] (player.hand_description())
-BB shows [7C QS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #10 - Holdem (No Limit) - 2024/07/08 20:49:59 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($3572.00)
-Seat 2: SB ($182.00)
-Seat 3: BB ($882.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($182.00)
-Seat 6: CO ($182.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [5D 4H]
-Dealt to SB [2S TS]
-Dealt to MP [3C AS]
-Dealt to CO [3S 7S]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('call', 0))
-('D', ('raise', 2.0))
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-*** TURN ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-Board TC 5H QH 4S 5S
-*** SHOW DOWN ***
-D shows [5D 4H] (player.hand_description())
-SB shows [2S TS] (player.hand_description())
-MP shows [3C AS] (player.hand_description())
-CO shows [3S 7S] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #11 - Holdem (No Limit) - 2024/07/08 20:56:09 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($3000.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [KH 6S]
-Dealt to SB [2D AD]
-Dealt to BB [AC 4D]
+Dealt to D [3H TS]
+Dealt to BB [4D QS]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
@@ -1179,40 +182,24 @@ Dealt to BB [AC 4D]
 ('MP', ('fold', 0))
 ('CO', ('fold', 0))
 ('D', ('raise', 1.5))
-('SB', ('raise', 2.0))
+('SB', ('fold', 0))
 ('BB', ('call', 0))
 ('UTG', ('call', 0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
-('D', ('call', 0))
 *** FLOP ***
-('SB', ('raise', 0.5))
+('SB', ('call', 0))
 ('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
 *** TURN ***
-('SB', ('raise', 0.8199999928474426))
+('SB', ('call', 0))
 ('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('raise', 0.4000000059604645))
-('SB', ('all-in', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
 *** RIVER ***
 ('SB', ('call', 0))
 ('BB', ('call', 0))
-('UTG', ('call', 0))
-Board 6C 5D 9H 2S TS
+Board AD 2H JH QH 8S
 *** SHOW DOWN ***
-D shows [KH 6S] (player.hand_description())
-SB shows [2D AD] (player.hand_description())
-BB shows [AC 4D] (player.hand_description())
+D shows [3H TS] (player.hand_description())
+BB shows [4D QS] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
@@ -1220,7 +207,242 @@ player.result_description()
 player.result_description()
 player.result_description()
 player.result_description()
-Hand #12 - Holdem (No Limit) - 2024/07/08 20:57:04 UTC
+Hand #1 - Holdem (No Limit) - 2024/07/10 01:09:25 UTC
+Firestone 6-max Seat #1 is the button
+Seat 1: D ($1000.00)
+Seat 2: SB ($995.00)
+Seat 3: BB ($978.00)
+Seat 4: UTG ($1027.00)
+Seat 5: MP ($1000.00)
+Seat 6: CO ($1000.00)
+SB posts the small blind $5.00
+BB posts the big blind $10.00
+*** HOLE CARDS ***
+Dealt to BB [3H 9H]
+Dealt to UTG [TD KH]
+*** PRE-FLOP ***
+('SB', ('blinds', 5))
+('BB', ('blinds', 10))
+('UTG', ('raise', 1.5))
+('MP', ('fold', 0))
+('CO', ('fold', 0))
+('D', ('fold', 0))
+('SB', ('fold', 0))
+('BB', ('call', 0))
+*** FLOP ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+*** TURN ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+*** RIVER ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+Board TC QD 6S 7S TS
+*** SHOW DOWN ***
+BB shows [3H 9H] (player.hand_description())
+UTG shows [TD KH] (player.hand_description())
+*** SUMMARY ***
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+Hand #0 - Holdem (No Limit) - 2024/07/10 01:12:40 UTC
+Firestone 6-max Seat #1 is the button
+Seat 1: D ($1000.00)
+Seat 2: SB ($995.00)
+Seat 3: BB ($2005.00)
+Seat 4: UTG ($0.00)
+Seat 5: MP ($1000.00)
+Seat 6: CO ($1000.00)
+SB posts the small blind $5.00
+BB posts the big blind $10.00
+*** HOLE CARDS ***
+Dealt to BB [8S QS]
+Dealt to UTG [KC TD]
+*** PRE-FLOP ***
+('SB', ('blinds', 5))
+('BB', ('blinds', 10))
+('UTG', ('raise', 1.5))
+('MP', ('fold', 0))
+('CO', ('fold', 0))
+('D', ('fold', 0))
+('SB', ('fold', 0))
+('BB', ('call', 0))
+*** FLOP ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+*** TURN ***
+('SB', ('call', 0))
+('BB', ('raise', 0.8199999928474426))
+('UTG', ('raise', 1.2000000476837158))
+('MP', ('call', 0))
+('CO', ('call', 0))
+('D', ('call', 0))
+('SB', ('call', 0))
+('BB', ('raise', 0.8199999928474426))
+('UTG', ('raise', 1.2000000476837158))
+('MP', ('call', 0))
+('CO', ('call', 0))
+('D', ('call', 0))
+('SB', ('call', 0))
+('BB', ('all-in', 0))
+('UTG', ('all-in', 0))
+Board 2C 3H QH 3S 4S
+*** SHOW DOWN ***
+BB shows [8S QS] (player.hand_description())
+UTG shows [KC TD] (player.hand_description())
+*** SUMMARY ***
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+Hand #0 - Holdem (No Limit) - 2024/07/10 01:18:29 UTC
+Firestone 6-max Seat #1 is the button
+Seat 1: D ($1027.00)
+Seat 2: SB ($995.00)
+Seat 3: BB ($978.00)
+Seat 4: UTG ($1000.00)
+Seat 5: MP ($1000.00)
+Seat 6: CO ($1000.00)
+SB posts the small blind $5.00
+BB posts the big blind $10.00
+*** HOLE CARDS ***
+Dealt to D [2D AS]
+Dealt to BB [3D QS]
+*** PRE-FLOP ***
+('SB', ('blinds', 5))
+('BB', ('blinds', 10))
+('UTG', ('fold', 0))
+('MP', ('fold', 0))
+('CO', ('fold', 0))
+('D', ('raise', 1.5))
+('SB', ('fold', 0))
+('BB', ('call', 0))
+('UTG', ('call', 0))
+('MP', ('call', 0))
+('CO', ('call', 0))
+*** FLOP ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+*** TURN ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+*** RIVER ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+Board 5C JC 5D AD 3S
+*** SHOW DOWN ***
+D shows [2D AS] (player.hand_description())
+BB shows [3D QS] (player.hand_description())
+*** SUMMARY ***
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+Hand #0 - Holdem (No Limit) - 2024/07/10 01:20:21 UTC
+Firestone 6-max Seat #1 is the button
+Seat 1: D ($1176.00)
+Seat 2: SB ($879.00)
+Seat 3: BB ($945.00)
+Seat 4: UTG ($1000.00)
+Seat 5: MP ($1000.00)
+Seat 6: CO ($1000.00)
+SB posts the small blind $5.00
+BB posts the big blind $10.00
+*** HOLE CARDS ***
+Dealt to D [KC 9D]
+Dealt to SB [2C QC]
+*** PRE-FLOP ***
+('SB', ('blinds', 5))
+('BB', ('blinds', 10))
+('UTG', ('fold', 0))
+('MP', ('fold', 0))
+('CO', ('fold', 0))
+('D', ('raise', 1.5))
+('SB', ('call', 0))
+('BB', ('call', 0))
+('UTG', ('call', 0))
+('MP', ('call', 0))
+('CO', ('call', 0))
+*** FLOP ***
+('SB', ('call', 0))
+('BB', ('raise', 0.5))
+('UTG', ('call', 0))
+('MP', ('call', 0))
+('CO', ('call', 0))
+('D', ('raise', 1.0))
+('SB', ('call', 0))
+('BB', ('fold', 0))
+('UTG', ('call', 0))
+('MP', ('call', 0))
+('CO', ('call', 0))
+*** TURN ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+*** RIVER ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+Board 2H 3H 8H 9H KH
+*** SHOW DOWN ***
+D shows [KC 9D] (player.hand_description())
+SB shows [2C QC] (player.hand_description())
+*** SUMMARY ***
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+Hand #1 - Holdem (No Limit) - 2024/07/10 01:21:23 UTC
+Firestone 6-max Seat #1 is the button
+Seat 1: D ($1000.00)
+Seat 2: SB ($995.00)
+Seat 3: BB ($3005.00)
+Seat 4: UTG ($0.00)
+Seat 5: MP ($0.00)
+Seat 6: CO ($1000.00)
+SB posts the small blind $5.00
+BB posts the big blind $10.00
+*** HOLE CARDS ***
+Dealt to BB [JD KH]
+Dealt to UTG [TD TH]
+Dealt to MP [5H AH]
+*** PRE-FLOP ***
+('SB', ('blinds', 5))
+('BB', ('blinds', 10))
+('UTG', ('raise', 1.5))
+('MP', ('raise', 2.0))
+('CO', ('fold', 0))
+('D', ('fold', 0))
+('SB', ('fold', 0))
+('BB', ('raise', 2.0))
+('UTG', ('raise', 2.0))
+('MP', ('all-in', 0))
+('CO', ('call', 0))
+('D', ('call', 0))
+('SB', ('call', 0))
+('BB', ('all-in', 0))
+('UTG', ('all-in', 0))
+Board QD 3H 8H 5S KS
+*** SHOW DOWN ***
+BB shows [JD KH] (player.hand_description())
+UTG shows [TD TH] (player.hand_description())
+MP shows [5H AH] (player.hand_description())
+*** SUMMARY ***
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+Hand #2 - Holdem (No Limit) - 2024/07/10 01:21:50 UTC
 Firestone 6-max Seat #1 is the button
 Seat 1: D ($1000.00)
 Seat 2: SB ($995.00)
@@ -1231,7 +453,7 @@ Seat 6: CO ($1000.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to BB [JH 3S]
+Dealt to BB [KD 2H]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
@@ -1240,9 +462,9 @@ Dealt to BB [JH 3S]
 ('CO', ('fold', 0))
 ('D', ('fold', 0))
 ('SB', ('fold', 0))
-Board QC 7D 4S TS AS
+Board KC 7D TD 6S JS
 *** SHOW DOWN ***
-BB shows [JH 3S] (player.hand_description())
+BB shows [KD 2H] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
@@ -1250,19 +472,19 @@ player.result_description()
 player.result_description()
 player.result_description()
 player.result_description()
-Hand #13 - Holdem (No Limit) - 2024/07/08 21:00:26 UTC
+Hand #0 - Holdem (No Limit) - 2024/07/10 01:35:13 UTC
 Firestone 6-max Seat #1 is the button
 Seat 1: D ($1000.00)
-Seat 2: SB ($312.00)
-Seat 3: BB ($768.00)
+Seat 2: SB ($756.00)
+Seat 3: BB ($990.00)
 Seat 4: UTG ($1000.00)
 Seat 5: MP ($1000.00)
-Seat 6: CO ($1920.00)
+Seat 6: CO ($1254.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to SB [9H JH]
-Dealt to CO [TD AH]
+Dealt to SB [7C TS]
+Dealt to CO [KD KH]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
@@ -1271,13 +493,13 @@ Dealt to CO [TD AH]
 ('CO', ('raise', 1.5))
 ('D', ('fold', 0))
 ('SB', ('raise', 2.0))
-('BB', ('raise', 2.0))
+('BB', ('fold', 0))
 ('UTG', ('call', 0))
 ('MP', ('call', 0))
 ('CO', ('raise', 2.0))
 ('D', ('call', 0))
 ('SB', ('call', 0))
-('BB', ('fold', 0))
+('BB', ('call', 0))
 ('UTG', ('call', 0))
 ('MP', ('call', 0))
 *** FLOP ***
@@ -1289,10 +511,10 @@ Dealt to CO [TD AH]
 *** RIVER ***
 ('SB', ('call', 0))
 ('BB', ('call', 0))
-Board 5C TC 2D 6H 2S
+Board 3H 9H JH QH KS
 *** SHOW DOWN ***
-SB shows [9H JH] (player.hand_description())
-CO shows [TD AH] (player.hand_description())
+SB shows [7C TS] (player.hand_description())
+CO shows [KD KH] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
@@ -1300,29 +522,26 @@ player.result_description()
 player.result_description()
 player.result_description()
 player.result_description()
-Hand #14 - Holdem (No Limit) - 2024/07/08 21:04:15 UTC
+Hand #1 - Holdem (No Limit) - 2024/07/10 01:36:03 UTC
 Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($4000.00)
+Seat 1: D ($1000.00)
+Seat 2: SB ($1081.00)
+Seat 3: BB ($919.00)
 Seat 4: UTG ($1000.00)
-Seat 5: MP ($0.00)
+Seat 5: MP ($1000.00)
 Seat 6: CO ($1000.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to D [TC 5S]
-Dealt to SB [QC QD]
-Dealt to BB [4H 8S]
-Dealt to MP [3S 4S]
+Dealt to SB [4D KD]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
 ('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
+('MP', ('fold', 0))
 ('CO', ('fold', 0))
-('D', ('call', 0))
-('SB', ('raise', 2.0))
+('D', ('fold', 0))
+('SB', ('raise', 1.5))
 ('BB', ('call', 0))
 ('UTG', ('call', 0))
 ('MP', ('call', 0))
@@ -1334,116 +553,13 @@ Dealt to MP [3S 4S]
 ('UTG', ('call', 0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
-('D', ('all-in', 0))
-('SB', ('all-in', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-Board TD JH AH 7S 9S
-*** SHOW DOWN ***
-D shows [TC 5S] (player.hand_description())
-SB shows [QC QD] (player.hand_description())
-BB shows [4H 8S] (player.hand_description())
-MP shows [3S 4S] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #15 - Holdem (No Limit) - 2024/07/08 21:07:00 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1451.00)
-Seat 2: SB ($995.00)
-Seat 3: BB ($926.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($628.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [9D AS]
-Dealt to CO [KD 6H]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('raise', 1.5))
-('D', ('raise', 2.0))
-('SB', ('fold', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('raise', 2.0))
 ('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('call', 0))
 *** TURN ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-Board AC TD TH 6S KS
-*** SHOW DOWN ***
-D shows [9D AS] (player.hand_description())
-CO shows [KD 6H] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #16 - Holdem (No Limit) - 2024/07/08 21:12:31 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($5074.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($926.00)
-Seat 4: UTG ($0.00)
-Seat 5: MP ($0.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [2D 5D]
-Dealt to SB [8D 9S]
-Dealt to UTG [AC TS]
-Dealt to MP [QC AH]
-Dealt to CO [5C 8C]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('raise', 1.5))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('raise', 2.0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('all-in', 0))
+('SB', ('raise', 1.2000000476837158))
 ('BB', ('fold', 0))
-('UTG', ('all-in', 0))
-('MP', ('all-in', 0))
-('CO', ('all-in', 0))
-('D', ('all-in', 0))
-Board 3C 6D JD 4S JS
+Board JC QC 5D KH 4S
 *** SHOW DOWN ***
-D shows [2D 5D] (player.hand_description())
-SB shows [8D 9S] (player.hand_description())
-UTG shows [AC TS] (player.hand_description())
-MP shows [QC AH] (player.hand_description())
-CO shows [5C 8C] (player.hand_description())
+SB shows [4D KD] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
@@ -1451,519 +567,41 @@ player.result_description()
 player.result_description()
 player.result_description()
 player.result_description()
-Hand #17 - Holdem (No Limit) - 2024/07/08 21:15:04 UTC
+Hand #0 - Holdem (No Limit) - 2024/07/10 01:37:01 UTC
 Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($654.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($2346.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to BB [4H 4S]
-Dealt to MP [KC KD]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('fold', 0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('fold', 0))
-Board 6C TC AC TH 8S
-*** SHOW DOWN ***
-BB shows [4H 4S] (player.hand_description())
-MP shows [KC KD] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #18 - Holdem (No Limit) - 2024/07/08 21:18:18 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($5000.00)
+Seat 1: D ($3010.00)
 Seat 2: SB ($0.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($0.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [KH TS]
-Dealt to SB [TH AS]
-Dealt to BB [TD 3H]
-Dealt to UTG [9D KD]
-Dealt to CO [7C JS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('raise', 1.5))
-('MP', ('fold', 0))
-('CO', ('call', 0))
-('D', ('raise', 2.0))
-('SB', ('raise', 2.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('all-in', 0))
-('SB', ('all-in', 0))
-('BB', ('all-in', 0))
-('UTG', ('all-in', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-Board 8C KC 4H 3S 4S
-*** SHOW DOWN ***
-D shows [KH TS] (player.hand_description())
-SB shows [TH AS] (player.hand_description())
-BB shows [TD 3H] (player.hand_description())
-UTG shows [9D KD] (player.hand_description())
-CO shows [7C JS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #19 - Holdem (No Limit) - 2024/07/08 21:21:38 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($926.00)
-Seat 3: BB ($3074.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($0.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [4S KS]
-Dealt to BB [2D KD]
-Dealt to MP [6C 8C]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('raise', 2.0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('fold', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('raise', 0.5))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-('CO', ('call', 0))
-('D', ('all-in', 0))
-('SB', ('call', 0))
-('BB', ('all-in', 0))
-Board 2C 4C 6D 2H 8H
-*** SHOW DOWN ***
-D shows [4S KS] (player.hand_description())
-BB shows [2D KD] (player.hand_description())
-MP shows [6C 8C] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #20 - Holdem (No Limit) - 2024/07/08 21:24:31 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($926.00)
-Seat 3: BB ($3074.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [KD KS]
-Dealt to BB [6D 8D]
-Dealt to CO [TH QS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('raise', 1.5))
-('D', ('raise', 2.0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('all-in', 0))
-('SB', ('fold', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-Board 2C 8C 6H 7H AH
-*** SHOW DOWN ***
-D shows [KD KS] (player.hand_description())
-BB shows [6D 8D] (player.hand_description())
-CO shows [TH QS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #21 - Holdem (No Limit) - 2024/07/08 21:28:09 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($921.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($2079.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [4D 4S]
-Dealt to MP [KD AH]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('fold', 0))
-('SB', ('raise', 2.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-*** TURN ***
-('SB', ('raise', 0.4000000059604645))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('raise', 0.4000000059604645))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-Board 7C TD QD 3S KS
-*** SHOW DOWN ***
-SB shows [4D 4S] (player.hand_description())
-MP shows [KD AH] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #22 - Holdem (No Limit) - 2024/07/08 21:31:45 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($1917.00)
-Seat 3: BB ($882.00)
-Seat 4: UTG ($201.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [8C 6D]
-Dealt to UTG [9C QC]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('raise', 1.5))
-('MP', ('fold', 0))
-('CO', ('fold', 0))
-('D', ('fold', 0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('raise', 2.0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('fold', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-*** TURN ***
-('SB', ('raise', 0.4000000059604645))
-('BB', ('call', 0))
-('UTG', ('raise', 0.4000000059604645))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-('BB', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-Board 4C 6C KD 6H 7H
-*** SHOW DOWN ***
-SB shows [8C 6D] (player.hand_description())
-UTG shows [9C QC] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #23 - Holdem (No Limit) - 2024/07/08 21:34:49 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($926.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($0.00)
-Seat 5: MP ($4074.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [6D 4H]
-Dealt to BB [5S TS]
-Dealt to UTG [2S AS]
-Dealt to MP [KD KH]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('raise', 1.5))
-('MP', ('raise', 2.0))
-('CO', ('fold', 0))
-('D', ('call', 0))
-('SB', ('raise', 2.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-('CO', ('call', 0))
-('D', ('fold', 0))
-('SB', ('all-in', 0))
-('BB', ('all-in', 0))
-('UTG', ('all-in', 0))
-Board 4C 8C 7D QH 8S
-*** SHOW DOWN ***
-SB shows [6D 4H] (player.hand_description())
-BB shows [5S TS] (player.hand_description())
-UTG shows [2S AS] (player.hand_description())
-MP shows [KD KH] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #24 - Holdem (No Limit) - 2024/07/08 21:38:37 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($0.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($5000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [TC 5S]
-Dealt to SB [6D KH]
-Dealt to BB [AC 6S]
-Dealt to UTG [5C 5D]
-Dealt to CO [4S JS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('raise', 1.5))
-('MP', ('fold', 0))
-('CO', ('raise', 2.0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('raise', 2.0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('all-in', 0))
-('UTG', ('all-in', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-('D', ('all-in', 0))
-('SB', ('all-in', 0))
-Board JD 5H 7S QS AS
-*** SHOW DOWN ***
-D shows [TC 5S] (player.hand_description())
-SB shows [6D KH] (player.hand_description())
-BB shows [AC 6S] (player.hand_description())
-UTG shows [5C 5D] (player.hand_description())
-CO shows [4S JS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #25 - Holdem (No Limit) - 2024/07/08 21:41:12 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($3000.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($0.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [QD 8H]
-Dealt to BB [TC TD]
-Dealt to MP [JC AS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('fold', 0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-Board 2C AC 9H TH 4S
-*** SHOW DOWN ***
-SB shows [QD 8H] (player.hand_description())
-BB shows [TC TD] (player.hand_description())
-MP shows [JC AS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #26 - Holdem (No Limit) - 2024/07/08 21:43:53 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($926.00)
-Seat 3: BB ($926.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($2148.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [KD 9H]
-Dealt to MP [8D AS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('raise', 2.0))
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('all-in', 0))
-('SB', ('fold', 0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-Board 4C QC QH 3S 6S
-*** SHOW DOWN ***
-D shows [KD 9H] (player.hand_description())
-MP shows [8D AS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #27 - Holdem (No Limit) - 2024/07/08 21:47:00 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($3015.00)
-Seat 2: SB ($995.00)
 Seat 3: BB ($990.00)
 Seat 4: UTG ($0.00)
 Seat 5: MP ($1000.00)
-Seat 6: CO ($0.00)
+Seat 6: CO ($1000.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to D [QD AD]
-Dealt to UTG [KH AS]
-Dealt to CO [5S QS]
+Dealt to D [5C 5H]
+Dealt to SB [AD KS]
+Dealt to UTG [TD AS]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
 ('UTG', ('raise', 1.5))
 ('MP', ('fold', 0))
-('CO', ('raise', 2.0))
+('CO', ('fold', 0))
 ('D', ('raise', 2.0))
-('SB', ('fold', 0))
+('SB', ('raise', 2.0))
 ('BB', ('fold', 0))
 ('UTG', ('raise', 2.0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
 ('D', ('all-in', 0))
-('SB', ('call', 0))
+('SB', ('all-in', 0))
 ('BB', ('call', 0))
 ('UTG', ('all-in', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-Board 2D 4H 9H QH JS
+Board 3C 7C 5D 7D 8H
 *** SHOW DOWN ***
-D shows [QD AD] (player.hand_description())
-UTG shows [KH AS] (player.hand_description())
-CO shows [5S QS] (player.hand_description())
+D shows [5C 5H] (player.hand_description())
+SB shows [AD KS] (player.hand_description())
+UTG shows [TD AS] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
@@ -1971,45 +609,156 @@ player.result_description()
 player.result_description()
 player.result_description()
 player.result_description()
-Hand #28 - Holdem (No Limit) - 2024/07/08 21:49:35 UTC
+Hand #0 - Holdem (No Limit) - 2024/07/10 01:38:01 UTC
 Firestone 6-max Seat #1 is the button
 Seat 1: D ($1000.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($3000.00)
+Seat 2: SB ($995.00)
+Seat 3: BB ($1005.00)
 Seat 4: UTG ($1000.00)
-Seat 5: MP ($0.00)
+Seat 5: MP ($1000.00)
 Seat 6: CO ($1000.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to SB [9D QH]
-Dealt to BB [4D 8H]
-Dealt to MP [KC AS]
+Dealt to BB [TD QD]
+*** PRE-FLOP ***
+('SB', ('blinds', 5))
+('BB', ('blinds', 10))
+('UTG', ('fold', 0))
+('MP', ('fold', 0))
+('CO', ('fold', 0))
+('D', ('fold', 0))
+('SB', ('fold', 0))
+Board 3C 3H 6H TH QH
+*** SHOW DOWN ***
+BB shows [TD QD] (player.hand_description())
+*** SUMMARY ***
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+Hand #0 - Holdem (No Limit) - 2024/07/10 01:40:10 UTC
+Firestone 6-max Seat #1 is the button
+Seat 1: D ($1000.00)
+Seat 2: SB ($0.00)
+Seat 3: BB ($4074.00)
+Seat 4: UTG ($0.00)
+Seat 5: MP ($0.00)
+Seat 6: CO ($926.00)
+SB posts the small blind $5.00
+BB posts the big blind $10.00
+*** HOLE CARDS ***
+Dealt to SB [6C 7C]
+Dealt to BB [8H 8S]
+Dealt to UTG [AD KH]
+Dealt to MP [JD JH]
+*** PRE-FLOP ***
+('SB', ('blinds', 5))
+('BB', ('blinds', 10))
+('UTG', ('raise', 1.5))
+('MP', ('raise', 2.0))
+('CO', ('call', 0))
+('D', ('fold', 0))
+('SB', ('raise', 2.0))
+('BB', ('all-in', 0))
+('UTG', ('all-in', 0))
+('MP', ('all-in', 0))
+('CO', ('fold', 0))
+('D', ('call', 0))
+('SB', ('all-in', 0))
+Board QC 8D KD AH 5S
+*** SHOW DOWN ***
+SB shows [6C 7C] (player.hand_description())
+BB shows [8H 8S] (player.hand_description())
+UTG shows [AD KH] (player.hand_description())
+MP shows [JD JH] (player.hand_description())
+*** SUMMARY ***
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+Hand #1 - Holdem (No Limit) - 2024/07/10 01:41:30 UTC
+Firestone 6-max Seat #1 is the button
+Seat 1: D ($1000.00)
+Seat 2: SB ($995.00)
+Seat 3: BB ($990.00)
+Seat 4: UTG ($1037.00)
+Seat 5: MP ($978.00)
+Seat 6: CO ($1000.00)
+SB posts the small blind $5.00
+BB posts the big blind $10.00
+*** HOLE CARDS ***
+Dealt to UTG [3D 3H]
+Dealt to MP [KD JS]
+*** PRE-FLOP ***
+('SB', ('blinds', 5))
+('BB', ('blinds', 10))
+('UTG', ('raise', 1.5))
+('MP', ('call', 0))
+('CO', ('fold', 0))
+('D', ('fold', 0))
+('SB', ('fold', 0))
+('BB', ('fold', 0))
+*** FLOP ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+*** TURN ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+*** RIVER ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+Board AC 2D 6H 7S QS
+*** SHOW DOWN ***
+UTG shows [3D 3H] (player.hand_description())
+MP shows [KD JS] (player.hand_description())
+*** SUMMARY ***
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+Hand #2 - Holdem (No Limit) - 2024/07/10 01:42:36 UTC
+Firestone 6-max Seat #1 is the button
+Seat 1: D ($1000.00)
+Seat 2: SB ($995.00)
+Seat 3: BB ($0.00)
+Seat 4: UTG ($1000.00)
+Seat 5: MP ($0.00)
+Seat 6: CO ($3005.00)
+SB posts the small blind $5.00
+BB posts the big blind $10.00
+*** HOLE CARDS ***
+Dealt to BB [7S 9S]
+Dealt to MP [AH 5S]
+Dealt to CO [9H TH]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
 ('UTG', ('fold', 0))
 ('MP', ('raise', 1.5))
-('CO', ('fold', 0))
+('CO', ('raise', 2.0))
 ('D', ('fold', 0))
-('SB', ('call', 0))
+('SB', ('fold', 0))
 ('BB', ('raise', 2.0))
 ('UTG', ('call', 0))
 ('MP', ('raise', 2.0))
-('CO', ('call', 0))
+('CO', ('all-in', 0))
 ('D', ('call', 0))
 ('SB', ('call', 0))
 ('BB', ('all-in', 0))
 ('UTG', ('call', 0))
 ('MP', ('all-in', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-Board 2C 5C 8D JD 6H
+Board 2C TD QD 7H JH
 *** SHOW DOWN ***
-SB shows [9D QH] (player.hand_description())
-BB shows [4D 8H] (player.hand_description())
-MP shows [KC AS] (player.hand_description())
+BB shows [7S 9S] (player.hand_description())
+MP shows [AH 5S] (player.hand_description())
+CO shows [9H TH] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
@@ -2017,115 +766,7 @@ player.result_description()
 player.result_description()
 player.result_description()
 player.result_description()
-Hand #29 - Holdem (No Limit) - 2024/07/08 21:54:47 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($210.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($2790.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [6H TS]
-Dealt to BB [7D 8D]
-Dealt to CO [8C JH]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('raise', 1.5))
-('D', ('fold', 0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('raise', 0.5))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-*** TURN ***
-('SB', ('call', 0))
-('BB', ('raise', 0.4000000059604645))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('raise', 0.4000000059604645))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-Board JC AC 2D 3D 6S
-*** SHOW DOWN ***
-SB shows [6H TS] (player.hand_description())
-BB shows [7D 8D] (player.hand_description())
-CO shows [8C JH] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #30 - Holdem (No Limit) - 2024/07/08 21:57:08 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($995.00)
-Seat 3: BB ($2005.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [QC AC]
-Dealt to BB [KD JH]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('fold', 0))
-('D', ('raise', 1.5))
-('SB', ('fold', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('raise', 2.0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('all-in', 0))
-('SB', ('call', 0))
-('BB', ('all-in', 0))
-Board TC KC 5D 9D 9S
-*** SHOW DOWN ***
-D shows [QC AC] (player.hand_description())
-BB shows [KD JH] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #31 - Holdem (No Limit) - 2024/07/08 22:02:02 UTC
+Hand #3 - Holdem (No Limit) - 2024/07/10 01:43:29 UTC
 Firestone 6-max Seat #1 is the button
 Seat 1: D ($1000.00)
 Seat 2: SB ($0.00)
@@ -2136,8 +777,8 @@ Seat 6: CO ($1000.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to SB [6C 6H]
-Dealt to BB [8D 2H]
+Dealt to SB [4H AH]
+Dealt to BB [9C KD]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
@@ -2146,45 +787,23 @@ Dealt to BB [8D 2H]
 ('CO', ('fold', 0))
 ('D', ('fold', 0))
 ('SB', ('raise', 1.5))
-('BB', ('call', 0))
+('BB', ('raise', 2.0))
 ('UTG', ('call', 0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
 ('D', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('raise', 0.5))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('raise', 1.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** TURN ***
-('SB', ('call', 0))
-('BB', ('raise', 0.4000000059604645))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('raise', 1.2000000476837158))
-('BB', ('raise', 0.8199999928474426))
+('SB', ('raise', 2.0))
+('BB', ('raise', 2.0))
 ('UTG', ('call', 0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
 ('D', ('call', 0))
 ('SB', ('all-in', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-Board 5D 5H 7H 2S 8S
+('BB', ('all-in', 0))
+Board 8C KC 7D 2H 5H
 *** SHOW DOWN ***
-SB shows [6C 6H] (player.hand_description())
-BB shows [8D 2H] (player.hand_description())
+SB shows [4H AH] (player.hand_description())
+BB shows [9C KD] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
@@ -2192,7 +811,191 @@ player.result_description()
 player.result_description()
 player.result_description()
 player.result_description()
-Hand #32 - Holdem (No Limit) - 2024/07/08 22:05:22 UTC
+Hand #4 - Holdem (No Limit) - 2024/07/10 01:44:31 UTC
+Firestone 6-max Seat #1 is the button
+Seat 1: D ($1000.00)
+Seat 2: SB ($978.00)
+Seat 3: BB ($0.00)
+Seat 4: UTG ($1000.00)
+Seat 5: MP ($2022.00)
+Seat 6: CO ($1000.00)
+SB posts the small blind $5.00
+BB posts the big blind $10.00
+*** HOLE CARDS ***
+Dealt to BB [5D 7S]
+Dealt to MP [QD AD]
+*** PRE-FLOP ***
+('SB', ('blinds', 5))
+('BB', ('blinds', 10))
+('UTG', ('fold', 0))
+('MP', ('raise', 1.5))
+('CO', ('fold', 0))
+('D', ('fold', 0))
+('SB', ('call', 0))
+('BB', ('raise', 2.0))
+('UTG', ('call', 0))
+('MP', ('raise', 2.0))
+('CO', ('call', 0))
+('D', ('call', 0))
+('SB', ('fold', 0))
+('BB', ('all-in', 0))
+('UTG', ('call', 0))
+('MP', ('all-in', 0))
+Board KC AC TD KH 6S
+*** SHOW DOWN ***
+BB shows [5D 7S] (player.hand_description())
+MP shows [QD AD] (player.hand_description())
+*** SUMMARY ***
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+Hand #5 - Holdem (No Limit) - 2024/07/10 01:45:58 UTC
+Firestone 6-max Seat #1 is the button
+Seat 1: D ($1000.00)
+Seat 2: SB ($0.00)
+Seat 3: BB ($990.00)
+Seat 4: UTG ($2010.00)
+Seat 5: MP ($1000.00)
+Seat 6: CO ($1000.00)
+SB posts the small blind $5.00
+BB posts the big blind $10.00
+*** HOLE CARDS ***
+Dealt to SB [KD 6H]
+Dealt to UTG [7D 8D]
+*** PRE-FLOP ***
+('SB', ('blinds', 5))
+('BB', ('blinds', 10))
+('UTG', ('raise', 1.5))
+('MP', ('fold', 0))
+('CO', ('fold', 0))
+('D', ('fold', 0))
+('SB', ('raise', 2.0))
+('BB', ('fold', 0))
+('UTG', ('call', 0))
+('MP', ('call', 0))
+('CO', ('call', 0))
+('D', ('call', 0))
+*** FLOP ***
+('SB', ('raise', 1.0))
+('BB', ('call', 0))
+('UTG', ('call', 0))
+('MP', ('call', 0))
+('CO', ('call', 0))
+('D', ('call', 0))
+*** TURN ***
+('SB', ('raise', 0.4000000059604645))
+('BB', ('call', 0))
+('UTG', ('raise', 0.8199999928474426))
+('MP', ('call', 0))
+('CO', ('call', 0))
+('D', ('call', 0))
+('SB', ('all-in', 0))
+('BB', ('call', 0))
+*** RIVER ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+Board 7C JC 4D QD TH
+*** SHOW DOWN ***
+SB shows [KD 6H] (player.hand_description())
+UTG shows [7D 8D] (player.hand_description())
+*** SUMMARY ***
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+Hand #6 - Holdem (No Limit) - 2024/07/10 01:47:34 UTC
+Firestone 6-max Seat #1 is the button
+Seat 1: D ($778.00)
+Seat 2: SB ($995.00)
+Seat 3: BB ($2249.00)
+Seat 4: UTG ($978.00)
+Seat 5: MP ($0.00)
+Seat 6: CO ($1000.00)
+SB posts the small blind $5.00
+BB posts the big blind $10.00
+*** HOLE CARDS ***
+Dealt to BB [3C AH]
+Dealt to MP [AC QH]
+*** PRE-FLOP ***
+('SB', ('blinds', 5))
+('BB', ('blinds', 10))
+('UTG', ('raise', 1.5))
+('MP', ('raise', 2.0))
+('CO', ('fold', 0))
+('D', ('raise', 2.0))
+('SB', ('fold', 0))
+('BB', ('call', 0))
+('UTG', ('fold', 0))
+('MP', ('call', 0))
+('CO', ('call', 0))
+*** FLOP ***
+('SB', ('call', 0))
+('BB', ('raise', 1.0))
+('UTG', ('call', 0))
+('MP', ('all-in', 0))
+('CO', ('call', 0))
+('D', ('fold', 0))
+('SB', ('call', 0))
+('BB', ('all-in', 0))
+Board 2C 2D KD 3H KS
+*** SHOW DOWN ***
+BB shows [3C AH] (player.hand_description())
+MP shows [AC QH] (player.hand_description())
+*** SUMMARY ***
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+Hand #7 - Holdem (No Limit) - 2024/07/10 01:48:48 UTC
+Firestone 6-max Seat #1 is the button
+Seat 1: D ($1000.00)
+Seat 2: SB ($995.00)
+Seat 3: BB ($1027.00)
+Seat 4: UTG ($978.00)
+Seat 5: MP ($1000.00)
+Seat 6: CO ($1000.00)
+SB posts the small blind $5.00
+BB posts the big blind $10.00
+*** HOLE CARDS ***
+Dealt to BB [9D 3H]
+Dealt to UTG [JC 9H]
+*** PRE-FLOP ***
+('SB', ('blinds', 5))
+('BB', ('blinds', 10))
+('UTG', ('raise', 1.5))
+('MP', ('fold', 0))
+('CO', ('fold', 0))
+('D', ('fold', 0))
+('SB', ('fold', 0))
+('BB', ('call', 0))
+*** FLOP ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+*** TURN ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+*** RIVER ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+Board 7D TD QD KD 6S
+*** SHOW DOWN ***
+BB shows [9D 3H] (player.hand_description())
+UTG shows [JC 9H] (player.hand_description())
+*** SUMMARY ***
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+player.result_description()
+Hand #8 - Holdem (No Limit) - 2024/07/10 01:49:57 UTC
 Firestone 6-max Seat #1 is the button
 Seat 1: D ($1000.00)
 Seat 2: SB ($995.00)
@@ -2203,8 +1006,8 @@ Seat 6: CO ($1000.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to BB [9C KD]
-Dealt to MP [6C AC]
+Dealt to BB [TC 6D]
+Dealt to MP [7H 7S]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
@@ -2225,154 +1028,17 @@ Dealt to MP [6C AC]
 ('SB', ('call', 0))
 ('BB', ('raise', 0.5))
 ('UTG', ('call', 0))
-('MP', ('raise', 1.0))
+('MP', ('raise', 0.5))
 ('CO', ('call', 0))
 ('D', ('call', 0))
 ('SB', ('call', 0))
 ('BB', ('all-in', 0))
-('UTG', ('call', 0))
-*** TURN ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-Board 7C 2D TD JD 6H
-*** SHOW DOWN ***
-BB shows [9C KD] (player.hand_description())
-MP shows [6C AC] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #33 - Holdem (No Limit) - 2024/07/08 22:10:18 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($2197.00)
-Seat 3: BB ($803.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [KD 2H]
-Dealt to SB [AD JH]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('fold', 0))
-('D', ('raise', 1.5))
-('SB', ('raise', 2.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** FLOP ***
-('SB', ('raise', 0.5))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** TURN ***
-('SB', ('raise', 1.2000000476837158))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('all-in', 0))
-('SB', ('all-in', 0))
-Board 8D TD QH 9S QS
-*** SHOW DOWN ***
-D shows [KD 2H] (player.hand_description())
-SB shows [AD JH] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #34 - Holdem (No Limit) - 2024/07/08 22:12:47 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($773.00)
-Seat 3: BB ($3227.00)
-Seat 4: UTG ($0.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [TH KH]
-Dealt to BB [TC TS]
-Dealt to UTG [9D KD]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('raise', 1.5))
-('MP', ('fold', 0))
-('CO', ('fold', 0))
-('D', ('raise', 2.0))
-('SB', ('raise', 2.0))
-('BB', ('raise', 2.0))
-('UTG', ('all-in', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('all-in', 0))
-('SB', ('fold', 0))
-('BB', ('all-in', 0))
-Board 3C 5C JD 3H 7S
-*** SHOW DOWN ***
-D shows [TH KH] (player.hand_description())
-BB shows [TC TS] (player.hand_description())
-UTG shows [9D KD] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #35 - Holdem (No Limit) - 2024/07/08 22:15:03 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($978.00)
-Seat 2: SB ($877.00)
-Seat 3: BB ($2145.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($0.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to BB [TC 9S]
-Dealt to MP [7C 7D]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('call', 0))
-('SB', ('raise', 2.0))
-('BB', ('raise', 2.0))
 ('UTG', ('call', 0))
 ('MP', ('all-in', 0))
-('CO', ('call', 0))
-('D', ('fold', 0))
-('SB', ('fold', 0))
-('BB', ('all-in', 0))
-Board 8C JD 4H 7H 3S
+Board JC 2D 3H 8H 5S
 *** SHOW DOWN ***
-BB shows [TC 9S] (player.hand_description())
-MP shows [7C 7D] (player.hand_description())
+BB shows [TC 6D] (player.hand_description())
+MP shows [7H 7S] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
@@ -2380,460 +1046,19 @@ player.result_description()
 player.result_description()
 player.result_description()
 player.result_description()
-Hand #36 - Holdem (No Limit) - 2024/07/08 22:19:08 UTC
+Hand #9 - Holdem (No Limit) - 2024/07/10 01:50:48 UTC
 Firestone 6-max Seat #1 is the button
-Seat 1: D ($462.00)
-Seat 2: SB ($2076.00)
-Seat 3: BB ($462.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [3C KS]
-Dealt to SB [6S 7S]
-Dealt to BB [4H 2S]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('fold', 0))
-('D', ('raise', 1.5))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('raise', 2.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-*** TURN ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-Board QC 7D AD 9S QS
-*** SHOW DOWN ***
-D shows [3C KS] (player.hand_description())
-SB shows [6S 7S] (player.hand_description())
-BB shows [4H 2S] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #37 - Holdem (No Limit) - 2024/07/08 22:21:58 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1451.00)
+Seat 1: D ($1027.00)
 Seat 2: SB ($995.00)
-Seat 3: BB ($926.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($628.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [KC JD]
-Dealt to MP [3C AD]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('raise', 2.0))
-('SB', ('fold', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-*** TURN ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-Board QC 8D TD 9H QS
-*** SHOW DOWN ***
-D shows [KC JD] (player.hand_description())
-MP shows [3C AD] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #38 - Holdem (No Limit) - 2024/07/08 22:25:44 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($2094.00)
-Seat 2: SB ($490.00)
-Seat 3: BB ($926.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($490.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [7D AD]
-Dealt to SB [6D 3S]
-Dealt to MP [3H TH]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('raise', 2.0))
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-*** TURN ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-Board 2C 3C 4C 7S KS
-*** SHOW DOWN ***
-D shows [7D AD] (player.hand_description())
-SB shows [6D 3S] (player.hand_description())
-MP shows [3H TH] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #39 - Holdem (No Limit) - 2024/07/08 22:28:56 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($2118.00)
-Seat 3: BB ($882.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [QD 5H]
-Dealt to CO [TH KS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('raise', 1.5))
-('D', ('fold', 0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('raise', 2.0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-*** FLOP ***
-('SB', ('raise', 0.5))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-Board 2C QC AC 9H AH
-*** SHOW DOWN ***
-SB shows [QD 5H] (player.hand_description())
-CO shows [TH KS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #40 - Holdem (No Limit) - 2024/07/08 22:31:54 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($978.00)
-Seat 3: BB ($3022.00)
-Seat 4: UTG ($0.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [2C KS]
-Dealt to BB [QH AS]
-Dealt to UTG [AC JH]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('raise', 1.5))
-('MP', ('fold', 0))
-('CO', ('fold', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('raise', 2.0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('fold', 0))
-('BB', ('all-in', 0))
-('UTG', ('all-in', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('all-in', 0))
-Board TD 4H 7H AH 6S
-*** SHOW DOWN ***
-D shows [2C KS] (player.hand_description())
-BB shows [QH AS] (player.hand_description())
-UTG shows [AC JH] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #41 - Holdem (No Limit) - 2024/07/08 22:35:15 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($4167.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($833.00)
-Seat 4: UTG ($0.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [2H 8H]
-Dealt to SB [2C JC]
-Dealt to UTG [5D 5H]
-Dealt to CO [9C AD]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('raise', 1.5))
-('MP', ('fold', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('raise', 2.0))
-('BB', ('call', 0))
-('UTG', ('raise', 2.0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-('D', ('all-in', 0))
-('SB', ('all-in', 0))
-('BB', ('fold', 0))
-('UTG', ('all-in', 0))
-Board TC 8D KD 6H 4S
-*** SHOW DOWN ***
-D shows [2H 8H] (player.hand_description())
-SB shows [2C JC] (player.hand_description())
-UTG shows [5D 5H] (player.hand_description())
-CO shows [9C AD] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #42 - Holdem (No Limit) - 2024/07/08 22:40:50 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($3123.00)
-Seat 2: SB ($877.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [AD 6S]
-Dealt to BB [8C JD]
-Dealt to CO [6H AS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('raise', 1.5))
-('D', ('call', 0))
-('SB', ('raise', 2.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('raise', 0.5))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('raise', 1.0))
-('D', ('all-in', 0))
-('SB', ('fold', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-Board 7C 2D 3H 7H QH
-*** SHOW DOWN ***
-D shows [AD 6S] (player.hand_description())
-BB shows [8C JD] (player.hand_description())
-CO shows [6H AS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #43 - Holdem (No Limit) - 2024/07/08 22:44:10 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($0.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($4000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [QC 3H]
-Dealt to BB [5D JD]
-Dealt to UTG [TH JH]
-Dealt to CO [5H AS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('raise', 1.5))
-('MP', ('fold', 0))
-('CO', ('raise', 2.0))
-('D', ('fold', 0))
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('raise', 2.0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('all-in', 0))
-('UTG', ('all-in', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-Board 4C 7C AC AD 6S
-*** SHOW DOWN ***
-SB shows [QC 3H] (player.hand_description())
-BB shows [5D JD] (player.hand_description())
-UTG shows [TH JH] (player.hand_description())
-CO shows [5H AS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #44 - Holdem (No Limit) - 2024/07/08 22:47:16 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($877.00)
-Seat 3: BB ($3123.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [TH TS]
-Dealt to BB [TD AD]
-Dealt to CO [7H QH]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('raise', 1.5))
-('D', ('call', 0))
-('SB', ('raise', 2.0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('all-in', 0))
-('SB', ('fold', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-Board 2C 5C AC 8D 9D
-*** SHOW DOWN ***
-D shows [TH TS] (player.hand_description())
-BB shows [TD AD] (player.hand_description())
-CO shows [7H QH] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #45 - Holdem (No Limit) - 2024/07/08 22:51:52 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($2232.00)
-Seat 3: BB ($768.00)
+Seat 3: BB ($978.00)
 Seat 4: UTG ($1000.00)
 Seat 5: MP ($1000.00)
 Seat 6: CO ($1000.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to D [KD 9S]
-Dealt to SB [TH TS]
+Dealt to D [QD 8H]
+Dealt to BB [JC 7H]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
@@ -2841,25 +1066,24 @@ Dealt to SB [TH TS]
 ('MP', ('fold', 0))
 ('CO', ('fold', 0))
 ('D', ('raise', 1.5))
-('SB', ('raise', 2.0))
-('BB', ('raise', 2.0))
+('SB', ('fold', 0))
+('BB', ('call', 0))
 ('UTG', ('call', 0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
 *** FLOP ***
-('SB', ('raise', 1.0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('all-in', 0))
-('SB', ('all-in', 0))
-Board 2C 3C 4D 7H QH
+('SB', ('call', 0))
+('BB', ('call', 0))
+*** TURN ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+*** RIVER ***
+('SB', ('call', 0))
+('BB', ('call', 0))
+Board QC KC 8D 4H JS
 *** SHOW DOWN ***
-D shows [KD 9S] (player.hand_description())
-SB shows [TH TS] (player.hand_description())
+D shows [QD 8H] (player.hand_description())
+BB shows [JC 7H] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
@@ -2867,343 +1091,39 @@ player.result_description()
 player.result_description()
 player.result_description()
 player.result_description()
-Hand #46 - Holdem (No Limit) - 2024/07/08 22:54:44 UTC
+Hand #10 - Holdem (No Limit) - 2024/07/10 01:52:04 UTC
 Firestone 6-max Seat #1 is the button
 Seat 1: D ($0.00)
-Seat 2: SB ($2237.00)
+Seat 2: SB ($2386.00)
 Seat 3: BB ($990.00)
-Seat 4: UTG ($1000.00)
+Seat 4: UTG ($624.00)
 Seat 5: MP ($1000.00)
-Seat 6: CO ($773.00)
+Seat 6: CO ($1000.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to D [JC TH]
-Dealt to SB [KD KH]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('raise', 1.5))
-('D', ('raise', 2.0))
-('SB', ('raise', 2.0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** FLOP ***
-('SB', ('raise', 1.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('fold', 0))
-('D', ('all-in', 0))
-('SB', ('all-in', 0))
-Board 5C KC 3D TD 9S
-*** SHOW DOWN ***
-D shows [JC TH] (player.hand_description())
-SB shows [KD KH] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #47 - Holdem (No Limit) - 2024/07/08 22:57:30 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($0.00)
-Seat 5: MP ($6000.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [JS KS]
-Dealt to SB [8H 8S]
-Dealt to BB [8D QD]
-Dealt to UTG [4D 4H]
-Dealt to MP [KC KH]
-Dealt to CO [6D AD]
+Dealt to D [TD 8S]
+Dealt to SB [3C 3D]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
 ('UTG', ('raise', 1.5))
-('MP', ('raise', 2.0))
-('CO', ('raise', 2.0))
-('D', ('raise', 2.0))
-('SB', ('all-in', 0))
-('BB', ('all-in', 0))
-('UTG', ('all-in', 0))
-('MP', ('all-in', 0))
-('CO', ('all-in', 0))
-('D', ('all-in', 0))
-Board TC 9D KD 4S 9S
-*** SHOW DOWN ***
-D shows [JS KS] (player.hand_description())
-SB shows [8H 8S] (player.hand_description())
-BB shows [8D QD] (player.hand_description())
-UTG shows [4D 4H] (player.hand_description())
-MP shows [KC KH] (player.hand_description())
-CO shows [6D AD] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #48 - Holdem (No Limit) - 2024/07/08 23:00:23 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($995.00)
-Seat 3: BB ($2005.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($0.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to BB [2C AD]
-Dealt to MP [KD 3H]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('fold', 0))
-('SB', ('fold', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('raise', 1.0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('all-in', 0))
-Board 7C 8C 5H 9H TH
-*** SHOW DOWN ***
-BB shows [2C AD] (player.hand_description())
-MP shows [KD 3H] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #49 - Holdem (No Limit) - 2024/07/08 23:05:30 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($3022.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($978.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [3C JC]
-Dealt to BB [4C 7H]
-Dealt to CO [4S QS]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('raise', 2.0))
-('D', ('fold', 0))
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
 ('MP', ('fold', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('raise', 0.5))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('raise', 0.5))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('raise', 0.5))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-Board 2C 6C 6H AH JS
-*** SHOW DOWN ***
-SB shows [3C JC] (player.hand_description())
-BB shows [4C 7H] (player.hand_description())
-CO shows [4S QS] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #50 - Holdem (No Limit) - 2024/07/08 23:08:07 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($978.00)
-Seat 2: SB ($2145.00)
-Seat 3: BB ($877.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($0.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [2C 2D]
-Dealt to MP [JC AD]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
 ('CO', ('fold', 0))
 ('D', ('call', 0))
 ('SB', ('raise', 2.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('fold', 0))
-('SB', ('all-in', 0))
 ('BB', ('fold', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-Board TC 7D 2H 2S JS
-*** SHOW DOWN ***
-SB shows [2C 2D] (player.hand_description())
-MP shows [JC AD] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #51 - Holdem (No Limit) - 2024/07/08 23:13:03 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($3000.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($0.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [QC 9D]
-Dealt to BB [2C 9C]
-Dealt to MP [5C TC]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('fold', 0))
-('SB', ('raise', 2.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
+('UTG', ('raise', 2.0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
-('D', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('raise', 0.5))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('raise', 0.5))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** TURN ***
-('SB', ('raise', 0.4000000059604645))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
+('D', ('all-in', 0))
 ('SB', ('all-in', 0))
-('BB', ('all-in', 0))
-Board KC 8D KD 2H KH
-*** SHOW DOWN ***
-SB shows [QC 9D] (player.hand_description())
-BB shows [2C 9C] (player.hand_description())
-MP shows [5C TC] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #52 - Holdem (No Limit) - 2024/07/08 23:15:46 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($3000.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [JD KH]
-Dealt to BB [KD 7H]
-Dealt to MP [4C 4S]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
+('BB', ('call', 0))
 ('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('fold', 0))
-('SB', ('raise', 2.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-Board 2C 3C 8C JC JH
+Board KC QD 6S JS KS
 *** SHOW DOWN ***
-SB shows [JD KH] (player.hand_description())
-BB shows [KD 7H] (player.hand_description())
-MP shows [4C 4S] (player.hand_description())
+D shows [TD 8S] (player.hand_description())
+SB shows [3C 3D] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
@@ -3211,136 +1131,7 @@ player.result_description()
 player.result_description()
 player.result_description()
 player.result_description()
-Hand #53 - Holdem (No Limit) - 2024/07/08 23:21:52 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($3000.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [7D 9H]
-Dealt to BB [3H JH]
-Dealt to CO [7C QH]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('raise', 1.5))
-('D', ('fold', 0))
-('SB', ('raise', 2.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('raise', 0.5))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('raise', 0.5))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-*** TURN ***
-('SB', ('call', 0))
-('BB', ('raise', 0.4000000059604645))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('raise', 0.4000000059604645))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-Board 3C 9C AD AH 9S
-*** SHOW DOWN ***
-SB shows [7D 9H] (player.hand_description())
-BB shows [3H JH] (player.hand_description())
-CO shows [7C QH] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #54 - Holdem (No Limit) - 2024/07/08 23:27:17 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($1000.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($3000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [2C 8C]
-Dealt to BB [QC 3S]
-Dealt to CO [6D 5H]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('fold', 0))
-('CO', ('raise', 1.5))
-('D', ('fold', 0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('raise', 0.5))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('raise', 0.5))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('raise', 0.5))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-*** TURN ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-Board AC JD AD 6S AS
-*** SHOW DOWN ***
-SB shows [2C 8C] (player.hand_description())
-BB shows [QC 3S] (player.hand_description())
-CO shows [6D 5H] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #55 - Holdem (No Limit) - 2024/07/08 23:29:39 UTC
+Hand #11 - Holdem (No Limit) - 2024/07/10 01:53:09 UTC
 Firestone 6-max Seat #1 is the button
 Seat 1: D ($1000.00)
 Seat 2: SB ($2000.00)
@@ -3351,8 +1142,8 @@ Seat 6: CO ($1000.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to SB [4D KS]
-Dealt to BB [3D KD]
+Dealt to SB [2H KH]
+Dealt to BB [3D KS]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
@@ -3361,23 +1152,32 @@ Dealt to BB [3D KD]
 ('CO', ('fold', 0))
 ('D', ('fold', 0))
 ('SB', ('raise', 1.5))
-('BB', ('raise', 2.0))
+('BB', ('call', 0))
 ('UTG', ('call', 0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
 ('D', ('call', 0))
-('SB', ('raise', 2.0))
-('BB', ('raise', 2.0))
+*** FLOP ***
+('SB', ('raise', 1.0))
+('BB', ('raise', 1.0))
+('UTG', ('call', 0))
+('MP', ('call', 0))
+('CO', ('call', 0))
+('D', ('call', 0))
+('SB', ('call', 0))
+*** TURN ***
+('SB', ('raise', 0.8199999928474426))
+('BB', ('raise', 1.2000000476837158))
 ('UTG', ('call', 0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
 ('D', ('call', 0))
 ('SB', ('all-in', 0))
 ('BB', ('all-in', 0))
-Board 3C 2S 4S 7S AS
+Board 5C QC 2D JD 8H
 *** SHOW DOWN ***
-SB shows [4D KS] (player.hand_description())
-BB shows [3D KD] (player.hand_description())
+SB shows [2H KH] (player.hand_description())
+BB shows [3D KS] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
@@ -3385,94 +1185,29 @@ player.result_description()
 player.result_description()
 player.result_description()
 player.result_description()
-Hand #56 - Holdem (No Limit) - 2024/07/08 23:32:33 UTC
+Hand #12 - Holdem (No Limit) - 2024/07/10 01:53:44 UTC
 Firestone 6-max Seat #1 is the button
 Seat 1: D ($1000.00)
-Seat 2: SB ($654.00)
-Seat 3: BB ($882.00)
+Seat 2: SB ($995.00)
+Seat 3: BB ($1005.00)
 Seat 4: UTG ($1000.00)
-Seat 5: MP ($1464.00)
+Seat 5: MP ($1000.00)
 Seat 6: CO ($1000.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to SB [4C 3S]
-Dealt to MP [7C 7S]
+Dealt to BB [4C 6S]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
 ('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
+('MP', ('fold', 0))
 ('CO', ('fold', 0))
 ('D', ('fold', 0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('fold', 0))
-('UTG', ('call', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-*** TURN ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-*** RIVER ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-Board KC AD 7H TH 9S
-*** SHOW DOWN ***
-SB shows [4C 3S] (player.hand_description())
-MP shows [7C 7S] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #57 - Holdem (No Limit) - 2024/07/08 23:36:09 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($926.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($4074.00)
-Seat 5: MP ($1000.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to D [9C TS]
-Dealt to BB [3S 5S]
-Dealt to UTG [8C KC]
-Dealt to CO [6C AC]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('raise', 1.5))
-('MP', ('fold', 0))
-('CO', ('raise', 2.0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('raise', 2.0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('all-in', 0))
 ('SB', ('fold', 0))
-('BB', ('all-in', 0))
-('UTG', ('all-in', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-Board 5C 7C JD 9H 6S
+Board 5D 8D TH 4S 7S
 *** SHOW DOWN ***
-D shows [9C TS] (player.hand_description())
-BB shows [3S 5S] (player.hand_description())
-UTG shows [8C KC] (player.hand_description())
-CO shows [6C AC] (player.hand_description())
+BB shows [4C 6S] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()
@@ -3480,196 +1215,45 @@ player.result_description()
 player.result_description()
 player.result_description()
 player.result_description()
-Hand #58 - Holdem (No Limit) - 2024/07/08 23:38:47 UTC
+Hand #13 - Holdem (No Limit) - 2024/07/10 01:55:07 UTC
 Firestone 6-max Seat #1 is the button
 Seat 1: D ($1000.00)
 Seat 2: SB ($0.00)
 Seat 3: BB ($0.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($3000.00)
-Seat 6: CO ($1000.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [7D 6S]
-Dealt to BB [KC 7H]
-Dealt to MP [8C AH]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('fold', 0))
-('D', ('fold', 0))
-('SB', ('call', 0))
-('BB', ('raise', 2.0))
-('UTG', ('call', 0))
-('MP', ('raise', 2.0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('call', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-('CO', ('call', 0))
-('D', ('call', 0))
-('SB', ('all-in', 0))
-Board 5D KD AD 4S TS
-*** SHOW DOWN ***
-SB shows [7D 6S] (player.hand_description())
-BB shows [KC 7H] (player.hand_description())
-MP shows [8C AH] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #59 - Holdem (No Limit) - 2024/07/08 23:42:02 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($0.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($4000.00)
+Seat 4: UTG ($3000.00)
 Seat 5: MP ($1000.00)
 Seat 6: CO ($1000.00)
 SB posts the small blind $5.00
 BB posts the big blind $10.00
 *** HOLE CARDS ***
-Dealt to D [6D QD]
-Dealt to SB [QC 2S]
-Dealt to BB [4D 9S]
-Dealt to UTG [2H AH]
+Dealt to SB [TS QS]
+Dealt to BB [9D QD]
+Dealt to UTG [QC KD]
 *** PRE-FLOP ***
 ('SB', ('blinds', 5))
 ('BB', ('blinds', 10))
 ('UTG', ('raise', 1.5))
 ('MP', ('fold', 0))
 ('CO', ('fold', 0))
-('D', ('call', 0))
+('D', ('fold', 0))
 ('SB', ('call', 0))
 ('BB', ('raise', 2.0))
-('UTG', ('raise', 2.0))
+('UTG', ('call', 0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
 ('D', ('call', 0))
-('SB', ('call', 0))
+('SB', ('raise', 2.0))
 ('BB', ('all-in', 0))
 ('UTG', ('all-in', 0))
 ('MP', ('call', 0))
 ('CO', ('call', 0))
-('D', ('all-in', 0))
-('SB', ('all-in', 0))
-Board 2C TD AD JH 4S
-*** SHOW DOWN ***
-D shows [6D QD] (player.hand_description())
-SB shows [QC 2S] (player.hand_description())
-BB shows [4D 9S] (player.hand_description())
-UTG shows [2H AH] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #60 - Holdem (No Limit) - 2024/07/08 23:45:24 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($926.00)
-Seat 2: SB ($0.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($0.00)
-Seat 6: CO ($4074.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [5C 5H]
-Dealt to BB [AD 6S]
-Dealt to MP [7C AC]
-Dealt to CO [JH KH]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('raise', 2.0))
-('D', ('call', 0))
-('SB', ('raise', 2.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('all-in', 0))
-('D', ('fold', 0))
-('SB', ('all-in', 0))
-('BB', ('all-in', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-Board 7D JD 4H TH KS
-*** SHOW DOWN ***
-SB shows [5C 5H] (player.hand_description())
-BB shows [AD 6S] (player.hand_description())
-MP shows [7C AC] (player.hand_description())
-CO shows [JH KH] (player.hand_description())
-*** SUMMARY ***
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-player.result_description()
-Hand #61 - Holdem (No Limit) - 2024/07/08 23:50:38 UTC
-Firestone 6-max Seat #1 is the button
-Seat 1: D ($882.00)
-Seat 2: SB ($4118.00)
-Seat 3: BB ($0.00)
-Seat 4: UTG ($1000.00)
-Seat 5: MP ($0.00)
-Seat 6: CO ($0.00)
-SB posts the small blind $5.00
-BB posts the big blind $10.00
-*** HOLE CARDS ***
-Dealt to SB [8C JH]
-Dealt to BB [2D JS]
-Dealt to MP [3C JD]
-Dealt to CO [TC 8S]
-*** PRE-FLOP ***
-('SB', ('blinds', 5))
-('BB', ('blinds', 10))
-('UTG', ('fold', 0))
-('MP', ('raise', 1.5))
-('CO', ('call', 0))
-('D', ('raise', 2.0))
-('SB', ('raise', 2.0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-('CO', ('call', 0))
-('D', ('fold', 0))
-*** FLOP ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('call', 0))
-*** TURN ***
-('SB', ('call', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('raise', 0.4000000059604645))
-('CO', ('call', 0))
 ('D', ('call', 0))
 ('SB', ('all-in', 0))
-('BB', ('call', 0))
-('UTG', ('call', 0))
-('MP', ('all-in', 0))
-('CO', ('all-in', 0))
-Board JC 7D 9D TD 2H
+Board 3C TC JC 8H 9H
 *** SHOW DOWN ***
-SB shows [8C JH] (player.hand_description())
-BB shows [2D JS] (player.hand_description())
-MP shows [3C JD] (player.hand_description())
-CO shows [TC 8S] (player.hand_description())
+SB shows [TS QS] (player.hand_description())
+BB shows [9D QD] (player.hand_description())
+UTG shows [QC KD] (player.hand_description())
 *** SUMMARY ***
 player.result_description()
 player.result_description()

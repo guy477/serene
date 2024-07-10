@@ -2,7 +2,7 @@
 from poker.poker_game import PokerGame
 from poker.cfr import CFRTrainer
 import poker.ccluster as ccluster
-from poker._utils import ExternalManager
+from poker._utils import LocalManager
 
 from multiprocessing import Manager
 
@@ -74,7 +74,12 @@ def _6_max_opening():
         "CO_UTG_DEF",
         "CO_MP_DEF", 
         "BTN_UTG_DEF", 
-        "BTN_MP_DEF", 
+        "BTN_MP_DEF", # Strat Complexity ~79564 @Depth=7;@Prune=5 | 
+                      # TODO: Optimize LocalManager to lower Strate Update Complexity.
+                      #     NOTE:
+                      #                Because the fast_forward_gamestate function builds a gamestate based on the blueprint strategy starting from the preflop, We need 
+                      #                to pass, or share, the entire blueprint strategy for reference ONLY in the fast_forward_gamestate location. Then, when solving for a
+                      #                specific node, we merge and update the blueprint only for that node and it's descendants.
         "BTN_CO_DEF", 
         "SB_UTG_DEF", 
         "SB_MP_DEF", 
@@ -86,6 +91,7 @@ def _6_max_opening():
         "BB_BTN_DEF",
         "BB_SB_DEF",
     ]
+    
 
     positions_dict = {str(pos): name for pos, name in zip(positions_to_solve, position_names)}
 
@@ -100,7 +106,7 @@ def train():
     
     # bet_sizing = [(1.5, ), (), (), ()]
 
-    bet_sizing = [(1.5, 2.0,), (.5, 1,), (), ()]
+    bet_sizing = [(1.5, 2.0,), (.5, 1,), (.40, .82, 1.2,), (.75, 1.2, 2,)]
 
     # bet_sizing = [(1.5, ), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
 
@@ -122,23 +128,23 @@ def train():
 
     # Specify the number of times to iteratate over `positions_to_solve`.
     ## Fun Fact: This is one way to construct a blueprint strategy.
-    num_smoothing_iterations = 3
+    num_smoothing_iterations = 1
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 2500
-    cfr_depth = 6
+    num_cfr_iterations = 1000
+    cfr_depth = 7
     
     # Depth at which to start Monte Carlo Simulation.
     monte_carlo_depth = 9999
 
     # Depth at which to start pruning regret and strategy sums.
-    prune_depth = 4
+    prune_depth = 5
     # Chance-probability at which to start declaring a node "terminal"
-    prune_probability = 1e-8
+    prune_probability = 1e-10
 
     # Train the AI player using the CFR algorithm
     cfr_trainer = CFRTrainer(num_cfr_iterations, num_showdown_simulations, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
-    strategy_list, _external_manager = cfr_trainer.train(positions_to_solve * num_smoothing_iterations, save_pickle = False) # TODO add pickle paths to regret/strat solves.
+    strategy_list, _local_manager = cfr_trainer.train(positions_to_solve * num_smoothing_iterations, save_pickle = True) # TODO add pickle paths to regret/strat solves.
     plot_hands(strategy_list, SUITS, VALUES, positions_dict)
 
 
@@ -159,8 +165,8 @@ def play():
     big_blind = 10
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 1000
-    cfr_depth = 6
+    num_cfr_iterations = 100
+    cfr_depth = 9
     
     # Depth at which to start Monte Carlo Simulation.
     monte_carlo_depth = 9999

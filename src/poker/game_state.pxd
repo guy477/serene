@@ -10,7 +10,7 @@ cdef class GameState:
     cdef list values
    
     cdef list positions
-    cdef list[Player] players
+    cdef public list[Player] players
 
     cdef public int cur_round_index
 

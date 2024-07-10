@@ -10,56 +10,34 @@ This repository contains a long-running personal project of mine that explores T
 
 ## Things It Does (sort of)
 - Blueprint Training (solve positions iteratively to build a solution index)\*
-- CFR Minimization:
-    - **Monte Carlo sampling**
-        - Starting at a depth - switch to monte carlo based sampling.
-    - **Pruning**
-        - **By Depth**
-            - Prune Regret and Strategy sums if they're accumulated below a specified depth each iteration.
-        - **By Probability**: 
-            - Skip to a terminal states if the current player's likelihood to arrive there is below a specified threshold.
-    - **Custom Hashing**
-        - I add a "prune" flag to each value; purging at the end of each iteration accordingly
-            - A custom hashing object allows this to be implemented seamlessly.
-            - It's boring, but i think it's clever!!
-        - Easier Abstractions and Key Management \*(TODO: Migrate gamestate abstraction to utilities)
-    - **Customizable Bet Sizing**
-        - Define what bet sizings to use on each street.
-    - **Any player count**
-        - Heads-up to 9-max \*(I've only tested heads up and 6-max...)
-    - **Abstraction** \*
-        - Fully abstracted preflop
-        - Postflop is WIP. \*(See [ccluster.pyx](src/poker/ccluster.pyx) for that nightmare)
-    - **Double Precision**
-        - You'd expect nothing less... But.. really..
-            - I just wanted a place to talk about how you run out of compute precision after a certain depth because of layered probability spaces and what not.
-                - You could use some clever bit shifting stuff; but is it worth the effort? 
-                    - I bet there's research on this..
-                        - (5 minutes later...) It's probably buried in some paper.. back to code.
+- Counter Factual Regret Minimization
+- Self/Human-play in Retro Style
+- Currently loaded with preflop opening ranges
+    - NOTE: the current blueprint is ONLY OPENING ranges and has NO DEFENSES.
+    - This causes the model to go haywire after the first couple of moves.
+
 
 ```* = WIP```
 
 ## Things to do (maybe)
 - [ ] Optimize GameState.betting_history 
     - Dynamic lists of 'objects' is not good
-- [ ] Optimize _utils.dynamic_merge_dicts() 
-    - Having 15 threads write to 1 shared object is not good
-        - Write to N objects in a queue on a seperate thread which constantly merges. Pause when queue is full.
-- [ ] Build out ExternalManager
+- [ ] Build out LocalManager
     - [ ] Load/Save blueprint based on action space
     - [ ] Perform gamestate abstraction based on the player hash.
-    - [ ] OPTIMIZE
+    - [x] OPTIMIZE
 - [ ] Formalize preflop blueprint construction process
-    - [x] Adjust pruning logic to feed back to the global regret and strategy sums. i.e. dont just copy the root node's sums.
-        - Pruning is turning into the blueprint strategy. i.e. Prune depth == Blueprint strategy depth.
-        - Blueprints, or strategies, can be chunked and loaded dynamically through the ExternalManager. Even abstraction can be handled here.
-- [ ] Environment to play the AI
-    - [x] Barebones
-    - [ ] Leverage interactive environment to build test framework
+    - Prune depth == Blueprint strategy depth.
+    - Blueprints, or strategies, can be chunked and loaded dynamically through the LocalManager. Even abstraction can be handled here.
+- [ ] Build out interactive API (for playing/testing)
 - [ ] Implement postflop abstractions
     - [ ] See _util.pyx.handtype(...)
-- [ ] More to come...
 
+- [x] Optimize _utils.dynamic_merge_dicts() 
+    - Should still investigate multiple accumulators
+- [x] Environment to play the AI
+    - [x] Barebones
+- [x] Adjust pruning logic to feed back to the global regret and strategy sums. 
 ## Example
 
 **See [results/charts/](results/charts) for proof of concept**

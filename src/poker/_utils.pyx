@@ -1,3 +1,4 @@
+import os
 import pickle
 import random
 from collections import defaultdict
@@ -13,10 +14,12 @@ import numpy
 cimport numpy
 cimport cython
 
+from tqdm import tqdm
+
 import hashlib
 
 
-cdef class ExternalManager:
+cdef class LocalManager:
     def __init__(self, pkl_path_regret = 'regret_sum.pkl', pkl_path_strategy = 'strategy_sum.pkl'):
         self.load(pkl_path_regret, pkl_path_strategy)
     
@@ -115,32 +118,50 @@ cdef class HashTable:
     """
     def __init__(self, shared_dict):
         self.table = shared_dict
+        self.to_merge = {}
+        self.to_prune = {}
 
 
     def __getitem__(self, key):
         cdef bytes hashed_key = hash_key_sha256(key)
-        return self.table[hashed_key][0]
+        return self.table[hashed_key]
 
     def __setitem__(self, key, value):
         cdef bytes hashed_key = hash_key_sha256(key)
-        if isinstance(value, tuple) and len(value) == 2:
-            self.table[hashed_key] = value
+        if isinstance(value, tuple) and len(value) == 3:
+            # value: tuple((tuple information_set, int pruned, int is_blueprint))
+            self.table[hashed_key] = value[0]
+            if value[1]:
+                self.to_prune[hashed_key] = value[1]
+            if value[2]:
+                self.to_merge[hashed_key] = value[2]
         else:
             raise ValueError("Value must be a tuple (actual_value, to_prune)")
 
-    def __delitem__(self, key):
-        cdef bytes hashed_key = hash_key_sha256(key)
-        del self.table[hashed_key]
 
     def __contains__(self, key):
         cdef bytes hashed_key = hash_key_sha256(key)
         return hashed_key in self.table
 
-    def get(self, key, default=None):
+    def get(self, key, default = default_double):
         cdef bytes hashed_key = hash_key_sha256(key)
+        return self.table.get(hashed_key, default)
+
+    def get_hashed(self, hashed_key):
+        return self.table[hashed_key]
+
+    def get_set(self, key, default=None, prune = True, merge = False):
+        cdef bytes hashed_key = hash_key_sha256(key)
+        
         if hashed_key not in self.table:
-            self.set(hashed_key, (default if default is not None else float(), False))
-        return self.table[hashed_key][0]
+            self.set(hashed_key, default if default is not None else default_double)
+        
+        if prune:
+            self.to_prune[hashed_key] = prune
+        if merge:
+            self.to_merge[hashed_key] = merge
+
+        return self.table[hashed_key]
 
     def update(self, other):
         for key, value in other.items():
@@ -152,6 +173,8 @@ cdef class HashTable:
 
     def clear(self):
         self.table.clear()
+        self.to_prune.clear()
+        self.to_merge.clear()
 
     def items(self):
         for key, value in self.table.items():
@@ -161,29 +184,44 @@ cdef class HashTable:
         return len(self.table)
 
     def prune(self):
-        keys_to_prune = [key for key, value in self.table.items() if value[1]]
-        for key in keys_to_prune:
+        for key in self.to_prune:
             del self.table[key]
+            del self.to_merge[key]
 
-cpdef dynamic_merge_dicts(external_manager_table, train_regret):
+cpdef dynamic_merge_dicts(local_manager_table, global_accumulator):
     
-    for key, (inner_dict, to_prune) in external_manager_table.items():
-        if key in train_regret:
-            existing_inner_dict, existing_to_prune = train_regret[key]
+    for player_hash_local in tqdm(local_manager_table.to_merge):
+        inner_dict = local_manager_table.get_hashed(player_hash_local)
+        global_accumulator[player_hash_local] = inner_dict
+        # Look at this schizo rambling... look the more up-to-date values better reflect a more optimized, less random, strategy. Just take the new values and keep it simple.
+        """
+        if player_hash_local in global_accumulator:
+            existing_inner_dict = global_accumulator[player_hash_local]
             
-            # Merge the internal dictionaries by averaging
+            ##      THIS SHOULD BE THE SUM, NOT AVERAGE.
+            ##      I USE AVERAGE BECAUSE WHEN WE TRAIN FOR NODE N, WE ACCUMULATE FOR NODE N+1 - OF WHICH, THE MAJORITY OF STEPS TAKEN FROM N ARE RANDOM - CAUSING THE ACCUMULATED VALUES TO REFLECT
+            ##          A RANDOM OP PONENT. SINCE THESE ACCUMULATIONS HAPPEN DEEPER IN THE ACTION TREE, WE END UP ACCUMULATING MORE AT N+1 COMPARED TO N (N CAN LEAD TO N+1 MULTIPLE TIMES IN THE SAME ITERATION). 
+            ##
+            ##      NOTE: IDEALLY, average(everything) == ((((everything[0]+everything[1])/2 + everything[3])/2 + everything[4])...) 
+            ##              The assumption here is that everything[n] accumulates the same number of elements as everything[n-1]
+            ##              This does not hold true below.
+            ##                  INVESTIGATE HOW TO PROPERLY ACCUMULATE STRATEGIES... SHOULD WE ONLY ACCUMULATE FOR NODE N WHILE BUILDING A BLUEPRINT STRATEGY?
+            ##                  Arguments can be made in favor of this logic below (balances exploring with exploitation)... Verification is needed.
+            ##
             for inner_key, inner_value in inner_dict.items():
                 if inner_key in existing_inner_dict:
-                    existing_inner_dict[inner_key] = (existing_inner_dict[inner_key] + inner_value) / 2.0
+                    existing_inner_dict[inner_key] = (existing_inner_dict[inner_key] + inner_value)/2
                 else:
                     existing_inner_dict[inner_key] = inner_value
             
-            # Update the prune flag if necessary
-            train_regret[key] = (existing_inner_dict, to_prune or existing_to_prune)
+            # This value is part of the existing blueprint and we've merged the new results with the existing results
+            global_accumulator[player_hash_local] = existing_inner_dict
         else:
             # If key does not exist, simply add the new entry
-            train_regret[key] = (inner_dict, to_prune)
-
+            global_accumulator[player_hash_local] = inner_dict
+        """
+        # else:
+        #   the node being considered is part of a precomputed strategy and *shouldn't* have updates
 cdef class Deck:
 
     def __init__(self, list suits, list values):
@@ -295,14 +333,60 @@ cdef str format_hand(unsigned long long hand):
     return " ".join(cards)
 
 cdef display_game_state(object game_state, int player_index):
+    import os
+    os.system('clear')
+    
+    current_player = game_state.get_current_player()
+    
     print(f"______________________________________________________________________________")
-    print(f"({game_state.get_current_player().position}): {format_hand(game_state.get_current_player().hand)} --- {'folded' if game_state.get_current_player().folded else 'active'}")
-                        
-                        # Asking chatgpt to turn a function into a oneliner is 22 century humor. utility functions go burrr
+    print(f"({current_player.position}): {format_hand(current_player.hand)} --- {'folded' if current_player.folded else 'active'}")
     print(f"Last move: {next((item for sublist in reversed(game_state.betting_history) for item in reversed(sublist) if item is not None), None)}")   
     print(f"Board: {format_hand(game_state.board)}")
     print(f"Pot: {game_state.pot}")
-    print(f"Chips: {game_state.get_current_player().chips}")
+    print(f"Chips: {current_player.chips}")
+    print(f"______________________________________________________________________________")
+    # Display information about other players
+    print(f"\nPOS      CARDS    POT CONTRIBS    STATUS     STACK     PRIOR GAINS")
+    for i, player in enumerate(game_state.players):
+        if i != player_index:
+            contributions_str = f"{player.tot_contributed_to_pot if game_state.cur_round_index > 0 else player.contributed_to_pot}{' ' * (5 - len(str(player.tot_contributed_to_pot if game_state.cur_round_index else player.contributed_to_pot)))}"
+            print(f"({player.position}){' ' * (8 - len('_' + player.position + '_'))}: {format_hand(player.hand)}   --- {contributions_str}   --- {'folded' if player.folded else 'active'} --- {player.chips}{' ' * (5 - len(str(player.chips)))} --- {player.prior_gains}")
+        else:
+            print()
+    print(f"______________________________________________________________________________")
+    # Display the current betting round
+    print(f'\n          {" " * game_state.cur_round_index * 20}|')
+    print(f'          {" " * game_state.cur_round_index * 20}V')
+
+    rounds = ['Preflop', 'Flop', 'Turn', 'River']
+    print("        PREFLOP     ---      FLOP      ---      TURN      ---     RIVER")
+
+    # Create a dictionary to store last actions for each player and round
+    actions_dict = {player.position: {round: '' for round in rounds} for player in game_state.players}
+
+    # Traverse the betting history to capture the last action for each player in each round
+    for round_idx, round_actions in enumerate(game_state.betting_history):
+        last_actions = {}
+        for action in round_actions:
+            player_pos, player_action = action
+            if player_pos in last_actions:
+                last_actions[player_pos] = player_action if last_actions[player_pos] != ('fold', 0) else ('fold', 0)
+            else:
+                last_actions[player_pos] = player_action
+                
+        for player_pos, player_action in last_actions.items():
+            if player_pos in actions_dict:
+                actions_dict[player_pos][rounds[round_idx]] = f"{player_action[0][:5] + ' ' * (7 - len(player_action[0][:5]))} ({str(player_action[1])[:5]})"  # Truncate action string
+
+    # Determine the max length of strings for proper alignment
+    max_len = max(len(player.position) for player in game_state.players) + 2
+    for player in game_state.players:
+        if player.position in actions_dict:
+            actions = actions_dict[player.position]
+            print(f"{player.position:<{max_len}} {actions['Preflop']:<18} {actions['Flop']:<18} {actions['Turn']:<18} {actions['River']:<18}")
+
+
+
 
     # print("______GAMESTATE______")
     # print(f"Active Players: {game_state.active_players()}")

@@ -28,12 +28,14 @@ cpdef double default_double()
 
 cdef class HashTable:
     cdef public object table
+    cdef public dict to_merge
+    cdef public dict to_prune
 
-cdef class ExternalManager:
+cdef class LocalManager:
     cdef public HashTable regret_sum
     cdef public HashTable strategy_sum
 
-cpdef dynamic_merge_dicts(external_manager_table, train_regret)
+cpdef dynamic_merge_dicts(local_manager_table, global_accumulator)
 
 cdef class Deck:
     cdef list suits
