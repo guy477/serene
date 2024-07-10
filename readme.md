@@ -12,14 +12,15 @@ This repository contains a long-running personal project of mine that explores T
 - Blueprint Training (solve positions iteratively to build a solution index)\*
 - Counter Factual Regret Minimization
 - Self/Human-play in Retro Style
-- Currently loaded with preflop opening ranges
-    - NOTE: the current blueprint is ONLY OPENING ranges and has NO DEFENSES.
-    - This causes the model to go haywire after the first couple of moves.
+- Currently loaded with a very-VERY rough preflop solve (depth 5, 1000 iterations)
+    - i.e. the model risks going hay wire 5 moves after the first non-folding action.
+    - **See [results/charts/](results/charts)**
 
 
 ```* = WIP```
 
 ## Things to do (maybe)
+- [ ] Optimize and debug cfr.fast_forward_gamestate
 - [ ] Optimize GameState.betting_history 
     - Dynamic lists of 'objects' is not good
 - [ ] Build out LocalManager
@@ -40,7 +41,6 @@ This repository contains a long-running personal project of mine that explores T
 - [x] Adjust pruning logic to feed back to the global regret and strategy sums. 
 ## Example
 
-**See [results/charts/](results/charts) for proof of concept**
 
 The following is a range chart that displays how often the (UTG) should open raise 1.5x the pot (1.5bb * 1.5 = 2.25bb) in 6-Max Texas Hold'em. Iterations Search depth and gamestate hashing are heavily restricted due to memory limitations and performance constraints. Regardless, the sampled range below reflects a loose version of what you might see on GTO Wizard.
 
@@ -63,9 +63,10 @@ To install the current implementation, please follow the steps below:
     conda activate Serene
     ```
 
-4. **Navigate your command line to the project directory and go into the source folder:**
+4. **Clone and navigate to source folder:**
     ```sh
-    cd Your/Path/To/serene/src
+    git clone https://github.com/guy477/serene.git
+    cd serene/src
     ```
 
 5. **Compile the project:**

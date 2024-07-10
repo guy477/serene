@@ -165,8 +165,8 @@ def play():
     big_blind = 10
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 100
-    cfr_depth = 9
+    num_cfr_iterations = 6000
+    cfr_depth = 3
     
     # Depth at which to start Monte Carlo Simulation.
     monte_carlo_depth = 9999

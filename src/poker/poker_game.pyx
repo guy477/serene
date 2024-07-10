@@ -102,7 +102,7 @@ cdef class PokerGame:
             print(f"{3-i}...", end = '')
             time.sleep(1)
         
-        print(f"\nPlayer {self.game_state.winner_index} wins the hand.")
+        print(f"\nPlayer {self.game_state.players[self.game_state.winner_index].position} wins the hand.")
         for i in range(5):
             print(f"Starting next hand in {5-i} seconds...", end = '')
             time.sleep(1)

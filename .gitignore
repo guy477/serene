@@ -12,3 +12,4 @@ src/poker/*.h
 __BAK/
 .DS_Store
 .vscode/
+src/poker_hand_history.log
