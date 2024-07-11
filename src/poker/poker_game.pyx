@@ -4,7 +4,6 @@
 import logging
 import pandas as pd
 import time
-from ._utils cimport *
 
 ################################################################################################################
 ############################ POKER GAME ########################################################################
@@ -14,11 +13,12 @@ cdef list VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 
 
 
 cdef class PokerGame:
-    def __init__(self, int num_players, int initial_chips, int num_ai_players, int small_blind, int big_blind, list bet_sizing, CFRTrainer cfr_trainer, list suits=SUITS, list values=VALUES):
+    def __init__(self, int num_players, int initial_chips, int num_ai_players, int small_blind, int big_blind, list bet_sizing, CFRTrainer cfr_trainer, LocalManager local_manager, list suits=SUITS, list values=VALUES):
         self.players = [Player(initial_chips, bet_sizing, True) for _ in range(num_players - num_ai_players)] + [Player(initial_chips, bet_sizing, False) for _ in range(num_ai_players)]
         self.game_state = GameState(self.players, small_blind, big_blind, cfr_trainer.num_simulations, False, suits, values)
         
         self.strategy_trainer = cfr_trainer
+        self.local_manager = local_manager
         
         self.profit_loss = []
         self.position_pl = {position: 0 for position in self.game_state.positions}
@@ -46,6 +46,7 @@ cdef class PokerGame:
                 self.skip_to_showdown()
                 continue
 
+
             print('*** Dealing turn ***')
             self._play_round()
             
@@ -53,6 +54,7 @@ cdef class PokerGame:
                 self.skip_to_showdown()
                 continue
 
+            
             print('Dealing River')
             self._play_round()
             
@@ -62,9 +64,11 @@ cdef class PokerGame:
         print(pd.DataFrame.from_dict(self.position_pl, orient='index', columns=['values']) / num_hands)
 
     cpdef _play_round(self):
-
         while not self.game_state.step(self.get_action()):
             display_game_state(self.game_state, self.game_state.player_index)
+
+        display_game_state(self.game_state, self.game_state.player_index)
+
 
      
     cpdef get_action(self):
@@ -75,7 +79,7 @@ cdef class PokerGame:
                 fast_forward_actions = build_fast_forward_actions(self.game_state.betting_history)
                 player_string_hand = tuple([int_to_card(x) for x in hand_to_cards(self.game_state.get_current_player().hand)])
                 print(fast_forward_actions)
-                _, local_manager = self.strategy_trainer.train([fast_forward_actions], [player_string_hand])
+                _, local_manager = self.strategy_trainer.train(self.local_manager, [fast_forward_actions], [player_string_hand])
 
                 strategy = self.strategy_trainer.get_average_strategy(self.game_state.get_current_player(), self.game_state, local_manager)
                 print(self.game_state.get_current_player().hash(self.game_state))

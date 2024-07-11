@@ -140,7 +140,6 @@ cdef class GameState:
         self.current_bet = 0
         for player in self.players:
             player.contributed_to_pot = 0
-        self.round_active_players = self.active_players()
         self.player_index = (self.dealer_position + 1) % len(self.players)
         self.last_raiser = -1
         self.num_actions = 0
@@ -157,6 +156,7 @@ cdef class GameState:
 
         if self.get_current_player().take_action(self, action):
             self.last_raiser = self.player_index
+
 
         self.num_actions += 1
         self.player_index = (self.player_index + 1) % len(self.players)
@@ -261,7 +261,7 @@ cdef class GameState:
         self.showdown()
 
     cpdef bint is_terminal(self):
-        if (((self.num_actions >= self.round_active_players) and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or
+        if (((self.num_actions >= len(self.players)) and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or
             (self.active_players() == 1 or self.allin_players() == self.active_players())):
             return True
         return False
@@ -353,7 +353,6 @@ cdef class GameState:
         self.cur_round_index = 0
         self.dealer_position = 0
         self.player_index = (self.dealer_position + 3) % len(self.players)
-        self.round_active_players = len(self.players)
         self.num_actions = 0
         self.last_raiser = -1
         self.current_bet = 0
@@ -383,7 +382,6 @@ cdef class GameState:
         new_state.current_bet = self.current_bet
         new_state.board = self.board
         new_state.deck = self.deck.clone()
-        new_state.round_active_players = self.round_active_players
 
         ### NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE
         ### Shuffing the deck between clones have drastic down stream affects. un comment if you know what you're doing
@@ -394,7 +392,6 @@ cdef class GameState:
         new_state.betting_history[1][:] = self.betting_history[1]
         new_state.betting_history[2][:] = self.betting_history[2]
         new_state.betting_history[3][:] = self.betting_history[3]
-        new_state.round_active_players = self.round_active_players
         new_state.winner_index = self.winner_index
         new_state.hand_id = self.hand_id
 
@@ -412,7 +409,6 @@ cdef class GameState:
         print(f"last_raiser: {self.last_raiser}")
         print(f"player_index: {self.player_index}")
         print(f"dealer_position: {self.dealer_position}")
-        print(f"round_active_players: {self.round_active_players}")
         print(f"active_players(): {self.active_players()}")
         print(f"allin_players(): {self.allin_players()}")
         print(f"folded_players(): {self.folded_players()}")

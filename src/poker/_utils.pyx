@@ -85,9 +85,6 @@ def convert_defaultdict(d):
     elif isinstance(d, dict):
         # Recursively convert each value in the dict
         return {k: convert_defaultdict(v) for k, v in d.items()}
-    elif isinstance(d, tuple):
-        # Recursively convert each item in the tuple
-        return tuple(convert_defaultdict(v) for v in d)
     else:
         return d
 
@@ -332,69 +329,117 @@ cdef str format_hand(unsigned long long hand):
     cdef list cards = [int_to_card(card) for card in create_deck() if card & hand]
     return " ".join(cards)
 
-cdef display_game_state(object game_state, int player_index):
-    import os
+
+####################################################################################################
+####################################################################################################
+################################## DISPLAY CURRENT GAME STATUS #####################################
+####################################################################################################
+####################################################################################################
+import os
+
+# Helper function to clear the console
+def clear_console():
     os.system('clear')
+
+# Helper function to format player contributions
+def format_contributions(player, game_state):
+    contributions = player.tot_contributed_to_pot
+    if player.position == 'SB':
+        contributions += game_state.small_blind
+    elif player.position == 'BB':
+        contributions += game_state.big_blind
+    return f"{contributions}".ljust(5)
+
+# Helper function to format player status
+def format_status(player, current_player, player_index):
+    status = 'folded' if player.folded else 'active'
+    highlight = '   <---' if player.position == current_player.position and player == player_index else ''
+    return f"{status} --- {player.chips}{' ' * (6 - len(str(player.chips)))} --- {player.prior_gains}{highlight}"
+
+# Helper function to display player information
+def display_player_info(player, game_state, current_player, player_index):
+    contributions = format_contributions(player, game_state)
+    status = format_status(player, current_player, player_index)
+    return f"({player.position}){' ' * (8 - len('_' + player.position + '_'))}: {format_hand(player.hand)}   --- {contributions}   --- {status}"
+
+# Helper function to display the game state header
+def display_header(game_state, current_player):
+    folded = {plr.position for plr in game_state.players if plr.folded}
+    last_move = next((item for sublist in reversed(game_state.betting_history) for item in reversed(sublist) if item is not None and (item[0] not in folded or item[1][0] == 'fold')), None)
+    
+    header = (
+        f"______________________________________________________________________________\n"
+        f"({current_player.position}): {format_hand(current_player.hand)} --- {'folded' if current_player.folded else 'active'}\n"
+        f"Last move: {last_move}\n"
+        f"Board: {format_hand(game_state.board)}\n"
+        f"Pot: {game_state.pot}\n"
+        f"Chips: {current_player.chips}\n"
+        f"______________________________________________________________________________\n"
+    )
+    return header
+
+# Helper function to display the betting rounds
+def display_betting_rounds(game_state):
+    betting_rounds = (
+        f'\n          {" " * game_state.cur_round_index * 20}|\n'
+        f'          {" " * game_state.cur_round_index * 20}V\n'
+        "        PREFLOP     ---      FLOP      ---      TURN      ---     RIVER"
+    )
+    return betting_rounds
+
+# Helper function to display actions dictionary
+def display_actions(actions_dict, rounds):
+    max_len = max(len(pos) for pos in actions_dict.keys()) + 2
+    actions_display = ""
+    for pos, actions in actions_dict.items():
+        actions_display += f"{pos:<{max_len}} {actions['Preflop']:<18} {actions['Flop']:<18} {actions['Turn']:<18} {actions['River']:<18}\n"
+    return actions_display
+
+# Helper function to generate actions dictionary
+def generate_actions_dict(game_state, folded):
+    rounds = ['Preflop', 'Flop', 'Turn', 'River']
+    actions_dict = {player.position: {round: ' ' * 18 for round in rounds} for player in game_state.players}
+
+    for round_idx, round_actions in enumerate(game_state.betting_history):
+        if round_idx > game_state.cur_round_index:
+            break
+        for player in game_state.players:
+            player_pos = player.position
+            player_action = next((action for pos, action in reversed(round_actions) if pos == player_pos), ('', ''))
+            if player_pos in folded:
+                player_action = ('fold', 0)
+            actions_dict[player_pos][rounds[round_idx]] = f"{player_action[0][:5].ljust(7)} ({str(player_action[1])[:5]})"
+    
+    return actions_dict, rounds
+
+# Main function to display the game state
+cdef display_game_state(object game_state, int player_index):
+    clear_console()
     
     current_player = game_state.get_current_player()
+    folded = {plr.position for plr in game_state.players if plr.folded}
+
+    print(display_header(game_state, current_player))
     
-    print(f"______________________________________________________________________________")
-    print(f"({current_player.position}): {format_hand(current_player.hand)} --- {'folded' if current_player.folded else 'active'}")
-    print(f"Last move: {next((item for sublist in reversed(game_state.betting_history) for item in reversed(sublist) if item is not None), None)}")   
-    print(f"Board: {format_hand(game_state.board)}")
-    print(f"Pot: {game_state.pot}")
-    print(f"Chips: {current_player.chips}")
-    print(f"______________________________________________________________________________")
-    # Display information about other players
     print(f"\nPOS      CARDS    POT CONTRIBS    STATUS     STACK     PRIOR GAINS")
     for i, player in enumerate(game_state.players):
-        if i != player_index:
-            contributions_str = f"{player.tot_contributed_to_pot if game_state.cur_round_index > 0 else player.contributed_to_pot}{' ' * (5 - len(str(player.tot_contributed_to_pot if game_state.cur_round_index else player.contributed_to_pot)))}"
-            print(f"({player.position}){' ' * (8 - len('_' + player.position + '_'))}: {format_hand(player.hand)}   --- {contributions_str}   --- {'folded' if player.folded else 'active'} --- {player.chips}{' ' * (5 - len(str(player.chips)))} --- {player.prior_gains}")
-        else:
-            print()
+        print(display_player_info(player, game_state, current_player, player_index))
     print(f"______________________________________________________________________________")
-    # Display the current betting round
-    print(f'\n          {" " * game_state.cur_round_index * 20}|')
-    print(f'          {" " * game_state.cur_round_index * 20}V')
-
-    rounds = ['Preflop', 'Flop', 'Turn', 'River']
-    print("        PREFLOP     ---      FLOP      ---      TURN      ---     RIVER")
-
-    # Create a dictionary to store last actions for each player and round
-    actions_dict = {player.position: {round: '' for round in rounds} for player in game_state.players}
-
-    # Traverse the betting history to capture the last action for each player in each round
-    for round_idx, round_actions in enumerate(game_state.betting_history):
-        last_actions = {}
-        for action in round_actions:
-            player_pos, player_action = action
-            if player_pos in last_actions:
-                last_actions[player_pos] = player_action if last_actions[player_pos] != ('fold', 0) else ('fold', 0)
-            else:
-                last_actions[player_pos] = player_action
-                
-        for player_pos, player_action in last_actions.items():
-            if player_pos in actions_dict:
-                actions_dict[player_pos][rounds[round_idx]] = f"{player_action[0][:5] + ' ' * (7 - len(player_action[0][:5]))} ({str(player_action[1])[:5]})"  # Truncate action string
-
-    # Determine the max length of strings for proper alignment
-    max_len = max(len(player.position) for player in game_state.players) + 2
-    for player in game_state.players:
-        if player.position in actions_dict:
-            actions = actions_dict[player.position]
-            print(f"{player.position:<{max_len}} {actions['Preflop']:<18} {actions['Flop']:<18} {actions['Turn']:<18} {actions['River']:<18}")
+    
+    print(display_betting_rounds(game_state))
+    
+    actions_dict, rounds = generate_actions_dict(game_state, folded)
+    print(display_actions(actions_dict, rounds))
 
 
 
-
-    # print("______GAMESTATE______")
-    # print(f"Active Players: {game_state.active_players()}")
-    # print(f"Current Bet: {game_state.current_bet}")
-    # print(f"Last Raiser: {game_state.last_raiser}")
-    # print(f"Player Index: {game_state.player_index}")
-    # print(f"Player Index Hand: {format_hand(game_state.players[game_state.player_index].hand)}")
-
+####################################################################################################
+####################################################################################################
+####################################################################################################
+# The below code is taken from eval7 - https://pypi.org/project/eval7/
+####################################################################################################
+####################################################################################################
+####################################################################################################
 
 
 ctypedef numpy.uint8_t uint8
@@ -402,11 +447,6 @@ ctypedef numpy.uint16_t uint16
 ctypedef numpy.int16_t int16
 ctypedef numpy.int64_t int64
 ctypedef numpy.npy_bool boolean
-
-
-#################################################################################################
-# The below code is taken from eval7 - https://pypi.org/project/eval7/
-#################################################################################################
 
 
 cdef extern from "arrays.h":

@@ -36,7 +36,7 @@ cdef class CFRTrainer:
         self.monte_carlo_depth = monte_carlo_depth
     
 
-    cpdef train(self, list positions_to_solve = [], list hands = [], bint save_pickle=False):
+    cpdef train(self, local_manager, list positions_to_solve = [], list hands = [], bint save_pickle=False):
         FUNCTION_START_TIME = time.time()
 
         cards = [r + s for r in reversed(self.values) for s in self.suits]
@@ -59,9 +59,11 @@ cdef class CFRTrainer:
             __[hand_mapping[hand]] = 1
             hands_reduced.append(hand)
 
+        # Front load mid-ling/strong cards
+        hands_reduced = list(reversed(hands_reduced))
 
         ## TODO: Figure out how to use manager.dict() with LocalManager
-        local_manager = LocalManager('dat/pickles/regret_sum.pkl', 'dat/pickles/strategy_sum.pkl')
+        # local_manager = LocalManager('dat/pickles/regret_sum.pkl', 'dat/pickles/strategy_sum.pkl')
 
         # NOTE: Migrate away from passing directories
         # TODO: Pass positions_to_solve to LocalManager; make mappings from positions to their root strategy nodes.
@@ -137,8 +139,8 @@ cdef class CFRTrainer:
 
 #############
             # print(f'Batch size: {len(batch_hands)}')
-            # print(f'Update Complexity: {regret_complexity_calculation if self.cfr_depth > 1 else 1}')
-            # print(f'Update Complexity: {strategy_complexity_calculation if self.cfr_depth > 1 else 1}')
+            print(f'Update Complexity: {regret_complexity_calculation if self.cfr_depth > 1 else 1}')
+            print(f'Update Complexity: {strategy_complexity_calculation if self.cfr_depth > 1 else 1}')
 #############
 
             # Clear local solutions for next run
@@ -164,10 +166,10 @@ cdef class CFRTrainer:
 #############
         # print('fastforwarding')
         self.fast_forward_gamestate(hand, game_state, fast_forward_actions, local_manager)
-        # print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-')
-        # print(f'TRAINING: ({game_state.get_current_player().position}) --- {hand}')
-        # print(f'Regret Complexity: {len(local_manager.get_regret_sum())}')
-        # print(f'Strategy Complexity: {len(local_manager.get_strategy_sum())}')
+        print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-')
+        print(f'TRAINING: ({game_state.get_current_player().position}) --- {hand}')
+        print(f'Regret Complexity: {len(local_manager.get_regret_sum())}')
+        print(f'Strategy Complexity: {len(local_manager.get_strategy_sum())}')
         # print()
 #############
 
@@ -200,7 +202,7 @@ cdef class CFRTrainer:
         # print(player_hash)
         # print(f"Post Regret Sum: {local_manager.get_regret_sum()[player_hash]}")
         # print(f"Post Strategy Sum: {local_manager.get_strategy_sum()[player_hash]}")
-        # print(f"Post Average Strategy For Hand {hand_mapping[hand]}: {strategy}")
+        print(f"Post Average Strategy For Hand {hand_mapping[hand]}: {strategy}")
 
         # print(f'Regret Complexity (post): {len(local_manager.get_regret_sum())}')
         # print(f'Strategy Complexity (post): {len(local_manager.get_strategy_sum())}')

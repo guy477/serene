@@ -14,14 +14,13 @@ cdef class GameState:
 
     cdef public int cur_round_index
 
-    cdef int small_blind
-    cdef int big_blind
+    cdef public int small_blind
+    cdef public int big_blind
 
     cdef int num_simulations
     
     cdef int player_index
 
-    cdef int round_active_players
     cdef int num_actions
     cdef int dealer_position
     cdef int last_raiser

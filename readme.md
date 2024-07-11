@@ -20,6 +20,8 @@ This repository contains a long-running personal project of mine that explores T
 ```* = WIP```
 
 ## Things to do (maybe)
+- [ ] Implement postflop abstractions (**Solve heads-up river positions and back into optimal strategies/ranges**)
+    - [x] See _util.pyx.handtype(...)
 - [ ] Optimize and debug cfr.fast_forward_gamestate
 - [ ] Optimize GameState.betting_history 
     - Dynamic lists of 'objects' is not good
@@ -31,9 +33,9 @@ This repository contains a long-running personal project of mine that explores T
     - Prune depth == Blueprint strategy depth.
     - Blueprints, or strategies, can be chunked and loaded dynamically through the LocalManager. Even abstraction can be handled here.
 - [ ] Build out interactive API (for playing/testing)
-- [ ] Implement postflop abstractions
-    - [ ] See _util.pyx.handtype(...)
-
+.
+.
+.
 - [x] Optimize _utils.dynamic_merge_dicts() 
     - Should still investigate multiple accumulators
 - [x] Environment to play the AI

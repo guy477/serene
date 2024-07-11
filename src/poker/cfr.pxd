@@ -26,7 +26,7 @@ cdef class CFRTrainer:
     
     cdef progress_gamestate_to_showdown(self, GameState game_state, float epsilon = *)
 
-    cpdef train(self, list positions_to_solve = *, list hands = *, bint save_pickle=*)
+    cpdef train(self, local_manager, list positions_to_solve = *, list hands = *, bint save_pickle=*)
 
     cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions, LocalManager local_manager, int attempts = *)
 
