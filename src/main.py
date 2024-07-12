@@ -2,7 +2,7 @@
 from poker.poker_game import PokerGame
 from poker.cfr import CFRTrainer
 import poker.ccluster as ccluster
-from poker._utils import LocalManager
+from poker._utils import LocalManager, card_str_to_int, handtype, cy_evaluate_cpp
 
 from multiprocessing import Manager
 
@@ -181,7 +181,7 @@ def play():
     # For an AI player who will play in realtime.
     cfr_trainer = CFRTrainer(num_cfr_iterations, 1, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
 
-    local_manager = LocalManager('dat/pickles/regret_sum_S1_5k_D7_P5.pkl', 'dat/pickles/strategy_sum_S1_5k_D7_P5.pkl')
+    local_manager = LocalManager('dat/pickles/regret_sum_S1_3k_D11_P10.pkl', 'dat/pickles/strategy_sum_S1_3k_D11_P10.pkl')
     num_hands = 100
     game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer, local_manager, SUITS, VALUES)
     # # Play the game
@@ -515,5 +515,4 @@ if __name__ == "__main__":
     # cluster()
     # train()
     play()
-    # local_manager = LocalManager('dat/pickles/regret_sum.pkl', 'dat/pickles/strategy_sum.pkl')
-    # local_manager.save('dat/regret_sum_TEST.pkl', 'dat/strategy_sum_TEST.pkl')
+    # ccluster.test()

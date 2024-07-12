@@ -314,7 +314,7 @@ cdef str int_to_card(unsigned long long card):
     return f'{VALUES[value_index]}{SUITS[suit_index]}'
 
 
-cdef unsigned long long card_str_to_int(str card_str):
+cpdef unsigned long long card_str_to_int(str card_str):
     return card_to_int(card_str[1], card_str[0])
 
 cdef public list create_deck():
@@ -584,36 +584,242 @@ cdef unsigned int cy_evaluate(unsigned long long cards, unsigned int num_cards) 
             return retval
 
 
+cdef unsigned int cy_evaluate_handtype(unsigned long long cards, unsigned int num_cards) nogil:
+    """
+    This function is a duplicate of the one above. Here I pack more information into the return value.
+    This enables the handtype funciton to more accurately describe a hand.
+    The change likely results in different hand-rankings on the margins since this extra information changes the returned value.
+    Since this change is untested:
+                    
+                     *****THIS FUNCTION IS TO BE USED ONLY BY "_utils.handtype"*****
+    """
+    cdef unsigned int retval = 0, four_mask, three_mask, two_mask
+    
+    cdef unsigned int sc = <unsigned int>((cards >> (CLUB_OFFSET)) & 0x1fffUL)
+    cdef unsigned int sd = <unsigned int>((cards >> (DIAMOND_OFFSET)) & 0x1fffUL)
+    cdef unsigned int sh = <unsigned int>((cards >> (HEART_OFFSET)) & 0x1fffUL)
+    cdef unsigned int ss = <unsigned int>((cards >> (SPADE_OFFSET)) & 0x1fffUL)
+    
+    cdef unsigned int ranks = sc | sd | sh | ss
+    cdef unsigned int n_ranks = N_BITS_TABLE[ranks]
+    cdef unsigned int n_dups = <unsigned int>(num_cards - n_ranks)
+    
+    cdef unsigned int st, t, kickers, second, tc, top
+    
+    if n_ranks >= 5:
+        if N_BITS_TABLE[ss] >= 5:
+            if STRAIGHT_TABLE[ss] != 0:
+                return HANDTYPE_VALUE_STRAIGHTFLUSH + <unsigned int>(STRAIGHT_TABLE[ss] << TOP_CARD_SHIFT)
+            else:
+                retval = HANDTYPE_VALUE_FLUSH + TOP_FIVE_CARDS_TABLE[ss]
+        elif N_BITS_TABLE[sc] >= 5:
+            if STRAIGHT_TABLE[sc] != 0:
+                return HANDTYPE_VALUE_STRAIGHTFLUSH + <unsigned int>(STRAIGHT_TABLE[sc] << TOP_CARD_SHIFT)
+            else:
+                retval = HANDTYPE_VALUE_FLUSH + TOP_FIVE_CARDS_TABLE[sc]
+        elif N_BITS_TABLE[sd] >= 5:
+            if STRAIGHT_TABLE[sd] != 0:
+                return HANDTYPE_VALUE_STRAIGHTFLUSH + <unsigned int>(STRAIGHT_TABLE[sd] << TOP_CARD_SHIFT)
+            else:
+                retval = HANDTYPE_VALUE_FLUSH + TOP_FIVE_CARDS_TABLE[sd]
+        elif N_BITS_TABLE[sh] >= 5:
+            if STRAIGHT_TABLE[sh] != 0:
+                return HANDTYPE_VALUE_STRAIGHTFLUSH + <unsigned int>(STRAIGHT_TABLE[sh] << TOP_CARD_SHIFT)
+            else:
+                retval = HANDTYPE_VALUE_FLUSH + TOP_FIVE_CARDS_TABLE[sh]
+        else:
+            st = STRAIGHT_TABLE[ranks]
+            if st != 0:
+                retval = HANDTYPE_VALUE_STRAIGHT + (st << TOP_CARD_SHIFT)
+
+        if retval != 0 and n_dups < 3:
+            return retval
+
+    if n_dups == 0:
+        return HANDTYPE_VALUE_HIGHCARD + TOP_FIVE_CARDS_TABLE[ranks]
+    elif n_dups == 1:
+        two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)
+        retval = <unsigned int>(HANDTYPE_VALUE_PAIR + (TOP_CARD_TABLE[two_mask] << TOP_CARD_SHIFT))
+        t = ranks ^ two_mask
+        kickers = (TOP_FIVE_CARDS_TABLE[t] >> CARD_WIDTH) & ~FIFTH_CARD_MASK
+        retval += kickers
+        retval |= (TOP_CARD_TABLE[t] << THIRD_CARD_SHIFT)  # Add kicker
+        return retval
+    elif n_dups == 2:
+        two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)
+        if two_mask != 0:
+            t = ranks ^ two_mask
+            retval = <unsigned int>(HANDTYPE_VALUE_TWOPAIR
+                + (TOP_FIVE_CARDS_TABLE[two_mask]
+                & (TOP_CARD_MASK | SECOND_CARD_MASK))
+                + (TOP_CARD_TABLE[t] << THIRD_CARD_SHIFT))
+            return retval
+        else:
+            three_mask = ((sc & sd) | (sh & ss)) & ((sc & sh) | (sd & ss))
+            retval = <unsigned int>(HANDTYPE_VALUE_TRIPS + (TOP_CARD_TABLE[three_mask] << TOP_CARD_SHIFT))
+            t = ranks ^ three_mask
+            second = TOP_CARD_TABLE[t]
+            retval += (second << SECOND_CARD_SHIFT)
+            t ^= (1U << <int>second)
+            retval += <unsigned int>(TOP_CARD_TABLE[t] << THIRD_CARD_SHIFT)
+            return retval
+    else:
+        four_mask = sh & sd & sc & ss
+        if four_mask != 0:
+            tc = TOP_CARD_TABLE[four_mask]
+            retval = <unsigned int>(HANDTYPE_VALUE_FOUR_OF_A_KIND
+                + (tc << TOP_CARD_SHIFT)
+                + ((TOP_CARD_TABLE[ranks ^ (1U << <int>tc)]) << SECOND_CARD_SHIFT))
+            return retval
+        two_mask = ranks ^ (sc ^ sd ^ sh ^ ss)
+        if N_BITS_TABLE[two_mask] != n_dups:
+            three_mask = ((sc & sd) | (sh & ss)) & ((sc & sh) | (sd & ss))
+            retval = HANDTYPE_VALUE_FULLHOUSE
+            tc = TOP_CARD_TABLE[three_mask]
+            retval += (tc << TOP_CARD_SHIFT)
+            t = (two_mask | three_mask) ^ (1U << <int>tc)
+            retval += <unsigned int>(TOP_CARD_TABLE[t] << SECOND_CARD_SHIFT)
+            return retval
+        if retval != 0:
+            return retval
+        else:
+            retval = HANDTYPE_VALUE_TWOPAIR
+            top = TOP_CARD_TABLE[two_mask]
+            retval += (top << TOP_CARD_SHIFT)
+            second = TOP_CARD_TABLE[two_mask ^ (1 << <int>top)]
+            retval += (second << SECOND_CARD_SHIFT)
+            retval += <unsigned int>((TOP_CARD_TABLE[ranks ^ (1U << <int>top) ^ (1 << <int>second)]) << THIRD_CARD_SHIFT)
+            return retval
+
+
 """ TODO: Leverage for abstractions
 Heres the idea: 
     On the flop, you have 5 cards, run it through cy_evaluate to get a hand value.
      and then determin the hand type using this function. Next, draw a card from the deck
      and determin the hand type. Do this for all remaining cards; mapping hand type to count.
+
+
+
+NOTE EXAMPLE  USAGE NOTE
+print(handtype(card_str_to_int("AC") | card_str_to_int("AD") | card_str_to_int("4C") | card_str_to_int("5S") | card_str_to_int("JH") | card_str_to_int("JC") | card_str_to_int("JD"), 7))
+NOTE NOTE NOTE NOTE NOTE
 """
-cpdef handtype(unsigned int value):
+cpdef handtype(unsigned long long hand_board, unsigned int num_cards):
+    # Call cystom evaluate for handtyping.
+    cdef unsigned int value = cy_evaluate_handtype(hand_board, num_cards)
     cdef unsigned int ht = (value >> HANDTYPE_SHIFT)
+    top_card = VALUES[(value & TOP_CARD_MASK) >> TOP_CARD_SHIFT]
+    second_card = VALUES[(value & SECOND_CARD_MASK) >> SECOND_CARD_SHIFT]
+    third_card = VALUES[(value & THIRD_CARD_SHIFT) >> THIRD_CARD_SHIFT]
+    
     if ht == HANDTYPE_VALUE_HIGHCARD >> HANDTYPE_SHIFT:
-        return "High Card"
+        return f"High Card, top card: {top_card}"
     elif ht == HANDTYPE_VALUE_PAIR >> HANDTYPE_SHIFT:
-        return "Pair"
+        return f"Pair of {top_card}s, kicker: {second_card}"
     elif ht == HANDTYPE_VALUE_TWOPAIR >> HANDTYPE_SHIFT:
-        return "Two Pair"
+        return f"Two Pair, {top_card}s and {second_card}s, kicker: {third_card}"
     elif ht == HANDTYPE_VALUE_TRIPS >> HANDTYPE_SHIFT:
-        return "Trips"
+        return f"Trips of {top_card}s, kicker: {second_card}"
     elif ht == HANDTYPE_VALUE_STRAIGHT >> HANDTYPE_SHIFT:
-        return "Straight"
+        return f"Straight to {top_card}"
     elif ht == HANDTYPE_VALUE_FLUSH >> HANDTYPE_SHIFT:
-        return "Flush"
+        return f"Flush to {top_card}"
     elif ht == HANDTYPE_VALUE_FULLHOUSE >> HANDTYPE_SHIFT:
-        return "Full House"
+        return f"Full House, {top_card}s full of {second_card}s"
     elif ht == HANDTYPE_VALUE_FOUR_OF_A_KIND >> HANDTYPE_SHIFT:
-        return "Quads"
+        return f"Four of a Kind, {top_card}s, kicker: {second_card}"
     else:
-        return "Straight Flush"
+        return f"Straight Flush to {top_card}"
+
+
+## TODO: Translate to cython environment using memeoryviews and Tie/Win/Loss tally for exact winrates.
+##    The end goal for abstraction is to be able to:
+##      1. (Baseline) Take a gamestate and abstract it.
+##      2. Determine all remaining, possible, and abstracted gamestates can come from the current gamestate
+##      3. Use all possible emission states (or ground truths if calculating the river) to 'classify' the current hand.
+##      Conclusion. The current hand is abstracted based on all possible emission states from that hand.
+##                  These emission states are abstractions of the hand/(new)board based on the handtype.
+##                          **On the river, abstracted states emit Expected Values.
+##                  Taking some (lots of flexibility here) aggregate of the emissions for the current gamestate
+##                  will result in a non-unique, but extremely discriptive, view of the current gamestate.
+##                          ** By adjusting _utils.handtype and the aggregator for abstracted emissions states one can tune
+##                              a balance of abstraction and uniqueness.
+""" NOTE: PSEUDOCODE FROM CHATGPT:
+### TODO: implmenet this skeleton in my environment.
+
+# Step 1: Define hand types and their values
+HAND_TYPES = ["High Card", "Pair", "Two Pair", "Trips", "Straight", "Flush", "Full House", "Four of a Kind", "Straight Flush"]
+
+def evaluate_hand(hand):
+    Evaluates the hand and returns its type and relevant details.
+    # Use cy_evaluate or similar function to get hand value
+    value = cy_evaluate_handtype(hand, len(hand))
+    hand_type = value >> HANDTYPE_SHIFT
+    details = extract_hand_details(value)
+    return HAND_TYPES[hand_type], details
+
+# Step 2: Calculate River Abstractions
+def calculate_river_abstractions(deck, board):
+    river_abstractions = {}
+    for river_card in deck:
+        hand = board + [river_card]
+        hand_type, details = evaluate_hand(hand)
+        if hand_type not in river_abstractions:
+            river_abstractions[hand_type] = []
+        river_abstractions[hand_type].append(details)
+    return river_abstractions
+
+# Step 3: Calculate Turn Abstractions
+def calculate_turn_abstractions(deck, board):
+    turn_abstractions = {}
+    for turn_card in deck:
+        remaining_deck = [card for card in deck if card != turn_card]
+        turn_board = board + [turn_card]
+        river_abstractions = calculate_river_abstractions(remaining_deck, turn_board)
+        hand_type, details = evaluate_hand(turn_board)
+        if hand_type not in turn_abstractions:
+            turn_abstractions[hand_type] = []
+        turn_abstractions[hand_type].append({
+            "turn_details": details,
+            "river_abstractions": river_abstractions
+        })
+    return turn_abstractions
+
+# Step 4: Calculate Flop Abstractions
+def calculate_flop_abstractions(deck, board):
+    flop_abstractions = {}
+    for flop_card in deck:
+        remaining_deck = [card for card in deck if card != flop_card]
+        flop_board = board + [flop_card]
+        turn_abstractions = calculate_turn_abstractions(remaining_deck, flop_board)
+        hand_type, details = evaluate_hand(flop_board)
+        if hand_type not in flop_abstractions:
+            flop_abstractions[hand_type] = []
+        flop_abstractions[hand_type].append({
+            "flop_details": details,
+            "turn_abstractions": turn_abstractions
+        })
+    return flop_abstractions
+
+# Step 5: Aggregate Results
+def aggregate_results(deck, board):
+    flop_abstractions = calculate_flop_abstractions(deck, board)
+    # Aggregate and analyze results as needed
+    return flop_abstractions
+
+# Example usage
+deck = [card for card in range(52)]  # Simplified deck representation
+board = [card1, card2, card3]  # Initial board cards (flop)
+abstractions = aggregate_results(deck, board)
+print(abstractions)
+"""
+
+
 
 '''
 Enable calling cy-evaluate from the main process for testing purposes.
 '''
+
 cpdef cy_evaluate_cpp(cards, num_cards):
     cdef unsigned long long crds = cards
     cdef unsigned long long num_crds = num_cards

@@ -13,13 +13,14 @@ cdef public dict VALUES_INDEX = {'2': 0, '3': 1, '4': 2, '5': 3, '6': 4, '7': 5,
 cdef unsigned long long card_to_int(str suit, str value)
 cdef public list create_deck()
 cdef str int_to_card(unsigned long long card)
-cdef unsigned long long card_str_to_int(str card_str)
+cpdef unsigned long long card_str_to_int(str card_str)
 cdef list hand_to_cards(unsigned long long hand)
 cdef str format_hand(unsigned long long hand)
 cdef list hand_to_cards(unsigned long long hand)
 cdef display_game_state(object game_state, int player_index)
 cdef unsigned int cy_evaluate(unsigned long long cards, unsigned int num_cards) nogil
-cpdef handtype(unsigned int value)
+cdef unsigned int cy_evaluate_handtype(unsigned long long cards, unsigned int num_cards) nogil
+cpdef handtype(unsigned long long hand_board, unsigned int num_cards)
 cpdef cy_evaluate_cpp(cards, num_cards)
 cpdef list build_fast_forward_actions(list betting_history)
 cpdef object select_action(average_strategy)

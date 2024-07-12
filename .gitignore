@@ -13,3 +13,4 @@ __BAK/
 .DS_Store
 .vscode/
 src/poker_hand_history.log
+src/dat/_tmp/

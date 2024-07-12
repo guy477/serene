@@ -3,6 +3,7 @@
 import hashlib
 import numpy as np
 cimport numpy as np
+import random
 import itertools
 from multiprocessing import Pool, Manager, set_start_method
 import psutil
@@ -59,8 +60,11 @@ cdef class CFRTrainer:
             __[hand_mapping[hand]] = 1
             hands_reduced.append(hand)
 
-        # Front load mid-ling/strong cards
+        # Front load mid-ling/strong cards (maybe shuffle with a specific seed so i can see the same convergence?)
         hands_reduced = list(reversed(hands_reduced))
+            # Shuffle the hands_reduced list with a specific seed for reproducibility
+        rng = random.Random(42)  # Use any seed value you prefer
+        rng.shuffle(hands_reduced)
 
         ## TODO: Figure out how to use manager.dict() with LocalManager
         # local_manager = LocalManager('dat/pickles/regret_sum.pkl', 'dat/pickles/strategy_sum.pkl')
@@ -76,13 +80,13 @@ cdef class CFRTrainer:
             local_hand_strategy_aggregate.extend(hand_strategy_aggregate)
 
             if save_pickle:
-                local_manager.save('dat/pickles/regret_sum.pkl', 'dat/pickles/strategy_sum.pkl')
+                local_manager.save('dat/_tmp/_regret_sum.pkl', 'dat/_tmp/_strategy_sum.pkl')  
 
         print(f'Time taken: {time.time() - FUNCTION_START_TIME}')
 
         return list(local_hand_strategy_aggregate), local_manager
 
-    def parallel_train(self, hands, hand_mapping, fast_forward_actions, local_manager, save_pickle, batch_size=(psutil.cpu_count(logical=True) -1)):#(psutil.cpu_count(logical=True) -1) * 2
+    def parallel_train(self, hands, hand_mapping, fast_forward_actions, local_manager, save_pickle):#(psutil.cpu_count(logical=True) -1) * 2
 
         ### Managed Objects
         manager = Manager()
@@ -104,6 +108,10 @@ cdef class CFRTrainer:
                     pool.close()
                     pool.join()
 
+        
+        
+        batch_size = len(hands)//(psutil.cpu_count(logical=True) - 1) + 1
+
         num_batches = (len(hands) + batch_size - 1) // batch_size
 
         for i in tqdm(range(num_batches)):
@@ -118,7 +126,7 @@ cdef class CFRTrainer:
             local_manager.get_strategy_sum().update(dict(strategy_global_accumulator))
             
             if save_pickle:
-                local_manager.save('dat/pickles/regret_sum.pkl', 'dat/pickles/strategy_sum.pkl')
+                local_manager.save('dat/_tmp/_regret_sum.pkl', 'dat/_tmp/_strategy_sum.pkl')  
 
 #############
             # print(len(local_manager.get_regret_sum().table))
