@@ -28,7 +28,7 @@ cdef class CFRTrainer:
 
     cpdef train(self, local_manager, list positions_to_solve = *, list hands = *, bint save_pickle=*)
 
-    cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions, LocalManager local_manager, int attempts = *)
+    cdef fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions, LocalManager local_manager, int attempts = *)
 
     cdef double[:] cfr_traverse(self, GameState game_state, double[:] probs, int depth, int max_depth, float epsilon, LocalManager local_manager)
 

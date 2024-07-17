@@ -2,7 +2,7 @@
 from poker.poker_game import PokerGame
 from poker.cfr import CFRTrainer
 import poker.ccluster as ccluster
-from poker._utils import LocalManager, _6_max_opening
+from poker._utils import LocalManager, _6_max_opening, _6_max_simple_postflop
 
 from multiprocessing import Manager
 import pickle
@@ -29,13 +29,16 @@ def train():
     
     # bet_sizing = [(1.5, ), (), (), ()]
 
-    bet_sizing = [(1.5, 2.0,), (.5, 1,), (.40, .82, 1.2,), (.75, 1.2, 2,)]
+    bet_sizing = [(1.5, 2.0,), (.33, 1,), (), ()]
 
     # bet_sizing = [(1.5, ), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
 
     # bet_sizing = [(1.5, ), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
 
     positions_to_solve, positions_dict = _6_max_opening()
+
+    # Train Only SB v BB:
+    positions_to_solve = positions_to_solve[2:3]
 
     # set the deck (if you use a restricted deck, the evaluation will incorrectly evaluate against a full deck)
     SUITS = ['C', 'D', 'H', 'S']
@@ -51,34 +54,34 @@ def train():
 
     # Specify the number of times to iteratate over `positions_to_solve`.
     ## Fun Fact: This is one way to construct a blueprint strategy.
-    num_smoothing_iterations = 2
+    num_smoothing_iterations = 1
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 100
-    cfr_depth = 6
+    num_cfr_iterations = 500
+    cfr_depth = 3
     
     # Depth at which to start Monte Carlo Simulation.
     monte_carlo_depth = 9999
 
     # Depth at which to start pruning regret and strategy sums.
-    prune_depth = 5
+    prune_depth = 4
     # Chance-probability at which to start declaring a node "terminal"
-    prune_probability = 1e-10
+    prune_probability = 1e-8
 
     # Train the AI player using the CFR algorithm
     # local_manager = LocalManager('dat/pickles/regret_sum_S1_3k_D11_P10.pkl', 'dat/pickles/strategy_sum_S1_3k_D11_P10.pkl')
-    local_manager = LocalManager('dat/pickles/regret_sum_w_post_abstr_full.pkl', 'dat/pickles/strategy_sum_w_post_abstr_full.pkl')
+    local_manager = LocalManager('dat/_tmp/_regret_sum.pkl', 'dat/_tmp/_strategy_sum.pkl')
     
     cfr_trainer = CFRTrainer(num_cfr_iterations, num_showdown_simulations, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
     strategy_list, _local_manager = cfr_trainer.train(local_manager, positions_to_solve * num_smoothing_iterations, save_pickle = True) # TODO add pickle paths to regret/strat solves.
     plot_hands(strategy_list, SUITS, VALUES, positions_dict)
 
-    local_manager.save('dat/pickles/regret_sum_w_post_abstr_full.pkl', 'dat/pickles/strategy_sum_w_post_abstr_full.pkl')
+    local_manager.save('dat/pickles/regret_sum_SB_PROBFIX.pkl', 'dat/pickles/strategy_sum_SB_PROBFIX.pkl')
 
 
 def play():
     num_players = 6
-    num_ai_players = 6
+    num_ai_players = 0
 
     # pot relative bet-sizings for preflop, flop, turn, and river
     bet_sizing = [(1.5, 2.0,), (.5, 1,), (.40, .82, 1.2,), (.75, 1.2, 2,)]
@@ -93,14 +96,14 @@ def play():
     big_blind = 10
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 200
-    cfr_depth = 3
+    num_cfr_iterations = 500
+    cfr_depth = 2
     
     # Depth at which to start Monte Carlo Simulation.
     monte_carlo_depth = 9999
 
     # Depth at which to start pruning regret and strategy sums.
-    prune_depth = 5
+    prune_depth = 2
     # Chance-probability at which to start declaring a node "terminal"
     prune_probability = 1e-8
 
@@ -109,7 +112,7 @@ def play():
     # For an AI player who will play in realtime.
     cfr_trainer = CFRTrainer(num_cfr_iterations, 1, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
 
-    local_manager = LocalManager('dat/pickles/regret_sum_w_post_abstr_full.pkl', 'dat/pickles/strategy_sum_w_post_abstr_full.pkl')
+    local_manager = LocalManager('dat/_tmp/_regret_sum.pkl', 'dat/_tmp/_strategy_sum.pkl')
     num_hands = 100
     game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer, local_manager, SUITS, VALUES)
     # # Play the game
@@ -145,7 +148,7 @@ def plot_hands(strategy_list=None, suits=None, ranks=None, positions_dict={}):
         strategy_df = pd.read_csv('../results/strategy.csv')
         strategy_df['Strategy'] = strategy_df['Strategy'].apply(ast.literal_eval)
 
-    strategy_df.drop_duplicates(subset = ['Position', 'Hand'], keep = 'last', inplace=True)
+    strategy_df.drop_duplicates(subset = ['Position', 'Betting History', 'Hand'], keep = 'last', inplace=True)
     strategy_df = strategy_df[strategy_df['Strategy'] != {}]
     strategy_df.reset_index(inplace=True, drop=True)
 
@@ -157,10 +160,10 @@ def plot_hands(strategy_list=None, suits=None, ranks=None, positions_dict={}):
     # Iterate over each unique combination
     for _, row in unique_combinations.iterrows():
         position = row['Position']
-        betting_history = row['Betting History']
+        action_space = row['Betting History']
 
         # Filter the DataFrame based on the current unique combination
-        position_df = strategy_df[(strategy_df['Position'] == position) & (strategy_df['Betting History'] == betting_history)].reset_index(drop=True)
+        position_df = strategy_df[(strategy_df['Position'] == position) & (strategy_df['Betting History'] == action_space)].reset_index(drop=True)
 
         strategy_proportions = pd.DataFrame()
         for index, row in position_df.iterrows():
@@ -232,11 +235,15 @@ def plot_hands(strategy_list=None, suits=None, ranks=None, positions_dict={}):
 
         plt.tight_layout()
         plt.subplots_adjust(wspace=0.2, hspace=0.4)
-        plt.suptitle(f'Strategy for Position: {positions_dict.get(betting_history, betting_history)}', fontsize=13, x=.95, y=.9, rotation=-90)        
-        plt.savefig(f'../results/charts/{positions_dict.get(betting_history, betting_history)}_Range.png')
+        plt.suptitle(f'Strategy for Position: {positions_dict.get(action_space, action_space)}', fontsize=13, x=.95, y=.9, rotation=-90)        
+        plt.savefig(f'../results/charts/{positions_dict.get(action_space, action_space)}_Range.png')
         plt.close()
     
 if __name__ == "__main__":
     # cluster()
-    # train()
-    play()
+    train()
+    # play()
+
+    # local_manager = LocalManager('dat/_tmp/_regret_sum.pkl', 'dat/_tmp/_strategy_sum.pkl')
+
+    # print(local_manager.get_strategy_sum().table)

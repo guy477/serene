@@ -39,27 +39,29 @@ cdef class CFRTrainer:
 
     cpdef train(self, local_manager, list positions_to_solve = [], list hands = [], bint save_pickle=False):
         FUNCTION_START_TIME = time.time()
+        
+        if not hands:
+            # Generate all possible starting hands 
+            cards = [r + s for r in reversed(self.values) for s in self.suits]
 
-        cards = [r + s for r in reversed(self.values) for s in self.suits]
+            hands = hands if hands else list(sorted(itertools.combinations(cards, 2)))
 
-        hands = hands if hands else list(sorted(itertools.combinations(cards, 2)))
+        # Convert string hands to unsigned long long hands.
+        hands = [(card_str_to_int(hand[0]), card_str_to_int(hand[1])) for hand in hands]
 
-        # Front load mid-ling/strong cards (maybe shuffle with a specific seed so i can see the same convergence?)
-        hands_shuffled = list(reversed(hands))
-            # Shuffle the hands_shuffled list with a specific seed for reproducibility
+        # Shuffle the list with a specific seed for reproducibility
         rng = random.Random(42)  # Use any seed value you prefer
-        rng.shuffle(hands_shuffled)
+        rng.shuffle(hands)
 
-        ## TODO: Figure out how to use manager.dict() with LocalManager
-        # local_manager = LocalManager('dat/pickles/regret_sum.pkl', 'dat/pickles/strategy_sum.pkl')
-
-        # NOTE: Migrate away from passing directories
-        # TODO: Pass positions_to_solve to LocalManager; make mappings from positions to their root strategy nodes.
 
         local_hand_strategy_aggregate = []
 
-        for fast_forward_actions in positions_to_solve:
-            local_manager, hand_strategy_aggregate = self.parallel_train(hands_shuffled, fast_forward_actions, local_manager, save_pickle)
+        for i, fast_forward_action in enumerate(positions_to_solve):
+            # Write the fast_forward_action to a file, overwriting it each time
+            with open('last_action_trained.txt', 'w') as file:
+                file.write(f'{i}: ' + str(fast_forward_action))
+            
+            local_manager, hand_strategy_aggregate = self.parallel_train(hands, fast_forward_action, local_manager, save_pickle)
 
             local_hand_strategy_aggregate.extend(hand_strategy_aggregate)
 
@@ -94,7 +96,7 @@ cdef class CFRTrainer:
 
         
         
-        batch_size = len(hands)//(psutil.cpu_count(logical=True) - 1) + 1
+        batch_size = (psutil.cpu_count(logical=True) - 1)
 
         num_batches = (len(hands) + batch_size - 1) // batch_size
 
@@ -153,9 +155,14 @@ cdef class CFRTrainer:
 
 #############
         # print('fastforwarding')
-        self.fast_forward_gamestate(hand, game_state, fast_forward_actions, local_manager)
+        ffw_probs = self.fast_forward_gamestate(hand, game_state, fast_forward_actions, local_manager)
+
+        if ffw_probs == 'ERROR':
+            print('Provided hand is incompatible with Fast Forward Actions')
+            return
+
         print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-')
-        print(f'TRAINING: ({game_state.get_current_player().position}) --- {hand}')
+        print(f'TRAINING: ({game_state.get_current_player().position}) --- {abstract_hand(hand[0], hand[1])}')
         print(fast_forward_actions)
         print(f'Regret Complexity: {len(local_manager.get_regret_sum())}')
         print(f'Strategy Complexity: {len(local_manager.get_strategy_sum())}')
@@ -167,31 +174,40 @@ cdef class CFRTrainer:
         player_hash = player.hash(game_state)
 
 #############
-        # print(player_hash)
+        print(player_hash)
         # print(f"Init Regret Sum: {local_manager.get_regret_sum().get(player_hash, defaultdict(self.default_double))}")
         # print(f"Init Strategy Sum: {local_manager.get_strategy_sum().get(player_hash, defaultdict(self.default_double))}")
-        # print(f"Init Average Strategy For Hand {hand_mapping[hand]}: {strategy}")
+        print(f"Init Average Strategy For Hand {abstract_hand(hand[0], hand[1])}: {strategy}")
 #############
-
-        probs = np.ones(self.num_players, dtype=np.float64)
-
+        total_fails = 0
         for iter_num in tqdm(range(self.iterations)):
             epsilon = 0.00 * (0.9999 ** iter_num)
 
-            probs.fill(1)
-            self.fast_forward_gamestate(hand, game_state, fast_forward_actions, local_manager)
+            ffw_probs = self.fast_forward_gamestate(hand, game_state, fast_forward_actions, local_manager)
 
-            self.cfr_traverse(game_state, probs, 0, self.cfr_depth, epsilon, local_manager)
+            total = np.sum(ffw_probs)
+            if total > 0:
+                ffw_probs = ffw_probs / total
+            else:
+                # If all zero, just fill with 1
+                ffw_probs.fill(1)
+            
+            if ffw_probs[game_state.player_index] < 1e-6:
+                total_fails += 1
+                continue
 
+            self.cfr_traverse(game_state, ffw_probs, 0, self.cfr_depth, epsilon, local_manager)
 
+        if self.iterations * .9 < total_fails:
+            print(f'Node unlikely. Current hand: {abstract_hand(hand[0], hand[1])}')
         
         strategy = self.get_average_strategy(player, game_state, local_manager)
-
+        player_hash = player.hash(game_state)
 #############
-        # print(player_hash)
+        print(player_hash)
         # print(f"Post Regret Sum: {local_manager.get_regret_sum()[player_hash]}")
         # print(f"Post Strategy Sum: {local_manager.get_strategy_sum()[player_hash]}")
-        print(f"Post Average Strategy For Hand {hand}: {strategy}")
+        print(f"Post Average Strategy For Hand {abstract_hand(hand[0], hand[1])}: {strategy}")
 
         # print(f'Regret Complexity (post): {len(local_manager.get_regret_sum())}')
         # print(f'Strategy Complexity (post): {len(local_manager.get_strategy_sum())}')
@@ -209,11 +225,10 @@ cdef class CFRTrainer:
         ### Merge Local Results with Global Accumulator
         dynamic_merge_dicts(local_manager.get_regret_sum(), regret_global_accumulator)
         dynamic_merge_dicts(local_manager.get_strategy_sum(), strategy_global_accumulator)
+        hand_strategy_aggregate.append((player.position, fast_forward_actions, abstract_hand(hand[0], hand[1]), strategy))
 
-        hand_strategy_aggregate.append((player.position, fast_forward_actions, player.abstracted_hand, strategy))
 
-
-    cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions, LocalManager local_manager, int attempts = 0):
+    cdef fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions, LocalManager local_manager, int attempts = 0):
         ### NOTE: fast_forward_gamestate walks the gamestate to a possible point in the current GTO gametree using a monte-carlo approach.
         ### TODO: (tbh, is this necessary? surely) Incorporate construction of PROBS array.
         ### TODO: The limiting factor of this function is we're at the mercy of the players getting dealt range appropriate hands.
@@ -221,33 +236,56 @@ cdef class CFRTrainer:
         ###
         ###  ***(ignore everyone's cards, get to the game state based on action, then re-deal according to the perceived range.
         ###                                 If no range available, use the last available range)*** 
-        game_state.setup_preflop(hand)
+        new_probs = np.ones(self.num_players, dtype=np.float64)
+        new_probs.fill(1)
+        ignore_cards = []
         for action in fast_forward_actions:
-            
+            if action[0] == 'PUBLIC':
+                ignore_cards.append(action[1])
+        
+        ignore_cards.append(hand[0])
+        ignore_cards.append(hand[1])
+
+        if len(set(ignore_cards)) != len(ignore_cards):
+            return 'ERROR'
+
+        game_state.setup_preflop(ignore_cards)
+        
+        for action in fast_forward_actions:
+            # handle dealing of custom cards 
+            if 'PUBLIC' == action[0]:
+                game_state.board |= action[1]
+                game_state.action_space[game_state.cur_round_index] = [('PUBLIC', action)] + game_state.action_space[game_state.cur_round_index]
+                continue
+
             strategy = self.get_average_strategy(game_state.get_current_player(), game_state, local_manager)
 
-            player_hash = game_state.get_current_player().hash(game_state)
+########################
 
-            # Define an arbitrary 'optimal threshold' that ensures the selected strategy isn't completely arbitrary given the action space
-            optim_thresh = 1/max(len(strategy), 3)**2
-            
-            # if the action is not in the current blueprint, that's ok. Just means we didnt visit this node during training.
-            #  Especially if you're training in realtime and the blueprint hasn't been updated yet.
-            if action not in strategy or attempts >= 10:
-                pass # No-ops are cool if the alternative is making
-                     # excessively long conditionals
-            
-            elif strategy[action] < optim_thresh:
-                # The selected action is not optimal. Construct new gamestate
-                self.fast_forward_gamestate(hand, game_state, fast_forward_actions, local_manager, attempts + 1)
-                return
+            new_probs[game_state.player_index] *= strategy[action]
+########################
 
             # (if attempts < 30): action is blueprint compliant.
             # (otherwise): the provided action set does not reflect a known GTO line
-            game_state.step(action)
+            if game_state.step(action) and game_state.cur_round_index < 4:
+                # undo all, new public actions
+                to_remove = [] 
+                for new_action in game_state.action_space[game_state.cur_round_index]:
+                    if 'PUBLIC' == new_action[0]:
+                        game_state.board -= new_action[1][1]
+                        game_state.deck.add(new_action[1][1])
+                        to_remove.append(new_action)
+                
+                for new_action in to_remove:
+                    game_state.action_space[game_state.cur_round_index].remove(new_action)
+
+                
 
         if hand:
             game_state.update_current_hand(hand)
+        
+        return new_probs
+
 
     cpdef double default_double(self):
         ### 
@@ -278,14 +316,18 @@ cdef class CFRTrainer:
         cdef int monte_carlo = depth >= self.monte_carlo_depth
         cdef int prune = depth >= self.prune_depth
         cdef list available_actions = game_state.get_current_player().get_available_actions(game_state)
+        
+        ### Defines which nodes to merge.
+        ## Generally, we want to merge the root node and any node distinct from the blueprint definition (any state after preflop).
+        cdef bint merge_criteria = (depth == 0)
 
         if game_state.is_terminal_river() or depth >= max_depth or probs[cur_player_index] < self.prune_probability_threshold:
             self.progress_gamestate_to_showdown(game_state)
             return self.calculate_utilities(game_state, game_state.winner_index)
 
         player_hash = cur_player.hash(game_state)
-        local_manager.get_regret_sum().get_set(player_hash, defaultdict(self.default_double), prune, depth == 0)
-        local_manager.get_strategy_sum().get_set(player_hash, defaultdict(self.default_double), prune, depth == 0)
+        local_manager.get_regret_sum().get_set(player_hash, defaultdict(self.default_double), prune, merge_criteria)
+        local_manager.get_strategy_sum().get_set(player_hash, defaultdict(self.default_double), prune, merge_criteria)
 
         util = {action: np.zeros(num_players, dtype=np.float64) for action in available_actions}
         strategy = self.get_strategy(available_actions, probs, game_state, cur_player, local_manager)
@@ -301,15 +343,22 @@ cdef class CFRTrainer:
                 for action in available_actions:
                     strategy[action] = uniform_prob
 
-            available_actions = [select_action(strategy)]
+            available_actions = [select_random_action(strategy)]
 
         for action in available_actions:
             new_game_state = game_state.clone()
-            if new_game_state.step(action):
-                probs[:] = 1.0
             new_probs[:] = probs
+            if new_game_state.step(action):
+                ## Normalize probabilities
+                total = np.sum(new_probs)
+                if total > 0:
+                    new_probs = new_probs / total
+                else:
+                    # If all zero, just fill with 1
+                    new_probs.fill(1)
+            
             new_probs[cur_player_index] *= strategy[action]
-            util[action] = self.cfr_traverse(new_game_state, new_probs, depth + 1, max_depth, epsilon, local_manager)
+            util[action] = self.cfr_traverse(new_game_state, new_probs, depth + (not cur_player.folded), max_depth, epsilon, local_manager)
 
         for i in range(num_players):
             node_util[i] = sum(strategy[action] * util[action][i] for action in available_actions)
@@ -335,8 +384,8 @@ cdef class CFRTrainer:
         num_players = len(game_state.players)
         utilities = np.zeros(num_players, dtype=np.float64)
 
-        rake = game_state.pot * .03
-        rake = rake if rake < 4 else 4
+        rake = game_state.pot * .05
+        rake = rake // 1 if rake < 6 else 6
         pot = game_state.pot - rake
 
         for i, p in enumerate(game_state.players):
@@ -378,18 +427,20 @@ cdef class CFRTrainer:
             for action in strategy:
                 strategy[action] /= normalization_sum
                 local_manager.get_strategy_sum()[player_hash][action] += probs[current_player] * strategy[action]
-        elif sum(regrets) == 0: # new node
+        elif all([x == 0 for x in regrets]): # new node
             uniform_prob = 1 / len(available_actions)
             for action in strategy:
                 strategy[action] = uniform_prob
                 local_manager.get_strategy_sum()[player_hash][action] += probs[current_player] * uniform_prob
         elif all([x <= 0 for x in regrets]): # only negative regret
-            if ('fold', 0) in strategy:
-                for action in strategy:
-                    strategy[action] = 1.0 if action[0] == 'fold' else 0.0
-            else:
-                for action in strategy:
-                    strategy[action] = 1.0 if action[0] == 'call' else 0.0
+            # Convert negative regrets to positive values by adding the minimum regret value to each
+            min_regret = min(regrets)
+            positive_regrets = [regret - min_regret for regret in regrets]
+            total_positive_regrets = sum(positive_regrets)
+            for action, positive_regret in zip(strategy.keys(), positive_regrets):
+                strategy[action] = positive_regret / total_positive_regrets
+                local_manager.get_strategy_sum()[player_hash][action] += probs[current_player] * strategy[action]
+                
         else:
             raise 'Unexpected regret combination. Please see "get_strategy"'
 
@@ -425,17 +476,25 @@ cdef class CFRTrainer:
         if normalization_sum > 0:
             for action in average_strategy:
                 average_strategy[action] /= normalization_sum
-        elif sum(regrets) == 0:  # new node
+        elif all([x == 0 for x in regrets]):  # new node
             uniform_prob = 1 / len(available_actions)
             for action in average_strategy:
                 average_strategy[action] = uniform_prob
         elif all([x <= 0 for x in regrets]):  # only negative regret
-            if ('fold', 0) in average_strategy:
-                for action in average_strategy:
-                    average_strategy[action] = 1 if action[0] == 'fold' else 0
+            # Convert negative regrets to positive values by adding the minimum regret value to each
+            min_regret = min(regrets)
+            positive_regrets = [regret - min_regret for regret in regrets]
+
+            # Normalize the regrets to get probabilities
+            total_positive_regrets = sum(positive_regrets)
+            if total_positive_regrets > 0:
+                for action, positive_regret in zip(average_strategy.keys(), positive_regrets):
+                    average_strategy[action] = positive_regret / total_positive_regrets
             else:
+                # If all regrets are the same, distribute evenly
+                num_actions = len(average_strategy)
                 for action in average_strategy:
-                    average_strategy[action] = 1 if action[0] == 'call' else 0
+                    average_strategy[action] = 1 / num_actions
         else:
             raise 'Unexpected regret combination. Please see "get_average_strategy"'
 

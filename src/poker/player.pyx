@@ -9,7 +9,6 @@ cdef class Player:
         self.bet_sizing = bet_sizing
 
         self.hand = 0
-        self.abstracted_hand = ''
 
         self.folded = False
         self.position = ''
@@ -26,19 +25,18 @@ cdef class Player:
         self.position = position
 
 
-    cpdef bint get_action(self, GameState game_state):
+    cpdef object get_action(self, GameState game_state):
         cdef str user_input
         cdef float raise_amount
         cdef object action
         cdef bint valid = 0
-        cdef bint raize = 0
-        
+
         while valid == 0:
             if not self.folded:
                 user_input = self.get_user_input("Enter action (call, raise, all-in, fold): ")
                 
                 if user_input == "call":
-                    action = game_state, ("call", 0)
+                    action = ("call", 0)
                     valid = 1
                 elif user_input == "raise":
                     user_input = self.get_user_input("Enter sizing: " + str(self.bet_sizing[game_state.cur_round_index]) + " : ")
@@ -59,6 +57,7 @@ cdef class Player:
                     print("Invalid input.")
             else:
                 valid = 1
+                action = ('call', 0)
         
         return action
 
@@ -68,7 +67,7 @@ cdef class Player:
 
         # We want the current betting history to have the player's position as well.
         # This can probably be restricted to the first round if complexity in future states becomes too much of an issue.
-        game_state.betting_history[game_state.cur_round_index].append((self.position, action))
+        game_state.action_space[game_state.cur_round_index].append((self.position, action))
 
         if self.folded:
             return 0
@@ -184,7 +183,7 @@ cdef class Player:
         ### Handle preflop cases
         if game_state.cur_round_index == 0:
             
-            if ('call', 0) in ret and not (self.position == 'BB' and game_state.pot < game_state.big_blind * 5):
+            if ('call', 0) in ret and (game_state.active_players() != 2 or all(['fold' == x[1][0] for x in game_state.action_space[0][2:]])):
                 ## If call is in the return list and we're last to act... (this logic can be cleaned up.)
                 if game_state.last_raiser == -1:
                     ret.remove(('call', 0))    # Prevent Limping
@@ -193,11 +192,11 @@ cdef class Player:
                     ret.remove(('call', 0))    # prevent calling with people left to act
 
             ## If no one has opened, only allow 2.25bb open
-            if ('raise', 2.0) in ret and ('raise', 1.5) not in [x[1] for x in game_state.betting_history[0]]:
+            if ('raise', 2.0) in ret and ('raise', 1.5) not in [x[1] for x in game_state.action_space[0]]:
                 ret.remove(('raise', 2.0))
                 
             ## If someone's opened, remove open raise (1.5x) 
-            elif ('raise', 1.5) in ret and ('raise', 1.5) in [x[1] for x in game_state.betting_history[0]]:
+            elif ('raise', 1.5) in ret and ('raise', 1.5) in [x[1] for x in game_state.action_space[0]]:
                 ret.remove(('raise', 1.5))
 
         
@@ -213,7 +212,6 @@ cdef class Player:
         new_player.player_index = self.player_index
 
         new_player.expected_hand_strength = self.expected_hand_strength
-        new_player.abstracted_hand = self.abstracted_hand
         new_player.folded = self.folded
         new_player.contributed_to_pot = self.contributed_to_pot
         new_player.tot_contributed_to_pot = self.tot_contributed_to_pot
@@ -222,7 +220,6 @@ cdef class Player:
 
     cpdef void reset(self):
         self.hand = 0
-        self.abstracted_hand = ''
         self.folded = False
         # if self.chips == 0:
         self.expected_hand_strength = 1
@@ -240,10 +237,6 @@ cdef class Player:
     
     cpdef object hash(self, GameState game_state):
         ### NOTE/TODO: Add "player type" that can be referenced in LocalManager to give a unique regret/strategy for the unique player type.
-
-        # TODO: return object of all pertinent information then offload to External Manager?
-        
-        # hsh = str((self.abstracted_hand, self.position, tuple(self.get_available_actions(game_state)), str(game_state.betting_history)))
-        hsh = (hand_to_cards(self.hand), game_state.board, self.position, game_state.cur_round_index, tuple(self.get_available_actions(game_state)), str(game_state.betting_history))
+        hsh = (self.hand, game_state.board, self.position, game_state.cur_round_index, tuple(self.get_available_actions(game_state)), tuple(game_state.action_space))
         
         return hsh

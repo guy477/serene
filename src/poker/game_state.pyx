@@ -68,18 +68,18 @@ cdef class GameState:
         self.hand_id = 0
         self.deck = Deck(self.suits, self.values)  # Initialize the Deck object
         self.positions = self.generate_positions(len(self.players))
-        self.betting_history = [[], [], [], []]
+        self.action_space = [[], [], [], []]
         self.assign_positions()
         self.reset()
 
 
-    cpdef void setup_preflop(self, object hand = None):
+    cpdef void setup_preflop(self, list ignore_cards = []):
         self.reset()
 
-        if hand:
+        for card in ignore_cards:
             # Remove hand from game_state deck
-            self.deck.remove(card_str_to_int(hand[0]))
-            self.deck.remove(card_str_to_int(hand[1]))
+            self.deck.remove(card)
+            
 
         self.handle_blinds()
 
@@ -120,7 +120,6 @@ cdef class GameState:
                 card2 = self.deck.pop()
                 player.add_card(card1)
                 player.add_card(card2)
-                player.abstracted_hand = abstract_hand(card1, card2)
             else:
                 player.folded = True
 
@@ -250,13 +249,14 @@ cdef class GameState:
         while not self.step(action):
             continue
         
-        self.cur_round_index = 4
+        
 
         ## Deal out remaining cards
         # NOTE: Showdown function automatically simulates drawing cards.. but we need to validate it works.
         while self.num_board_cards() < 5:
             self.draw_card()
 
+        self.cur_round_index = 4
         
         self.showdown()
 
@@ -298,7 +298,9 @@ cdef class GameState:
         return folded
 
     cdef void draw_card(self):
-        self.board |= self.deck.pop()
+        cdef unsigned long long new_card = self.deck.pop()
+        self.action_space[self.cur_round_index].append(('PUBLIC', ('PUBLIC', new_card)))
+        self.board |= new_card
 
     cdef bint board_has_five_cards(self):
         return self.num_board_cards() == 5
@@ -319,23 +321,19 @@ cdef class GameState:
 #############################################
 
 
-    cdef void update_current_hand(self, object hand):
+    cdef void update_current_hand(self, tuple hand):
         cdef unsigned long long card1, card2
         cdef Player player
 
         # extract the current player's hand
-        player_hand = hand_to_cards(self.get_current_player().hand)
+        player_hand_tuple = ulong_to_card_tuple(self.get_current_player().hand)
 
         # Erase the player's hand
         self.get_current_player().hand = 0
 
         # Add the current player's hand back to the deck
-        self.deck.add(player_hand[0])
-        self.deck.add(player_hand[1])
-
-        # Convert string card to unsigned int card
-        card1 = card_str_to_int(hand[0])
-        card2 = card_str_to_int(hand[1])
+        self.deck.add(player_hand_tuple[0])
+        self.deck.add(player_hand_tuple[1])
 
         ## Remove custom hand from deck
         ## NOTE: Since we pre-emptively remove the desired cards from the deck, we don't need to remove them from the player's hand.
@@ -344,9 +342,8 @@ cdef class GameState:
         # self.deck.remove(card2)
 
         # Update the player's hand with new hand
-        self.get_current_player().add_card(card1)
-        self.get_current_player().add_card(card2)
-        self.get_current_player().abstracted_hand = abstract_hand(card1, card2)
+        self.get_current_player().add_card(hand[0])
+        self.get_current_player().add_card(hand[1])
 
 
     cdef void reset(self):
@@ -359,10 +356,10 @@ cdef class GameState:
         self.winner_index = -1
         self.pot = 0
         self.board = 0
-        self.betting_history[0] = []
-        self.betting_history[1] = []
-        self.betting_history[2] = []
-        self.betting_history[3] = []
+        self.action_space[0] = []
+        self.action_space[1] = []
+        self.action_space[2] = []
+        self.action_space[3] = []
         self.deck.reset()
         for i in range(len(self.players)):
             self.players[i].reset()
@@ -388,10 +385,10 @@ cdef class GameState:
         ## With a loose interpretation of "change node"... this will makes every node very chance-ie!
         # new_state.deck.fisher_yates_shuffle()
         
-        new_state.betting_history[0][:] = self.betting_history[0]
-        new_state.betting_history[1][:] = self.betting_history[1]
-        new_state.betting_history[2][:] = self.betting_history[2]
-        new_state.betting_history[3][:] = self.betting_history[3]
+        new_state.action_space[0][:] = self.action_space[0]
+        new_state.action_space[1][:] = self.action_space[1]
+        new_state.action_space[2][:] = self.action_space[2]
+        new_state.action_space[3][:] = self.action_space[3]
         new_state.winner_index = self.winner_index
         new_state.hand_id = self.hand_id
 
@@ -413,7 +410,7 @@ cdef class GameState:
         print(f"allin_players(): {self.allin_players()}")
         print(f"folded_players(): {self.folded_players()}")
         print(f"current_bet: {self.current_bet}")
-        print(f"betting_history: {self.betting_history}")
+        print(f"action_space: {self.action_space}")
         print(f"BOARD: {format_hand(self.board)}")
         print(f"deck: {[int_to_card(card) for card in self.deck.to_list()]}")
         print(f"___________")
@@ -422,7 +419,8 @@ cdef class GameState:
             print(f"Player {player.player_index} position: {player.position}")
             print(f"Player {player.player_index} chips: {player.chips}")
             print(f"Player {player.player_index} folded: {player.folded}")
-            print(f"Player {player.player_index} abstracted: {player.abstracted_hand}")
+            card1, card2 = ulong_to_card_tuple(player.hand)
+            print(f"Player {player.player_index} abstracted: {abstract_hand(card1, card2)}")
             print(f"Player {player.player_index} numeric hand: {format_hand(player.hand)}")
             print(f"Player {player.player_index} contributed: {player.contributed_to_pot}")
             print(f"Player {player.player_index} total contributed: {player.tot_contributed_to_pot}")
@@ -438,15 +436,15 @@ cdef class GameState:
             "small blind": (self.players[(self.dealer_position + 1) % len(self.players)].position, self.small_blind),
             "big blind": (self.players[(self.dealer_position + 2) % len(self.players)].position, self.big_blind)
         }
-        hole_cards = {player.position: [int_to_card(card) for card in hand_to_cards(player.hand)] for player in self.players if not player.folded}
+        hole_cards = {player.position: [int_to_card(card) for card in ulong_to_card_tuple(player.hand)] for player in self.players if not player.folded}
         actions = {
-            "pre-flop": self.betting_history[0],
-            "flop": self.betting_history[1],
-            "turn": self.betting_history[2],
-            "river": self.betting_history[3]
+            "pre-flop": self.action_space[0],
+            "flop": self.action_space[1],
+            "turn": self.action_space[2],
+            "river": self.action_space[3]
         }
-        board = [int_to_card(card) for card in hand_to_cards(self.board)]
-        showdown = [(player.position, [int_to_card(card) for card in hand_to_cards(player.hand)], 'player.hand_description()') for player in self.players if not player.folded]
+        board = [int_to_card(card) for card in ulong_to_card_tuple(self.board)]
+        showdown = [(player.position, [int_to_card(card) for card in ulong_to_card_tuple(player.hand)], 'player.hand_description()') for player in self.players if not player.folded]
         summary = {player.position: 'player.result_description()' for player in self.players}
         hand_log = poker_logger.generate_hand_log(self.hand_id, "Holdem", "No Limit", time.strftime('%Y/%m/%d %H:%M:%S'), self.dealer_position + 1, seats, blinds, hole_cards, actions, board, showdown, summary)
         

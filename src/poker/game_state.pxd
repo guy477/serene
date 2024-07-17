@@ -32,13 +32,13 @@ cdef class GameState:
     cdef public unsigned long long board
     cdef public Deck deck
 
-    cdef public list betting_history
+    cdef public list action_space
 
 
 
 ###### Game logic
 
-    cpdef void setup_preflop(self, object hand = *)
+    cpdef void setup_preflop(self, list ignore_cards= *)
 
     cdef void assign_positions(self)
 
@@ -71,7 +71,7 @@ cdef class GameState:
     cdef void assign_positions(self)
 
     ### CFR
-    cdef void update_current_hand(self, object hand)  
+    cdef void update_current_hand(self, tuple hand)  
     
     ### self
     cdef void reset(self)

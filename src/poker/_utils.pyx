@@ -113,26 +113,29 @@ def convert_defaultdict(d):
 cdef bytes hash_key_sha256(object key):
     """Hash a tuple continaing game_state information using SHA-256 and return the hexadecimal representation as bytes."""
     
-    key_hand_list = key[0]
+    key_hand_tuple = ulong_to_card_tuple(key[0])
     key_board_long = key[1]
     key_position = key[2]
     key_round_index = key[3]
     key_available_actions = key[4]
-    key_betting_history = key[5]
-
+    key_action_space = key[5]
+    key_action_space = [
+        [action for action in sublist if action[0] != "PUBLIC"]
+        for sublist in key_action_space
+    ]
     abstraction_harshness = .01
 
     if key_round_index == 1: # flop:
-        abstraction = flop_abstraction[(abstract_hand(key_hand_list[0], key_hand_list[1]), handtype(key_board_long | key_hand_list[0] | key_hand_list[1], 5))] // abstraction_harshness
-        new_key = str((abstraction, key_position, key_available_actions, key_betting_history))
+        abstraction = flop_abstraction[(abstract_hand(key_hand_tuple[0], key_hand_tuple[1]), handtype(key_board_long | key_hand_tuple[0] | key_hand_tuple[1], 5))] // abstraction_harshness
+        new_key = str((abstraction, key_position, key_available_actions, key_action_space))
     elif key_round_index == 2: # turn:
-        abstraction = turn_abstraction[(abstract_hand(key_hand_list[0], key_hand_list[1]), handtype_partial(key_board_long | key_hand_list[0] | key_hand_list[1], 6))] // abstraction_harshness
-        new_key = str((abstraction, key_position, key_available_actions, key_betting_history))
+        abstraction = turn_abstraction[(abstract_hand(key_hand_tuple[0], key_hand_tuple[1]), handtype_partial(key_board_long | key_hand_tuple[0] | key_hand_tuple[1], 6))] // abstraction_harshness
+        new_key = str((abstraction, key_position, key_available_actions, key_action_space))
     elif key_round_index == 3: # river:
-        abstraction = river_abstraction[(key_hand_list[0] | key_hand_list[1], handtype(key_board_long | key_hand_list[0] | key_hand_list[1], 7))] // abstraction_harshness
-        new_key = str((abstraction, key_position, key_available_actions, key_betting_history))
+        abstraction = river_abstraction[(key_hand_tuple[0] | key_hand_tuple[1], handtype(key_board_long | key_hand_tuple[0] | key_hand_tuple[1], 7))] // abstraction_harshness
+        new_key = str((abstraction, key_position, key_available_actions, key_action_space))
     else:
-        new_key = str((abstract_hand(key_hand_list[0], key_hand_list[1]), key_position, key_available_actions, key_betting_history))
+        new_key = str((abstract_hand(key_hand_tuple[0], key_hand_tuple[1]), key_position, key_available_actions, key_action_space))
 
     return hashlib.sha256(new_key.encode('utf-8')).digest()
 
@@ -224,45 +227,34 @@ cdef class HashTable:
 
     def prune(self):
         for key in self.to_prune:
-            del self.table[key]
-            if key in self.to_merge:
-                del self.to_merge[key]
+            if key not in self.to_merge:
+                del self.table[key]
+                        
         self.to_prune.clear()
 
 cpdef dynamic_merge_dicts(local_manager_table, global_accumulator):
     
     for player_hash_local in tqdm(local_manager_table.to_merge):
         inner_dict = local_manager_table.get_hashed(player_hash_local)
-        global_accumulator[player_hash_local] = inner_dict
-        # Look at this schizo rambling... look the more up-to-date values better reflect a more optimized, less random, strategy. Just take the new values and keep it simple.
-        """
         if player_hash_local in global_accumulator:
             existing_inner_dict = global_accumulator[player_hash_local]
-            
-            ##      THIS SHOULD BE THE SUM, NOT AVERAGE.
-            ##      I USE AVERAGE BECAUSE WHEN WE TRAIN FOR NODE N, WE ACCUMULATE FOR NODE N+1 - OF WHICH, THE MAJORITY OF STEPS TAKEN FROM N ARE RANDOM - CAUSING THE ACCUMULATED VALUES TO REFLECT
-            ##          A RANDOM OP PONENT. SINCE THESE ACCUMULATIONS HAPPEN DEEPER IN THE ACTION TREE, WE END UP ACCUMULATING MORE AT N+1 COMPARED TO N (N CAN LEAD TO N+1 MULTIPLE TIMES IN THE SAME ITERATION). 
-            ##
-            ##      NOTE: IDEALLY, average(everything) == ((((everything[0]+everything[1])/2 + everything[3])/2 + everything[4])...) 
-            ##              The assumption here is that everything[n] accumulates the same number of elements as everything[n-1]
-            ##              This does not hold true below.
-            ##                  INVESTIGATE HOW TO PROPERLY ACCUMULATE STRATEGIES... SHOULD WE ONLY ACCUMULATE FOR NODE N WHILE BUILDING A BLUEPRINT STRATEGY?
-            ##                  Arguments can be made in favor of this logic below (balances exploring with exploitation)... Verification is needed.
-            ##
+
             for inner_key, inner_value in inner_dict.items():
                 if inner_key in existing_inner_dict:
-                    existing_inner_dict[inner_key] = (existing_inner_dict[inner_key] + inner_value)/2
+                    existing_inner_dict[inner_key] = (existing_inner_dict[inner_key] + inner_value)
                 else:
                     existing_inner_dict[inner_key] = inner_value
-            
-            # This value is part of the existing blueprint and we've merged the new results with the existing results
+
             global_accumulator[player_hash_local] = existing_inner_dict
         else:
-            # If key does not exist, simply add the new entry
             global_accumulator[player_hash_local] = inner_dict
-        """
-        # else:
-        #   the node being considered is part of a precomputed strategy and *shouldn't* have updates
+        
+        
+        # TODO: Reassigning to the inner values is a bold move.
+        ##      Investigate accumulating results.
+        ##   Think: If we're batch processing hands and we accumulate by reasignment.. 
+        ## Then, for a given batch, we'll take the results from only the last abstracted state.
+
 cdef class Deck:
 
     def __init__(self, list suits, list values):
@@ -313,11 +305,26 @@ cdef class Deck:
         self.fisher_yates_shuffle()
 
 
-cpdef list build_fast_forward_actions(list betting_history):
-    cdef list fast_forward_actions = betting_history[0][2:] + betting_history[1] + betting_history[2] + betting_history[3]
+cpdef list build_fast_forward_actions(list action_space):
+    cdef list fast_forward_actions = action_space[0][2:] + action_space[1] + action_space[2] + action_space[3]
     
     # Sort of confusing function.. hence why it's a utility.
     return [pos_w_action[1] for pos_w_action in fast_forward_actions]
+
+    
+    return high_card + low_card + suited
+
+cpdef object select_random_action(average_strategy):
+    actions = list(average_strategy.keys())
+    probabilities = list(average_strategy.values())
+    selected_action = random.choices(actions, probabilities)[0]
+    return selected_action
+
+
+##########
+
+
+cdef list deck = [card_to_int(suit, value) for suit in SUITS for value in VALUES]
 
 
 cdef str abstract_hand(unsigned long long card1, unsigned long long card2):
@@ -332,14 +339,9 @@ cdef str abstract_hand(unsigned long long card1, unsigned long long card2):
     cdef str high_card = card1_val if VALUES_INDEX[card1_val] > VALUES_INDEX[card2_val] else card2_val
     cdef str low_card = card1_val if VALUES_INDEX[card1_val] < VALUES_INDEX[card2_val] else card2_val
     cdef str suited = 's' if card1_str[1] == card2_str[1] else 'o'
-    
+
     return high_card + low_card + suited
 
-cpdef object select_action(average_strategy):
-    actions = list(average_strategy.keys())
-    probabilities = list(average_strategy.values())
-    selected_action = random.choices(actions, probabilities)[0]
-    return selected_action
 
 cdef unsigned long long card_to_int(str suit, str value):
     cdef unsigned long long one = 1
@@ -361,17 +363,16 @@ cdef str int_to_card(unsigned long long card):
 cpdef unsigned long long card_str_to_int(str card_str):
     return card_to_int(card_str[1], card_str[0])
 
-cdef public list create_deck():
-    cdef list deck = [card_to_int(suit, value) for suit in SUITS for value in VALUES]
-    return deck
 
-cdef list hand_to_cards(unsigned long long hand):
-    cdef list cards = [card for card in create_deck() if card & hand]
-    return cards
+cdef tuple ulong_to_card_tuple(unsigned long long hand):
+    cards = [card for card in deck if card & hand]
+    return tuple(cards)
+
+cdef tuple card_tuple_to_str_tuple(tuple cards):
+    return tuple([int_to_card(card) for card in cards])
 
 cdef str format_hand(unsigned long long hand):
-    cdef list cards = [int_to_card(card) for card in create_deck() if card & hand]
-    return " ".join(cards)
+    return " ".join(ulong_to_card_tuple(hand))
 
 
 ####################################################################################################
@@ -410,7 +411,7 @@ def display_player_info(player, game_state, current_player, player_index):
 # Helper function to display the game state header
 def display_header(game_state, current_player):
     folded = {plr.position for plr in game_state.players if plr.folded}
-    last_move = next((item for sublist in reversed(game_state.betting_history) for item in reversed(sublist) if item is not None and (item[0] not in folded or item[1][0] == 'fold')), None)
+    last_move = next((item for sublist in reversed(game_state.action_space) for item in reversed(sublist) if item is not None and (item[0] not in folded or item[1][0] == 'fold')), None)
     
     header = (
         f"______________________________________________________________________________\n"
@@ -445,7 +446,7 @@ def generate_actions_dict(game_state, folded):
     rounds = ['Preflop', 'Flop', 'Turn', 'River']
     actions_dict = {player.position: {round: ' ' * 18 for round in rounds} for player in game_state.players}
 
-    for round_idx, round_actions in enumerate(game_state.betting_history):
+    for round_idx, round_actions in enumerate(game_state.action_space):
         if round_idx > game_state.cur_round_index:
             break
         for player in game_state.players:
@@ -903,124 +904,79 @@ cpdef cy_evaluate_cpp(cards, num_cards):
 
 
 
-
 def _6_max_opening():
+    def fold_list(count):
+        return [('fold', 0)] * count
+
+    def call_list(count):
+        return [('call', 0)] * count
+
+    ranges = {
+        ### NOTE: SB
+        "SB_OPEN": fold_list(4),
+        "BB_SB_DEF": fold_list(4) + [('raise', 1.5)],
+        "SB_BB_3B_DEF": fold_list(4) + [('raise', 1.5)] + [('raise', 2.0)] + call_list(4),
+
+        ### NOTE: BTN
+        "BTN_OPEN": fold_list(3),
+        "SB_BTN_DEF": fold_list(3) + [('raise', 1.5)],
+        "BB_BTN_DEF": fold_list(3) + [('raise', 1.5)] + fold_list(1),
+        "BTN_SB_3B_DEF": fold_list(3) + [('raise', 1.5)] + [('raise', 2.0)] + fold_list(1) + call_list(3),
+        "BTN_BB_3B_DEF": fold_list(3) + [('raise', 1.5)] + fold_list(1) + [('raise', 2.0)] + call_list(3),
+
+        ### NOTE: CO
+        "CO_OPEN": fold_list(2),
+        "BTN_CO_DEF": fold_list(2) + [('raise', 1.5)],
+        "SB_CO_DEF": fold_list(2) + [('raise', 1.5)] + fold_list(1),
+        "BB_CO_DEF": fold_list(2) + [('raise', 1.5)] + fold_list(2),
+        "CO_BTN_3B_DEF": fold_list(2) + [('raise', 1.5)] + [('raise', 2.0)] + fold_list(2) + call_list(2),
+        "CO_SB_3B_DEF": fold_list(2) + [('raise', 1.5)] + fold_list(1) + [('raise', 2.0)] + fold_list(1) + call_list(2),
+        "CO_BB_3B_DEF": fold_list(2) + [('raise', 1.5)] + fold_list(2) + [('raise', 2.0)] + call_list(2),
+
+        ### NOTE: MP
+        "MP_OPEN": fold_list(1),
+        "CO_MP_DEF": fold_list(1) + [('raise', 1.5)],
+        "BTN_MP_DEF": fold_list(1) + [('raise', 1.5)] + fold_list(1),
+        "SB_MP_DEF": fold_list(1) + [('raise', 1.5)] + fold_list(2),
+        "BB_MP_DEF": fold_list(1) + [('raise', 1.5)] + fold_list(3),
+        "MP_CO_3B_DEF": fold_list(1) + [('raise', 1.5), ('raise', 2.0)] + fold_list(3) + call_list(1),
+        "MP_BTN_3B_DEF": fold_list(1) + [('raise', 1.5)] + fold_list(1) + [('raise', 2.0)] + fold_list(2) + call_list(1),
+        "MP_SB_3B_DEF": fold_list(1) + [('raise', 1.5)] + fold_list(2) + [('raise', 2.0)] + fold_list(1) + call_list(1),
+        "MP_BB_3B_DEF": fold_list(1) + [('raise', 1.5)] + fold_list(3) + [('raise', 2.0)] + call_list(1),
+
+        ### NOTE: UTG
+        "UTG_OPEN": [],
+        "MP_UTG_DEF": [('raise', 1.5)],
+        "CO_UTG_DEF": [('raise', 1.5)] + fold_list(1),
+        "BTN_UTG_DEF": [('raise', 1.5)] + fold_list(2),
+        "SB_UTG_DEF": [('raise', 1.5)] + fold_list(3),
+        "BB_DEF": [('raise', 1.5)] + fold_list(4),
+        "UTG_MP_3B_DEF": [('raise', 1.5), ('raise', 2.0)] + fold_list(4),
+        "UTG_CO_3B_DEF": [('raise', 1.5)] + fold_list(1) + [('raise', 2.0)] + fold_list(3),
+        "UTG_BTN_3B_DEF": [('raise', 1.5)] + fold_list(2) + [('raise', 2.0)] + fold_list(2),
+        "UTG_SB_3B_DEF": [('raise', 1.5)] + fold_list(3) + [('raise', 2.0)] + fold_list(1),
+        "UTG_BB_3B_DEF": [('raise', 1.5)] + fold_list(4) + [('raise', 2.0)],
+    }
+
+    # Generate the positions to solve and their names
+    positions_to_solve = list(ranges.values())
+    position_names = list(ranges.keys())
+
+    # Create dictionary mapping each position to its name and range
+    positions_dict = {str(pos): name for name, pos in ranges.items()}
+
+    return positions_to_solve, positions_dict
+
+def _6_max_simple_postflop():
     # Unopened ranges (Early to Late)
-    UTG_OPEN = []
-    HJ_OPEN = [('fold', 0)]  # Assuming UTG has folded
-    CO_OPEN = [('fold', 0), ('fold', 0)]  # Assuming UTG and HJ have folded
-    BTN_OPEN = [('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG, HJ, and CO have folded
-    SB_OPEN = [('fold', 0), ('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG, HJ, CO, and BTN have folded
-
-    # Defensive ranges (Early vs. Early to Late vs. Late)
-    HJ_DEF = [('raise', 1.5)]  # Assuming UTG has raised
-    CO_UTG_DEF = [('raise', 1.5), ('fold', 0)]  # Assuming UTG has raised, HJ has folded
-    CO_HJ_DEF = [('fold', 0), ('raise', 1.5)]  # Assuming UTG has folded, HJ has raised
-    BTN_UTG_DEF = [('raise', 1.5), ('fold', 0), ('fold', 0)]  # Assuming UTG has raised, HJ and CO have folded
-    BTN_HJ_DEF = [('fold', 0), ('raise', 1.5), ('fold', 0)]  # Assuming UTG has folded, HJ has raised, CO has folded
-    BTN_CO_DEF = [('fold', 0), ('fold', 0), ('raise', 1.5)]  # Assuming UTG and HJ have folded, CO has raised
-    SB_UTG_DEF = [('raise', 1.5), ('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG has raised, HJ, CO, and BTN have folded
-    SB_HJ_DEF = [('fold', 0), ('raise', 1.5), ('fold', 0), ('fold', 0)]  # Assuming UTG has folded, HJ has raised, CO and BTN have folded
-    SB_CO_DEF = [('fold', 0), ('fold', 0), ('raise', 1.5), ('fold', 0)]  # Assuming UTG and HJ have folded, CO has raised, BTN has folded
-    SB_BTN_DEF = [('fold', 0), ('fold', 0), ('fold', 0), ('raise', 1.5)]  # Assuming UTG, HJ, and CO have folded, BTN has raised
-
-    BB_DEF = [('raise', 1.5), ('fold', 0), ('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG has raised, HJ, CO, BTN, and SB have folded
-    BB_HJ_DEF = [('fold', 0), ('raise', 1.5), ('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG has folded, HJ has raised, CO, BTN, and SB have folded
-    BB_CO_DEF = [('fold', 0), ('fold', 0), ('raise', 1.5), ('fold', 0), ('fold', 0)]  # Assuming UTG and HJ have folded, CO has raised, BTN and SB have folded
-    BB_BTN_DEF = [('fold', 0), ('fold', 0), ('fold', 0), ('raise', 1.5), ('fold', 0)]  # Assuming UTG, HJ, and CO have folded, BTN has raised, SB has folded
-    BB_SB_DEF = [('fold', 0), ('fold', 0), ('fold', 0), ('fold', 0), ('raise', 1.5)]  # Assuming UTG, HJ, CO, and BTN have folded, SB has raised
-
-    # Three-bet ranges
-    HJ_UTG_3BET = [('raise', 1.5)] + [('fold', 0)] * 5 + [('raise', 2.0)]  # HJ three-bet vs. UTG open
-    CO_UTG_3BET = [('raise', 1.5), ('fold', 0)] + [('fold', 0)] * 4 + [('raise', 2.0)]  # CO three-bet vs. UTG open
-    CO_HJ_3BET = [('fold', 0), ('raise', 1.5)] + [('fold', 0)] * 4 + [('raise', 2.0)]  # CO three-bet vs. HJ open
-    BTN_UTG_3BET = [('raise', 1.5), ('fold', 0), ('fold', 0)] + [('fold', 0)] * 3 + [('raise', 2.0)]  # BTN three-bet vs. UTG open
-    BTN_HJ_3BET = [('fold', 0), ('raise', 1.5), ('fold', 0)] + [('fold', 0)] * 3 + [('raise', 2.0)]  # BTN three-bet vs. HJ open
-    BTN_CO_3BET = [('fold', 0), ('fold', 0), ('raise', 1.5)] + [('fold', 0)] * 3 + [('raise', 2.0)]  # BTN three-bet vs. CO open
-    SB_UTG_3BET = [('raise', 1.5), ('fold', 0), ('fold', 0), ('fold', 0)] + [('fold', 0)] * 2 + [('raise', 2.0)]  # SB three-bet vs. UTG open
-    SB_HJ_3BET = [('fold', 0), ('raise', 1.5), ('fold', 0), ('fold', 0)] + [('fold', 0)] * 2 + [('raise', 2.0)]  # SB three-bet vs. HJ open
-    SB_CO_3BET = [('fold', 0), ('fold', 0), ('raise', 1.5), ('fold', 0)] + [('fold', 0)] * 2 + [('raise', 2.0)]  # SB three-bet vs. CO open
-    SB_BTN_3BET = [('fold', 0), ('fold', 0), ('fold', 0), ('raise', 1.5)] + [('fold', 0)] * 2 + [('raise', 2.0)]  # SB three-bet vs. BTN open
-    BB_UTG_3BET = [('raise', 1.5), ('fold', 0), ('fold', 0), ('fold', 0), ('fold', 0)] + [('fold', 0)] + [('raise', 2.0)]  # BB three-bet vs. UTG open
-    BB_HJ_3BET = [('fold', 0), ('raise', 1.5), ('fold', 0), ('fold', 0), ('fold', 0)] + [('fold', 0)] + [('raise', 2.0)]  # BB three-bet vs. HJ open
-    BB_CO_3BET = [('fold', 0), ('fold', 0), ('raise', 1.5), ('fold', 0), ('fold', 0)] + [('fold', 0)] + [('raise', 2.0)]  # BB three-bet vs. CO open
-    BB_BTN_3BET = [('fold', 0), ('fold', 0), ('fold', 0), ('raise', 1.5), ('fold', 0)] + [('fold', 0)] + [('raise', 2.0)]  # BB three-bet vs. BTN open
-    BB_SB_3BET = [('fold', 0), ('fold', 0), ('fold', 0), ('fold', 0), ('raise', 1.5)] + [('fold', 0)] + [('raise', 2.0)]  # BB three-bet vs. SB open
+    POSTFLOP_EXAMPLE = [('raise', 1.5)] + [('fold', 0)] * 4 + [('raise', 2.0)] + [('call', 0)] * 5 + [('PUBLIC', 1), ('PUBLIC', 2), ('PUBLIC', 4)] + [('call', 0)] * 2 # HJ three-bet vs. UTG open
 
     positions_to_solve = [
-        UTG_OPEN,
-        HJ_OPEN, 
-        CO_OPEN,  
-        BTN_OPEN, 
-        SB_OPEN, 
-        HJ_DEF,  
-        CO_UTG_DEF,
-        CO_HJ_DEF, 
-        BTN_UTG_DEF, 
-        BTN_HJ_DEF, 
-        BTN_CO_DEF, 
-        SB_UTG_DEF, 
-        SB_HJ_DEF, 
-        SB_CO_DEF,
-        SB_BTN_DEF,
-        BB_DEF,
-        BB_HJ_DEF,
-        BB_CO_DEF,
-        BB_BTN_DEF,
-        BB_SB_DEF,
-        HJ_UTG_3BET,
-        CO_UTG_3BET,
-        CO_HJ_3BET,
-        BTN_UTG_3BET,
-        BTN_HJ_3BET,
-        BTN_CO_3BET,
-        SB_UTG_3BET,
-        SB_HJ_3BET,
-        SB_CO_3BET,
-        SB_BTN_3BET,
-        BB_UTG_3BET,
-        BB_HJ_3BET,
-        BB_CO_3BET,
-        BB_BTN_3BET,
-        BB_SB_3BET
+        POSTFLOP_EXAMPLE,
     ]
 
     position_names = [
-        "UTG_OPEN", 
-        "HJ_OPEN", 
-        "CO_OPEN",  
-        "BTN_OPEN", 
-        "SB_OPEN", 
-        "HJ_DEF",  
-        "CO_UTG_DEF",
-        "CO_HJ_DEF", 
-        "BTN_UTG_DEF", 
-        "BTN_HJ_DEF",
-        "BTN_CO_DEF", 
-        "SB_UTG_DEF", 
-        "SB_HJ_DEF", 
-        "SB_CO_DEF",
-        "SB_BTN_DEF",
-        "BB_DEF",
-        "BB_HJ_DEF",
-        "BB_CO_DEF",
-        "BB_BTN_DEF",
-        "BB_SB_DEF",
-        "HJ_UTG_3BET",
-        "CO_UTG_3BET",
-        "CO_HJ_3BET",
-        "BTN_UTG_3BET",
-        "BTN_HJ_3BET",
-        "BTN_CO_3BET",
-        "SB_UTG_3BET",
-        "SB_HJ_3BET",
-        "SB_CO_3BET",
-        "SB_BTN_3BET",
-        "BB_UTG_3BET",
-        "BB_HJ_3BET",
-        "BB_CO_3BET",
-        "BB_BTN_3BET",
-        "BB_SB_3BET"
+        "POSTFLOP_EXAMPLE", 
     ]
     
     positions_dict = {str(pos): name for pos, name in zip(positions_to_solve, position_names)}

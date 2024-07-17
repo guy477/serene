@@ -76,17 +76,15 @@ cdef class PokerGame:
                 action = self.game_state.get_current_player().get_action(self.game_state)
                     
             elif not self.game_state.get_current_player().folded:
-                fast_forward_actions = build_fast_forward_actions(self.game_state.betting_history)
-                player_string_hand = tuple([int_to_card(x) for x in hand_to_cards(self.game_state.get_current_player().hand)])
-                print(fast_forward_actions)
-                _, local_manager = self.strategy_trainer.train(self.local_manager, [fast_forward_actions], [player_string_hand])
+                fast_forward_actions = build_fast_forward_actions(self.game_state.action_space)
+                player_hand_str_tuple = card_tuple_to_str_tuple(ulong_to_card_tuple(self.game_state.get_current_player().hand))
 
+                _, local_manager = self.strategy_trainer.train(self.local_manager, [fast_forward_actions], [player_hand_str_tuple])
+                
                 strategy = self.strategy_trainer.get_average_strategy(self.game_state.get_current_player(), self.game_state, local_manager)
-                print(self.game_state.get_current_player().hash(self.game_state))
 
                 print(strategy)
-                # self.game_state.get_current_player().take_action(self.game_state, select_action(strategy))
-                action = select_action(strategy)
+                action = select_random_action(strategy)
             else:
                 action = ('call', 0)
             return action
@@ -103,10 +101,10 @@ cdef class PokerGame:
         display_game_state(self.game_state, self.game_state.player_index)
 
         for i in range(3):
-            print(f"{3-i}...", end = '')
+            print(f"{3-i}...", end = '\r')
             time.sleep(1)
         
         print(f"\nPlayer {self.game_state.players[self.game_state.winner_index].position} wins the hand.")
         for i in range(5):
-            print(f"Starting next hand in {5-i} seconds...", end = '')
+            print(f"Starting next hand in {5-i} seconds...", end = '\r')
             time.sleep(1)
