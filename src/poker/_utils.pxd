@@ -21,6 +21,7 @@ cdef display_game_state(object game_state, int player_index)
 cdef unsigned int cy_evaluate(unsigned long long cards, unsigned int num_cards) nogil
 cdef unsigned int cy_evaluate_handtype(unsigned long long cards, unsigned int num_cards) nogil
 cpdef handtype(unsigned long long hand_board, unsigned int num_cards)
+cpdef handtype_partial(unsigned long long hand_board, unsigned int num_cards)
 cpdef cy_evaluate_cpp(cards, num_cards)
 cpdef list build_fast_forward_actions(list betting_history)
 cpdef object select_action(average_strategy)

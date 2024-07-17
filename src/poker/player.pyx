@@ -120,7 +120,7 @@ cdef class Player:
             
             ### NOTE: by ignoring the forced contributions we don't negatively impact the self's regret calculation.
             ### TODO: is there a better place to do this for consistency? or is this the exact reason i made blinds distinct from raises? reality may have never known.
-            # self.tot_contributed_to_pot += (bet_amount)
+            self.tot_contributed_to_pot += (bet_amount)
 
             game_state.current_bet = bet_amount
 
@@ -183,23 +183,22 @@ cdef class Player:
         
         ### Handle preflop cases
         if game_state.cur_round_index == 0:
-            ## if no one has acted, or everyone has folded, we can't call. AKA NO LIMPING ALLOWED
-            if (len(game_state.betting_history[0]) == 2 or all([('fold', 0) == x[1] for x in game_state.betting_history[0][2:]])):
-                ret.remove(('call', 0))    # Prevent Limping
-                ret.remove(('raise', 2.0)) # Prevent over raising (for now)
-                return ret
             
-            ## otherwise, it's the first round and someone's made a bet
-            else:
+            if ('call', 0) in ret and not (self.position == 'BB' and game_state.pot < game_state.big_blind * 5):
+                ## If call is in the return list and we're last to act... (this logic can be cleaned up.)
+                if game_state.last_raiser == -1:
+                    ret.remove(('call', 0))    # Prevent Limping
 
-                ### NOTE NOTE guided preflop raises.                
-                ## If no one has opened, only allow 2.25bb open
-                if ('raise', 1.5) not in [x[1] for x in game_state.betting_history[0]] and ('raise', 2.0) in ret:
-                    ret.remove(('raise', 2.0))
-                    
-                ## If someone's raised already, remove open raise (1.5x) 
-                elif ('raise', 1.5) in [x[1] for x in game_state.betting_history[0]] and ('raise', 1.5) in ret:
-                    ret.remove(('raise', 1.5))
+                elif game_state.last_raiser != game_state.player_index:
+                    ret.remove(('call', 0))    # prevent calling with people left to act
+
+            ## If no one has opened, only allow 2.25bb open
+            if ('raise', 2.0) in ret and ('raise', 1.5) not in [x[1] for x in game_state.betting_history[0]]:
+                ret.remove(('raise', 2.0))
+                
+            ## If someone's opened, remove open raise (1.5x) 
+            elif ('raise', 1.5) in ret and ('raise', 1.5) in [x[1] for x in game_state.betting_history[0]]:
+                ret.remove(('raise', 1.5))
 
         
         assert(len(ret) > 0)
@@ -239,11 +238,12 @@ cdef class Player:
         ### NOTE: This shouldnt accumulate to insane values, right?
         # self.prior_gains = 0
     
-    cpdef str hash(self, GameState game_state):
+    cpdef object hash(self, GameState game_state):
         ### NOTE/TODO: Add "player type" that can be referenced in LocalManager to give a unique regret/strategy for the unique player type.
 
         # TODO: return object of all pertinent information then offload to External Manager?
         
-        hsh = str((self.abstracted_hand, self.position, tuple(self.get_available_actions(game_state)), str(game_state.betting_history)))
-
+        # hsh = str((self.abstracted_hand, self.position, tuple(self.get_available_actions(game_state)), str(game_state.betting_history)))
+        hsh = (hand_to_cards(self.hand), game_state.board, self.position, game_state.cur_round_index, tuple(self.get_available_actions(game_state)), str(game_state.betting_history))
+        
         return hsh

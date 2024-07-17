@@ -2,10 +2,12 @@
 from poker.poker_game import PokerGame
 from poker.cfr import CFRTrainer
 import poker.ccluster as ccluster
-from poker._utils import LocalManager, card_str_to_int, handtype, cy_evaluate_cpp
+from poker._utils import LocalManager, _6_max_opening
 
 from multiprocessing import Manager
+import pickle
 
+import ast
 import time
 import numpy as np
 import pandas as pd
@@ -15,87 +17,8 @@ import matplotlib.patches as mpatches
 from scipy.special import comb
 from sklearn.cluster import MiniBatchKMeans
 
-def _6_max_opening():
-    # Unopened ranges (Early to Late)
-    UTG_OPEN = []
-    MP_OPEN = [('fold', 0)]  # Assuming UTG has folded
-    CO_OPEN = [('fold', 0), ('fold', 0)]  # Assuming UTG and MP have folded
-    BTN_OPEN = [('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG, MP, and CO have folded
-    SB_OPEN = [('fold', 0), ('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG, MP, CO, and BTN have folded
 
-    # Defensive ranges (Early vs. Early to Late vs. Late)
-    MP_DEF = [('raise', 1.5)]  # Assuming UTG has raised
-    CO_UTG_DEF = [('raise', 1.5), ('fold', 0)]  # Assuming UTG has raised, MP has folded
-    CO_MP_DEF = [('fold', 0), ('raise', 1.5)]  # Assuming UTG has folded, MP has raised
-    BTN_UTG_DEF = [('raise', 1.5), ('fold', 0), ('fold', 0)]  # Assuming UTG has raised, MP and CO have folded
-    BTN_MP_DEF = [('fold', 0), ('raise', 1.5), ('fold', 0)]  # Assuming UTG has folded, MP has raised, CO has folded
-    BTN_CO_DEF = [('fold', 0), ('fold', 0), ('raise', 1.5)]  # Assuming UTG and MP have folded, CO has raised
-    SB_UTG_DEF = [('raise', 1.5), ('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG has raised, MP, CO, and BTN have folded
-    SB_MP_DEF = [('fold', 0), ('raise', 1.5), ('fold', 0), ('fold', 0)]  # Assuming UTG has folded, MP has raised, CO and BTN have folded
-    SB_CO_DEF = [('fold', 0), ('fold', 0), ('raise', 1.5), ('fold', 0)]  # Assuming UTG and MP have folded, CO has raised, BTN has folded
-    SB_BTN_DEF = [('fold', 0), ('fold', 0), ('fold', 0), ('raise', 1.5)]  # Assuming UTG, MP, and CO have folded, BTN has raised
 
-    BB_DEF = [('raise', 1.5), ('fold', 0), ('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG has raised, MP, CO, BTN, and SB have folded
-    BB_MP_DEF = [('fold', 0), ('raise', 1.5), ('fold', 0), ('fold', 0), ('fold', 0)]  # Assuming UTG has folded, MP has raised, CO, BTN, and SB have folded
-    BB_CO_DEF = [('fold', 0), ('fold', 0), ('raise', 1.5), ('fold', 0), ('fold', 0)]  # Assuming UTG and MP have folded, CO has raised, BTN and SB have folded
-    BB_BTN_DEF = [('fold', 0), ('fold', 0), ('fold', 0), ('raise', 1.5), ('fold', 0)]  # Assuming UTG, MP, and CO have folded, BTN has raised, SB has folded
-    BB_SB_DEF = [('fold', 0), ('fold', 0), ('fold', 0), ('fold', 0), ('raise', 1.5)]  # Assuming UTG, MP, CO, and BTN have folded, SB has raised
-
-    positions_to_solve = [
-        UTG_OPEN,
-        MP_OPEN, 
-        CO_OPEN,  
-        BTN_OPEN, 
-        SB_OPEN, 
-        MP_DEF,  
-        CO_UTG_DEF,
-        CO_MP_DEF, 
-        BTN_UTG_DEF, 
-        BTN_MP_DEF, 
-        BTN_CO_DEF, 
-        SB_UTG_DEF, 
-        SB_MP_DEF, 
-        SB_CO_DEF,
-        SB_BTN_DEF,
-        BB_DEF,
-        BB_MP_DEF,
-        BB_CO_DEF,
-        BB_BTN_DEF,
-        BB_SB_DEF,
-    ]
-
-    position_names = [
-        "UTG_OPEN", 
-        "MP_OPEN", 
-        "CO_OPEN",  
-        "BTN_OPEN", 
-        "SB_OPEN", 
-        "MP_DEF",  
-        "CO_UTG_DEF",
-        "CO_MP_DEF", 
-        "BTN_UTG_DEF", 
-        "BTN_MP_DEF", # Strat Complexity ~79564 @Depth=7;@Prune=5 | 
-                      # TODO: Optimize LocalManager to lower Strate Update Complexity.
-                      #     NOTE:
-                      #                Because the fast_forward_gamestate function builds a gamestate based on the blueprint strategy starting from the preflop, We need 
-                      #                to pass, or share, the entire blueprint strategy for reference ONLY in the fast_forward_gamestate location. Then, when solving for a
-                      #                specific node, we merge and update the blueprint only for that node and it's descendants.
-        "BTN_CO_DEF", 
-        "SB_UTG_DEF", 
-        "SB_MP_DEF", 
-        "SB_CO_DEF",
-        "SB_BTN_DEF",
-        "BB_DEF",
-        "BB_MP_DEF",
-        "BB_CO_DEF",
-        "BB_BTN_DEF",
-        "BB_SB_DEF",
-    ]
-    
-
-    positions_dict = {str(pos): name for pos, name in zip(positions_to_solve, position_names)}
-
-    return positions_to_solve, positions_dict
 
 
 def train():
@@ -128,11 +51,11 @@ def train():
 
     # Specify the number of times to iteratate over `positions_to_solve`.
     ## Fun Fact: This is one way to construct a blueprint strategy.
-    num_smoothing_iterations = 1
+    num_smoothing_iterations = 2
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 1000
-    cfr_depth = 7
+    num_cfr_iterations = 100
+    cfr_depth = 6
     
     # Depth at which to start Monte Carlo Simulation.
     monte_carlo_depth = 9999
@@ -143,9 +66,14 @@ def train():
     prune_probability = 1e-10
 
     # Train the AI player using the CFR algorithm
+    # local_manager = LocalManager('dat/pickles/regret_sum_S1_3k_D11_P10.pkl', 'dat/pickles/strategy_sum_S1_3k_D11_P10.pkl')
+    local_manager = LocalManager('dat/pickles/regret_sum_w_post_abstr_full.pkl', 'dat/pickles/strategy_sum_w_post_abstr_full.pkl')
+    
     cfr_trainer = CFRTrainer(num_cfr_iterations, num_showdown_simulations, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
-    strategy_list, _local_manager = cfr_trainer.train(positions_to_solve * num_smoothing_iterations, save_pickle = True) # TODO add pickle paths to regret/strat solves.
+    strategy_list, _local_manager = cfr_trainer.train(local_manager, positions_to_solve * num_smoothing_iterations, save_pickle = True) # TODO add pickle paths to regret/strat solves.
     plot_hands(strategy_list, SUITS, VALUES, positions_dict)
+
+    local_manager.save('dat/pickles/regret_sum_w_post_abstr_full.pkl', 'dat/pickles/strategy_sum_w_post_abstr_full.pkl')
 
 
 def play():
@@ -165,7 +93,7 @@ def play():
     big_blind = 10
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 2000
+    num_cfr_iterations = 200
     cfr_depth = 3
     
     # Depth at which to start Monte Carlo Simulation.
@@ -181,223 +109,12 @@ def play():
     # For an AI player who will play in realtime.
     cfr_trainer = CFRTrainer(num_cfr_iterations, 1, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
 
-    local_manager = LocalManager('dat/pickles/regret_sum_S1_3k_D11_P10.pkl', 'dat/pickles/strategy_sum_S1_3k_D11_P10.pkl')
+    local_manager = LocalManager('dat/pickles/regret_sum_w_post_abstr_full.pkl', 'dat/pickles/strategy_sum_w_post_abstr_full.pkl')
     num_hands = 100
     game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer, local_manager, SUITS, VALUES)
     # # Play the game
     game.play_game(num_hands)
     print('\n\n')
-
-def cluster():
-    # This is only accurate for k = 5; n = 52. All other combinations should be used solely for testing
-    # unless you know what you're doing.
-    k = 5
-    n = 24
-    rvr_clstrs = 40
-    trn_clstrs = 80
-    flp_clstrs = 90
-
-    precompute = True
-
-
-    # Enter the number of threads for you system
-    threads = 8
-
-
-    # If this is your first time running, make sure new_file is set to true.
-    # This has only been tested on linux systems.
-    # Be sure your '../results/' directory has > 70G
-    # and that you have either 128G ram or 100G+ swap.
-
-
-    # Unless you're running this program on an excess of 32 threads, using swap
-    # memory off an SSD should not be a bottleneck for this part of the program.
-    # OS LIMITATIONS MIGHT CAUSE BOTTLENECKS WHEN DUMPING TO AN EXTERNAL SDD/HDD
-    # BE SURE TO RUN THE PROGRAM FROM THE SAME DRIVE THAT CONTAINS YOUR EXTENDED
-    # SWAP MEMORY. IF YOU HAVE ENOUGH RAM, DONT WORRY BOUT IT.
-
-
-    # #########################################################################################################
-    # #########################################################################################################
-
-
-
-    t = time.time()
-    print('computing river ehs')
-    dupes = ccluster.river_ehs(n, k, threads, new_file = True)
-    print('Time spent: ' + str((time.time() - t)/60) + 'm')
-
-    #                      Load a memory mapping of the river scores.
-
-    z = np.memmap('../results/river_f.npy', mode = 'c', dtype = np.float32, shape = (int(comb(n, 2)) * (int(comb(n, k)) - dupes), 1))
-
-    # #########################################################################################################
-    # #########################################################################################################
-
-    # we will also need to modify a kmeans clustering algorithm to use memmapped objects to avoid memory prob
-
-
-    # highly recommended.
-    precompute = True
-
-    if precompute:
-
-        t = time.time()
-
-        print('precomputing river centers')
-        centers = ccluster.kmc2(z, rvr_clstrs, chain_length=50, afkmc2=True)
-        np.save('../results/cntrs_RIVER', centers)
-        print('Time spent' + str((time.time() - t)/60) + 'm')
-    else:
-        centers = None
-
-
-    # #########################################################################################################
-    # #########################################################################################################
-
-
-    t = time.time()
-    print('computing river clusters')
-    miniK = MiniBatchKMeans(n_clusters = rvr_clstrs, batch_size=(rvr_clstrs//2)*(threads * 265), tol = 10e-8, max_no_improvement = None, init = centers, verbose=False, n_init=1).fit(z)
-    print('Time spent: ' + str((time.time() - t)/60) + 'm')
-
-    # #########################################################################################################
-    # #########################################################################################################
-
-    np.save('../results/adjcntrs_RIVER', miniK.cluster_centers_)
-    np.save('../results/lbls_RIVER', miniK.labels_)
-
-
-    adjcntrs = np.load('../results/adjcntrs.npy', mmap_mode = 'r')
-    lbls = np.load('../results/lbls.npy', mmap_mode = 'r')
-
-    # #########################################################################################################
-    # #########################################################################################################
-
-    #print(adjcntrs)
-
-    #########################################################################################################
-    # print('Saving River')
-    # pd.DataFrame(z[:int(comb(n, k)) - dupes]).to_csv('river_ehs_23s(24cards).csv')
-    # df = pd.DataFrame(list(map(lambda x: adjcntrs[x], lbls[:int(comb(n, k)) - dupes])))
-    # df.to_csv('river_ehs_clst_23s.csv')
-    # print("saved")
-    #########################################################################################################
-
-
-    # #########################################################################################################
-    # TURN #########################################################################################################
-    # #########################################################################################################
-    print('\n\n')
-
-    t = time.time()
-    print('computing turn ehs')
-    dupes = ccluster.turn_ehs(n, k, 16, True)
-    print('Time spent: ' + str((time.time() - t)/60) + 'm')
-
-
-
-    turn_prob_dist = np.memmap('../results/prob_dist_TURN.npy', mode = 'c', dtype = np.float32, shape = (int(comb(n, 2)) * ((int(comb(n, 4)) - dupes)), n - k - 2))
-    print(turn_prob_dist)
-
-
-    # #########################################################################################################
-    # #########################################################################################################
-
-
-    if precompute:
-        t = time.time()
-        
-        print('precomputing turn centers')
-        centers_TURN = ccluster.kmc2(turn_prob_dist, trn_clstrs, chain_length=50, afkmc2=True)
-        np.save('../results/cntrs_TURN', centers_TURN)
-
-        print('Time spent precalculating centers: ' + str((time.time() - t)/60) + 'm')
-    else:
-        centers_TURN = None
-
-
-    # #########################################################################################################
-    # #########################################################################################################
-
-    t = time.time()
-    print('computing turn clusters')
-    miniK = MiniBatchKMeans(n_clusters = trn_clstrs, batch_size=(trn_clstrs//2)*(threads * 265), tol = 10e-8, max_no_improvement = None, init = centers_TURN, verbose=False, n_init=1).fit(turn_prob_dist)
-    print('Time spent: ' + str((time.time() - t)/60) + 'm')
-
-
-    np.save('../results/adjcntrs_TURN', miniK.cluster_centers_)
-    np.save('../results/lbls_TURN', miniK.labels_)
-
-    adjcntrs = np.load('../results/adjcntrs_TURN.npy', mmap_mode = 'r')
-    lbls = np.load('../results/lbls_TURN.npy', mmap_mode = 'r')
-
-    #print(adjcntrs)
-
-
-    #########################################################################################################
-    # print('Saving Turn')
-    # pd.DataFrame(turn_prob_dist[:int(comb(n, k-1)) - dupes]).to_csv('turn_prob_dist_23s(24cards).csv')
-    # pd.DataFrame(list(map(lambda x: adjcntrs[x], lbls[:int(comb(n, k-1)) - dupes]))).to_csv('turn_prob_dist_clst_23s.csv')
-    # print("saved")
-    #########################################################################################################
-
-
-    # #########################################################################################################
-    # FLOP #########################################################################################################
-    # #########################################################################################################
-    print('\n\n')
-
-
-    t = time.time()
-    print('computing flop ehs')
-    dupes = ccluster.flop_ehs(n, k, 16, True)
-    print('Time spent: ' + str((time.time() - t)/60) + 'm')
-
-
-    flop_prob_dist = np.memmap('../results/prob_dist_FLOP.npy', mode = 'c', dtype = np.float32, shape = (int(comb(n, 2)) * ((int(comb(n, 3)) - dupes)), n - k - 1))
-
-    print(flop_prob_dist)
-    #########################################################################################################
-    #########################################################################################################
-
-
-    #########################################################################################################
-
-
-    if precompute:
-        t = time.time()
-        
-        print('precomputing centers ---- FLOP')
-        centers_FLOP = ccluster.kmc2(flop_prob_dist, flp_clstrs, chain_length=50, afkmc2=True)
-        np.save('../results/cntrs_FLOP', centers_FLOP)
-
-        print('Time spent precalculating centers: ' + str((time.time() - t)/60) + 'm')
-    else:
-        centers_FLOP = None
-
-    t = time.time()
-    print('computing flop clusters')
-    miniK = MiniBatchKMeans(n_clusters = flp_clstrs, batch_size=(flp_clstrs//2)*(threads * 265), tol = 10e-8, max_no_improvement = None, init = centers_FLOP, verbose=False, n_init=1).fit(flop_prob_dist)
-    print('Time spent: ' + str((time.time() - t)/60) + 'm')
-
-
-    np.save('../results/adjcntrs_FLOP', miniK.cluster_centers_)
-    np.save('../results/lbls_FLOP', miniK.labels_)
-
-
-    adjcntrs = np.load('../results/adjcntrs_FLOP.npy', mmap_mode = 'r')
-    lbls = np.load('../results/lbls_FLOP.npy', mmap_mode = 'r')
-
-    #print(adjcntrs)
-
-    #########################################################################################################
-    # print('Saving Flop')
-    # pd.DataFrame(flop_prob_dist[:int(comb(n, k-2)) - dupes]).to_csv('flop_prob_dist_23s(24cards).csv')
-    # pd.DataFrame(list(map(lambda x: adjcntrs[x], lbls[:int(comb(n, k-2)) - dupes]))).to_csv('flop_prob_dist_clst_23s.csv')
-    # print("saved")
-    #########################################################################################################
-
 
 def hand_position(hand, ranks):
     ranks = list(reversed(ranks))
@@ -418,13 +135,21 @@ def hand_position(hand, ranks):
     else:
         raise ValueError("Invalid hand format")
 
-def plot_hands(strategy_list, suits=None, ranks=None, positions_dict={}):
-    strategy_df = pd.DataFrame(strategy_list)
-    strategy_df.columns = ['Position', 'Betting History', 'Hand', 'Strategy']
-    strategy_df['Betting History'] = strategy_df['Betting History'].apply(lambda x: str(x))
-    strategy_df.to_csv('../results/strategy.csv', index=False)
+def plot_hands(strategy_list=None, suits=None, ranks=None, positions_dict={}):
+    if strategy_list:
+        strategy_df = pd.DataFrame(strategy_list)
+        strategy_df.columns = ['Position', 'Betting History', 'Hand', 'Strategy']
+        strategy_df['Betting History'] = strategy_df['Betting History'].apply(lambda x: str(x))
+        strategy_df.to_csv('../results/strategy.csv', index=False)
+    else:
+        strategy_df = pd.read_csv('../results/strategy.csv')
+        strategy_df['Strategy'] = strategy_df['Strategy'].apply(ast.literal_eval)
+
+    strategy_df.drop_duplicates(subset = ['Position', 'Hand'], keep = 'last', inplace=True)
     strategy_df = strategy_df[strategy_df['Strategy'] != {}]
     strategy_df.reset_index(inplace=True, drop=True)
+
+    print(strategy_df)
 
     # Get unique combinations of 'Position' and 'Betting History'
     unique_combinations = strategy_df[['Position', 'Betting History']].drop_duplicates()
@@ -515,4 +240,3 @@ if __name__ == "__main__":
     # cluster()
     # train()
     play()
-    # ccluster.test()

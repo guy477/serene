@@ -44,27 +44,11 @@ cdef class CFRTrainer:
 
         hands = hands if hands else list(sorted(itertools.combinations(cards, 2)))
 
-        hand_mapping = {}
-        for hand in hands:
-            card1, card2 = hand
-            abstracted_hand = abstract_hand(card_str_to_int(card1), card_str_to_int(card2))
-            hand_mapping[hand] = abstracted_hand
-
-        # TODO generalize this away from being preflop abstractions only.
-        hands_reduced = []
-        __ = {}
-        for hand in hands:
-            if hand_mapping[hand] in __:
-                continue
-            
-            __[hand_mapping[hand]] = 1
-            hands_reduced.append(hand)
-
         # Front load mid-ling/strong cards (maybe shuffle with a specific seed so i can see the same convergence?)
-        hands_reduced = list(reversed(hands_reduced))
-            # Shuffle the hands_reduced list with a specific seed for reproducibility
+        hands_shuffled = list(reversed(hands))
+            # Shuffle the hands_shuffled list with a specific seed for reproducibility
         rng = random.Random(42)  # Use any seed value you prefer
-        rng.shuffle(hands_reduced)
+        rng.shuffle(hands_shuffled)
 
         ## TODO: Figure out how to use manager.dict() with LocalManager
         # local_manager = LocalManager('dat/pickles/regret_sum.pkl', 'dat/pickles/strategy_sum.pkl')
@@ -75,7 +59,7 @@ cdef class CFRTrainer:
         local_hand_strategy_aggregate = []
 
         for fast_forward_actions in positions_to_solve:
-            local_manager, hand_strategy_aggregate = self.parallel_train(hands_reduced, hand_mapping, fast_forward_actions, local_manager, save_pickle)
+            local_manager, hand_strategy_aggregate = self.parallel_train(hands_shuffled, fast_forward_actions, local_manager, save_pickle)
 
             local_hand_strategy_aggregate.extend(hand_strategy_aggregate)
 
@@ -86,7 +70,7 @@ cdef class CFRTrainer:
 
         return list(local_hand_strategy_aggregate), local_manager
 
-    def parallel_train(self, hands, hand_mapping, fast_forward_actions, local_manager, save_pickle):#(psutil.cpu_count(logical=True) -1) * 2
+    def parallel_train(self, hands, fast_forward_actions, local_manager, save_pickle):#(psutil.cpu_count(logical=True) -1) * 2
 
         ### Managed Objects
         manager = Manager()
@@ -97,7 +81,7 @@ cdef class CFRTrainer:
 
 
         def process_batch(batch_hands):                                                                        # NOTE: Since we _spawn_ each pooled process, local_manager gets copied to each child process. If the blueprint gets too large, we make local manager read only and global; then only update a local copy of the explorable nodes.
-            hands = [(hand, hand_mapping, regret_global_accumulator, strategy_global_accumulator, hand_strategy_aggregate, calculated, fast_forward_actions, local_manager) for hand in batch_hands]
+            hands = [(hand, regret_global_accumulator, strategy_global_accumulator, hand_strategy_aggregate, calculated, fast_forward_actions, local_manager) for hand in batch_hands]
             with Pool(processes=psutil.cpu_count(logical=True) - 1) as pool: #psutil.cpu_count(logical=True) - 1
                 try:
                     pool.starmap(self.process_hand_wrapper, hands)
@@ -159,15 +143,11 @@ cdef class CFRTrainer:
         return local_manager, hand_strategy_aggregate
 
 
-    def process_hand_wrapper(self, hand, hand_mapping, regret_global_accumulator, strategy_global_accumulator, hand_strategy_aggregate, calculated, fast_forward_actions, local_manager):
-        self.process_hand(hand, hand_mapping, regret_global_accumulator, strategy_global_accumulator, hand_strategy_aggregate, calculated, fast_forward_actions, local_manager)
+    def process_hand_wrapper(self, hand, regret_global_accumulator, strategy_global_accumulator, hand_strategy_aggregate, calculated, fast_forward_actions, local_manager):
+        self.process_hand(hand, regret_global_accumulator, strategy_global_accumulator, hand_strategy_aggregate, calculated, fast_forward_actions, local_manager)
 
 
-    def process_hand(self, hand, hand_mapping, regret_global_accumulator, strategy_global_accumulator, hand_strategy_aggregate, calculated, fast_forward_actions, local_manager):
-        if calculated.get(hand_mapping[hand], False):
-            return
-        calculated[hand_mapping[hand]] = True
-
+    def process_hand(self, hand, regret_global_accumulator, strategy_global_accumulator, hand_strategy_aggregate, calculated, fast_forward_actions, local_manager):
         cdef GameState game_state = GameState([Player(self.initial_chips, self.bet_sizing, False) for _ in range(self.num_players)], self.small_blind, self.big_blind, self.num_simulations, True, self.suits, self.values) 
         # Fastforward to current node for debug purposes.
 
@@ -176,6 +156,7 @@ cdef class CFRTrainer:
         self.fast_forward_gamestate(hand, game_state, fast_forward_actions, local_manager)
         print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-')
         print(f'TRAINING: ({game_state.get_current_player().position}) --- {hand}')
+        print(fast_forward_actions)
         print(f'Regret Complexity: {len(local_manager.get_regret_sum())}')
         print(f'Strategy Complexity: {len(local_manager.get_strategy_sum())}')
         # print()
@@ -210,7 +191,7 @@ cdef class CFRTrainer:
         # print(player_hash)
         # print(f"Post Regret Sum: {local_manager.get_regret_sum()[player_hash]}")
         # print(f"Post Strategy Sum: {local_manager.get_strategy_sum()[player_hash]}")
-        print(f"Post Average Strategy For Hand {hand_mapping[hand]}: {strategy}")
+        print(f"Post Average Strategy For Hand {hand}: {strategy}")
 
         # print(f'Regret Complexity (post): {len(local_manager.get_regret_sum())}')
         # print(f'Strategy Complexity (post): {len(local_manager.get_strategy_sum())}')
@@ -229,7 +210,7 @@ cdef class CFRTrainer:
         dynamic_merge_dicts(local_manager.get_regret_sum(), regret_global_accumulator)
         dynamic_merge_dicts(local_manager.get_strategy_sum(), strategy_global_accumulator)
 
-        hand_strategy_aggregate.append((player.position, fast_forward_actions, hand_mapping[hand], strategy))
+        hand_strategy_aggregate.append((player.position, fast_forward_actions, player.abstracted_hand, strategy))
 
 
     cdef GameState fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions, LocalManager local_manager, int attempts = 0):
@@ -303,8 +284,8 @@ cdef class CFRTrainer:
             return self.calculate_utilities(game_state, game_state.winner_index)
 
         player_hash = cur_player.hash(game_state)
-        local_manager.get_regret_sum().get_set(player_hash, defaultdict(self.default_double), prune, True)
-        local_manager.get_strategy_sum().get_set(player_hash, defaultdict(self.default_double), prune, True)
+        local_manager.get_regret_sum().get_set(player_hash, defaultdict(self.default_double), prune, depth == 0)
+        local_manager.get_strategy_sum().get_set(player_hash, defaultdict(self.default_double), prune, depth == 0)
 
         util = {action: np.zeros(num_players, dtype=np.float64) for action in available_actions}
         strategy = self.get_strategy(available_actions, probs, game_state, cur_player, local_manager)

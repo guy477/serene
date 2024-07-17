@@ -11,8 +11,10 @@ import time
 import random
 import concurrent.futures
 import concurrent.futures
+from multiprocessing import Manager, set_start_method
 
 from ._utils cimport *
+from tqdm import tqdm
 
 import numpy
 cimport numpy
@@ -26,6 +28,10 @@ from libcpp.map cimport map as mapp
 from libc.stdlib cimport calloc, free
 from libc.stdio cimport FILE, fopen, fwrite, fscanf, fclose, fprintf
 # cython: profile=True
+
+
+set_start_method('spawn', force=True)
+
 
 
 """
@@ -301,7 +307,7 @@ cdef numpy.npy_bool contains_turn(int16[:] XX, int comp) nogil:
 
 @cython.boundscheck(False) 
 @cython.wraparound(False)
-cdef void get_ehs_fast(int16[:] j, int16[:] twl_tiewinloss) nogil:
+cdef void get_ehs_fast(int16[:] j, int32[:] twl_tiewinloss) nogil:
     
     cdef int T_CARDS = 5
     cdef int N_CARDS = 24
@@ -577,54 +583,44 @@ cpdef emd(int p, u_values, v_values, u_weights=None, v_weights=None):
 
 @cython.boundscheck(False) 
 @cython.wraparound(False)
-def do_calc(numpy.int64_t os, int16[:, :] x, int16[:, :] y, int dupes):
+def do_calc(int16[:, :] x, int16[:, :] y):
     cdef unsigned long long int total = 0
     cdef numpy.int64_t i, j, c
-    cdef double t1, t2, t
     cdef numpy.int64_t x_shape = x.shape[0]
     cdef numpy.int64_t y_shape = y.shape[0]
 
-    cd = 0
-
-    # cdef numpy.ndarray[int16, ndim=2] z = numpy.empty((x_shape * y_shape, x.shape[1] + y.shape[1] + 3), dtype=numpy.int16)
-    z_memmap = numpy.memmap('../results/river.npy', mode = 'r+', dtype = numpy.int16, shape = (x_shape * (y_shape - dupes), 3), offset = os )
-    z_f_memmap = numpy.memmap('../results/prob_dist_RIVER.npy', mode = 'r+', dtype = numpy.float32, shape = (x_shape * (y_shape - dupes), 1), offset = os//3 * 2)
-    #mp_memmap = numpy.memmap('../results/map.npy', mode = 'r+', dtype = numpy.ulonglong, shape = (x_shape * (y_shape - dupes), 1), offset = os//3 * 2)
-    
-    cdef int16 [:, :] z_view = z_memmap
-    cdef numpy.float32_t [:, :] z_f_view = z_f_memmap
-    
-    #cdef unsigned long long [:, :] mp_view = mp_memmap
+    cdef dict local_dict = {}
 
     cdef numpy.ndarray[int16, ndim=1] oh = numpy.empty(7, dtype=numpy.int16)
     cdef int16[:] oh_view = oh[:]
 
     cdef unsigned long long one = 1
-    cdef unsigned long long key
-    for i in range(x_shape):
-        t1=time.time()
+    cdef unsigned long long hand_board_combo, private_hand
+    for i in tqdm(range(x_shape)):
         for j in range(y.shape[0]):
             oh_view[:2] = x[i]
             oh_view[2:] = y[j]
             if(not contains_duplicates(oh_view)):
                 
-                get_ehs_fast(oh_view, z_view[cd])
+                # Write the EHS for the hand/board combo "oh_view". Write this to z_view[cd]
+                # TODO: Change z_view[cd] to be a dictionary mapping from 
+                private_hand = (one << oh_view[0]) | (one << oh_view[1])
+                hand_board_combo = private_hand | (one << oh_view[2]) | (one << oh_view[3]) | (one << oh_view[4]) | (one << oh_view[5]) | (one << oh_view[6]) 
+                hand_type = handtype(hand_board_combo, 7)
 
-                key = (one << oh_view[0]) | (one << oh_view[1]) | (one << oh_view[2]) | (one << oh_view[3]) | (one << oh_view[4]) | (one << oh_view[5]) | (one << oh_view[6]) 
+                key = (private_hand, hand_type)
+
+                if key not in local_dict:
+                    local_dict[key] = numpy.zeros(3, dtype = numpy.int32)
+
                 
                 
-                z_f_view[cd] = (z_view[cd][1]+.5*z_view[cd][0]) / (z_view[cd][1]+z_view[cd][0]+z_view[cd][2])
+                get_ehs_fast(oh_view, local_dict[key][:])
 
-                #mp_view[cd] = key
-
-                cd += 1
-            
-        t2=time.time()
-        t = t2-t1
-        print('~' + str(t*(x_shape - i)//60) + ' minutes until finished. ' + str(100*(i/x_shape))[:4] + '% done     ', end = '\r')
+    return local_dict
     # mp_memmap.flush()
-    z_f_memmap.flush()
-    z_memmap.flush()
+    # z_f_memmap.flush()
+    # z_memmap.flush()
 
 
 @cython.boundscheck(False)
@@ -699,270 +695,199 @@ cdef void insertion_sort_inplace_cython_int16(int16[:] A):
 
 
 
+@cython.boundscheck(False) 
+@cython.wraparound(False)
+cdef get_abstracted_river_ehs(int16[:] j, river_ehs_dict):
+    cdef int16 x[46]
+    cdef int16 i, k
+    cdef int v, c
+    cdef unsigned long long mask = 0
+    cdef unsigned int six = 6
+    cdef unsigned int seven = 7
+    cdef unsigned long long one = 1
+    cdef unsigned long long key
+
+    
+    c = 0
+    for i in range(52):
+        if not contains(j, i):
+            x[c] = i
+            c += 1    
+
+    mask |= one << j[0]
+    mask |= one << j[1]
+    mask |= one << j[2]
+    mask |= one << j[3]
+    mask |= one << j[4]
+    mask |= one << j[5]
+    
+    cdef int T, W, L
+    T = 0
+    W = 0
+    L = 0
+
+    for i in range(0, c):
+        
+        TWL = river_ehs_dict[(one << j[0] | one << j[1], handtype(one << x[i] | mask, 7))]
+        T += TWL[0]
+        W += TWL[1]
+        L += TWL[2]
+
+    total_outcomes = W + L + T
+    if total_outcomes == 0:
+        return 0  # No outcomes recorded yet
+    win_probability = W / total_outcomes
+    tie_probability = T / total_outcomes
+    return win_probability + 0.5 * tie_probability
+
+
+@cython.boundscheck(False) 
+@cython.wraparound(False)
+cdef get_abstracted_turn_ehs(int16[:] j, turn_ehs_dict):
+    cdef int16 x[47]
+    cdef int16 i, k
+    cdef int v, c
+    cdef unsigned long long mask = 0
+    cdef unsigned int six = 6
+    cdef unsigned int seven = 7
+    cdef unsigned long long one = 1
+    cdef unsigned long long key
+    cdef float TWL
+
+    
+    c = 0
+    for i in range(52):
+        if not contains(j, i):
+            x[c] = i
+            c += 1    
+
+    mask |= one << j[0]
+    mask |= one << j[1]
+    mask |= one << j[2]
+    mask |= one << j[3]
+    mask |= one << j[4]
+    # mask |= one << j[5]
+    
+
+    for i in range(0, c):
+        
+        TWL += turn_ehs_dict[(abstract_hand(one << j[0], one << j[1]), handtype_partial(one << x[i] | mask, 6))]
+        # T += TWL[0]
+        # W += TWL[1]
+        # L += TWL[2]
+
+    return TWL / c
+            
+
+
 
 @cython.boundscheck(False)
 @cython.initializedcheck(False)
-cpdef prob_dist_fun(int16[:, :] x, int16[:, :] y, float32[:, :] dist, float32[:, :] cntrs, int[:] lbs, int64 dupes, boolean turn, int64 os): #single byte offset. multiply by #cols and #bytes in data type
+def turn_ehs_calc(int16[:, :] x, int16[:, :] y, river_ehs_dict): #single byte offset. multiply by #cols and #bytes in data type
+    turn_ehs_dict = {}
 
-    cdef int T_CARDS
-    cdef int N_CARDS
-    if turn:
-        T_CARDS = 5
-        N_CARDS = 24
-    else:
-        T_CARDS = 4
-        N_CARDS = 24
-        
-    
-
-    cdef numpy.ndarray[int16, ndim=1] oh = numpy.empty(T_CARDS+1, dtype=numpy.int16)
-    cdef numpy.ndarray[int16, ndim=2] oh_2d = numpy.empty((x.shape[0] * (y.shape[0] - dupes), T_CARDS+1 + 1), dtype=numpy.int16)
-    cdef numpy.ndarray[int16, ndim=1] oh_z = numpy.empty(T_CARDS+2, dtype=numpy.int16)
-    cdef numpy.ndarray[int16, ndim=1] oh_z_tmp = numpy.empty(T_CARDS + 2, dtype=numpy.int16)
-
-    cdef mapp[unsigned long long, int] mp
-
-    cdef numpy.ndarray[float32, ndim=2] prob_dist
-
+    cdef numpy.ndarray[int16, ndim=1] oh = numpy.empty(6, dtype=numpy.int16)
     cdef int16[:] oh_view = oh[:]
-    cdef int16[:, :] oh_view_2d = oh_2d[:]
-    cdef int16[:] oh_z_view = oh_z[:]
-    cdef int16[:] oh_z_view_tmp = oh_z_tmp[:]
-    
-    cdef int cc, c, i, j, tt, k, cd
-    cdef long t
+
 
     cdef unsigned long long one = 1
-    cdef unsigned long long key = -1
-
-    cdef unsigned long long [:, :] mp_turn_view
-    cdef numpy.ndarray[float32, ndim=1] mp_z
-
-    cdef int16[:, :] yy = nump2(N_CARDS, T_CARDS)
-    if(turn):
-        ndupes = num_dupes(x, yy)
-    else:
-        ndupes = num_dupes_turn(x, yy)
-
-
-    # SET UP MAPPING TO R + 1 DISTRIBUTIONS
-    cd, c=0, 0
-    for i in range(x.shape[0]):
-        for j in range(yy.shape[0]):
-            oh_z_view[:2] = x[i][:]
-            oh_z_view[2:] = yy[j][:]
-            if(not ((turn and contains_duplicates(oh_z_view)) or (not turn and contains_duplicates_turn(oh_z_view)))):
-                if(turn):
-                    key = (one << oh_z_view[0]) | (one << oh_z_view[1]) | (one <<oh_z_view[2]) | (one <<oh_z_view[3]) | (one <<oh_z_view[4]) | (one <<oh_z_view[5]) | (one << oh_z_view[6])
-                else:
-                    key = (one << oh_z_view[0]) | (one << oh_z_view[1]) | (one <<oh_z_view[2]) | (one <<oh_z_view[3]) | (one <<oh_z_view[4]) | (one <<oh_z_view[5])
-                mp[key] = cd
-                cd+=1
-
-    # SET 2D MAT FOR NOGIL PARALLELISM - NOT WORKING FOR REASON UNKONWN ATM (PARALLELISM)
-    for i in range(x.shape[0]):
+    for i in tqdm(range(x.shape[0])):
         for j in range(y.shape[0]):
-            oh_view[:2] = x[i][:]
-            oh_view[2:] = y[j][:]
+            oh_view[:2] = x[i]
+            oh_view[2:] = y[j]
+            if(not contains_duplicates_turn(oh_view)):
+                # hero = handtype(one << oh_view[0] | one << oh_view[1] | one << oh_view[2] | one << oh_view[3] | one << oh_view[4] | one << oh_view[5], 6)
+                # Write the EHS for the hand/board combo "oh_view". Write this to z_view[cd]
+                hero = (abstract_hand(one << oh_view[0], one << oh_view[1]), handtype_partial(one << oh_view[0] | one << oh_view[1] | one << oh_view[2] | one << oh_view[3] | one << oh_view[4] | one << oh_view[5], 6))
 
-            if(not ((turn and contains_duplicates_turn(oh_view)) or (not turn and contains_duplicates_flop(oh_view)))):
-                oh_view_2d[c][:-1] = oh_view[:]
-                c += 1
-    
-
-    mp_z = numpy.zeros(len(dist[0]), dtype = numpy.float32)
-    
-    cdef float32[:] mp_z_view = mp_z[:] 
-    
-    # for each possible remaining card, we will store the subsequent index of the river cluster to which it responds.
-    if turn:
-        prob_dist = numpy.memmap('../results/prob_dist_TURN.npy', mode = 'r+', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), N_CARDS - T_CARDS - 2))[:] # 9 col
-    else:
-        prob_dist = numpy.memmap('../results/prob_dist_FLOP.npy', mode = 'r+', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), N_CARDS - T_CARDS - 2))[:] # 10 col -- both will need to change according to proper histogram schematics..
-    
-    cdef float32[:, :] prob_dist_memview = prob_dist[:]
-    cdef float32[:] prob_dist_sing_memview = numpy.empty(N_CARDS-T_CARDS-1, dtype = numpy.float32)[:]
-
-    cdef float32[:] all_values = numpy.empty(cntrs.shape[1] + dist.shape[1], dtype = numpy.float32)
-    cdef float32[:] all_valuesa = numpy.empty(cntrs.shape[1] - 1 + dist.shape[1], dtype = numpy.float32)
-    cdef float32[:] all_valuesaa = numpy.empty(cntrs.shape[1] - 1 + dist.shape[1], dtype = numpy.float32)
-    cdef float32[:] deltaaa = numpy.empty(cntrs.shape[1] - 1 + dist.shape[1], dtype = numpy.float32)
-
-
-
-
-
-    ii = cython.declare(cython.int)
-    nn = cython.declare(cython.int, (x.shape[0] * (y.shape[0] - dupes)))
-    ss = cython.declare(cython.int, 0)
-
-
-
-    for ii in prange(nn, nogil=True, num_threads=16):
-        for k in range(N_CARDS):
-            if(not ((turn and contains_turn(oh_view_2d[ii], k)) or (not turn and contains_flop(oh_view_2d[ii], k)))):
-                ## for each datapoint (float value for winning), find the best center given 
-                
-                
-                oh_view_2d[ii][T_CARDS + 1] = k
-
-
-                if(turn):
-                    key = (one << oh_view_2d[ii][0])  | (one << oh_view_2d[ii][1]) | (one << oh_view_2d[ii][2])  | (one << oh_view_2d[ii][3])  | (one << oh_view_2d[ii][4])  | (one << oh_view_2d[ii][5])  | (one << oh_view_2d[ii][6])
+                ### TODO: Change z_view[cd] to be a dictionary mapping from 
+                if hero not in turn_ehs_dict:
+                    turn_ehs_dict[hero] = get_abstracted_river_ehs(oh_view, river_ehs_dict)
                 else:
-                    key = (one << oh_view_2d[ii][0])  | (one << oh_view_2d[ii][1]) | (one << oh_view_2d[ii][2])  | (one << oh_view_2d[ii][3])  | (one << oh_view_2d[ii][4]) | (one << oh_view_2d[ii][5])
-                
-
-                
-                #reward distance from losing.. temp logic until i understand paper
-                #prob_dist_memview[ii][k] = emd_c(1, mp_z_view, cntrs[lbs[mp[key]]], all_values, all_valuesa, all_valuesaa, deltaaa)
-                #with gil:
-                #    print(k - n_less(oh_view_2d[ii], k))
-
-                prob_dist_memview[ii][k - n_less(oh_view_2d[ii], k)] = emd_c(1, mp_z_view, cntrs[lbs[mp[key]]], all_values, all_valuesa, all_valuesaa, deltaaa)
-
-    ## will delete soon. NOGIL PARALLELISM ABOVE :)
-    '''
-    for i in range(x.shape[0]):
-        # load current portion of dataset to memory using the offset. 
-        # fluff_view[:, :] = numpy.memmap('../results/fluffy.npy', mode = 'c', dtype = numpy.float32, shape = (y_shape_river[0], 1), offset = i * y_shape_river[0] * 8)[:]
-        t1=time.time()
+                    turn_ehs_dict[hero] = (turn_ehs_dict[hero] + get_abstracted_river_ehs(oh_view, river_ehs_dict))/2
         
+    return turn_ehs_dict
+    # mp_memmap.flush(
+
+
+@cython.boundscheck(False)
+@cython.initializedcheck(False)
+def flop_ehs_calc(int16[:, :] x, int16[:, :] y, turn_ehs_dict): #single byte offset. multiply by #cols and #bytes in data type
+    flop_ehs_dict = {}
+
+    cdef numpy.ndarray[int16, ndim=1] oh = numpy.empty(5, dtype=numpy.int16)
+    cdef int16[:] oh_view = oh[:]
+
+
+    cdef unsigned long long one = 1
+    for i in tqdm(range(x.shape[0])):
         for j in range(y.shape[0]):
-            oh_view[:2] = x[i][:]
-            oh_view[2:] = y[j][:]
-            if(not ((turn and contains_duplicates_turn(oh_view)) or (not turn and contains_duplicates_flop(oh_view)))):
-                oh_z_view[:T_CARDS+1] = oh_view
-                oh_z_view_tmp[:] = oh_z_view
-
-                prob_dist_sing_memview[:] = prob_dist_memview[cd][:]
-                
-                c = 0
-                # print(cd)
-                for k in range(N_CARDS):
-                    if(not ((turn and contains_turn(oh_view, k)) or (not turn and contains_flop(oh_view, k)))):
-                        ## for each datapoint (float value for winning), find the best center given 
-                        
-                        
-                        oh_z_view[T_CARDS + 1] = k
-
-                        # print()
-                        # print()
-
-                        # must sort table cards before using the mapping.. 
-                        #insertion_sort_inplace_cython_int16(oh_z_view[2:])
-                        
-                        # print([oh_z_view[xxx] for xxx in range(T_CARDS+2)])
-                        # print([oh_z_view_tmp[xxx] for xxx in range(T_CARDS+2)])
-
-                        if(turn):
-                            key = (one << oh_z_view[0])  | (one << oh_z_view[1]) | (one << oh_z_view[2])  | (one << oh_z_view[3])  | (one << oh_z_view[4])  | (one << oh_z_view[5])  | (one << oh_z_view[6])
-                        else:
-                            key = (one << oh_z_view[0])  | (one << oh_z_view[1]) | (one << oh_z_view[2])  | (one << oh_z_view[3])  | (one << oh_z_view[4]) | (one << oh_z_view[5])
-                        
-                        # offset key returned by os. 
-
-                        # prob_dist_memview[cd][c] = emd_c(1, dist[mp[key]], cntrs[lbs[mp[key]]])
-
-                        
-                        #reward distance from losing.. temp logic until i understand paper
-                        prob_dist_sing_memview[c] = emd_c(1, mp_z_view, cntrs[lbs[mp[key]]], all_values, all_valuesa, all_valuesaa, deltaaa)
-
-                        #print([dist[mp[key]][jjj] for jjj in range(len(dist[mp[key]]))])
-                        
-                        #print([cntrs[lbs[mp[key]]][jjj] for jjj in range(len(cntrs[lbs[mp[key]]]))])
-                        
-                        
-
-                        #oh_z_view[:] = oh_z_view_tmp
-                        c += 1
-                
-                insertion_sort_inplace_cython_float32(prob_dist_sing_memview)
-                prob_dist_memview[cd] = prob_dist_sing_memview[:]
-                #print([prob_dist_memview[cd][jjj] for jjj in range(len(prob_dist_memview[cd]))])
-                cd += 1
+            oh_view[:2] = x[i]
+            oh_view[2:] = y[j]
+            if(not contains_duplicates_flop(oh_view)):
+                # hero = handtype(one << oh_view[0] | one << oh_view[1] | one << oh_view[2] | one << oh_view[3] | one << oh_view[4] | one << oh_view[5], 6)
+                # Write the EHS for the hand/board combo "oh_view". Write this to z_view[cd]
+                hero = (abstract_hand(one << oh_view[0], one << oh_view[1]), handtype(one << oh_view[0] | one << oh_view[1] | one << oh_view[2] | one << oh_view[3] | one << oh_view[4], 5))
+                # TODO: Change z_view[cd] to be a dictionary mapping from 
+                if hero not in flop_ehs_dict:
+                    flop_ehs_dict[hero] = get_abstracted_turn_ehs(oh_view, turn_ehs_dict)
+                else:
+                    # cumulative average
+                    flop_ehs_dict[hero] = (flop_ehs_dict[hero] + get_abstracted_turn_ehs(oh_view, turn_ehs_dict))/2
         
-        t2=time.time()
-        t = t2-t1
-        print('~' + str(t*(x.shape[0] - i)//60) + ' minutes until finished. ' + str(100*(i/x.shape[0]))[:4] + '% done     ', end = '\r')
-    '''
-    prob_dist.flush()
-    return dupes
-
+    return flop_ehs_dict
 
 @cython.boundscheck(False) 
 @cython.wraparound(False)
-cpdef flop_ehs(n, k, threads, new_file=False):
-    adjcntrs = numpy.load('../results/adjcntrs_TURN.npy', mmap_mode = 'c')
-    lbls = numpy.load('../results/lbls_TURN.npy', mmap_mode = 'c')
-    
-    cdef numpy.ndarray[float32, ndim = 2] cntrs = adjcntrs
-    cdef int[:] lbs = lbls
-
-    cdef mapp[unsigned long long, int] mp
-    cdef numpy.ndarray[int16, ndim=1] oh = numpy.empty(k+1, dtype=numpy.int16)
-    cdef int16[:] oh_view = oh[:]
-
-
-    cdef int16[:, :] x = nump2(n, 2)
-    cdef int16[:, :] y = nump2(n, k-1)
-
-    dupes = num_dupes_turn(x, y)
-
-
-
-    cdef numpy.ndarray[float32, ndim=2] dist = numpy.memmap('../results/prob_dist_TURN.npy', mode = 'c', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), n - k - 2))
-    
-    cdef float32[:, :] dist_view = dist[:]
-
-
-
+cpdef flop_ehs(n, k, turn_ehs_dict, threads = 8):
+    x = nump2(n, 2)
     y = nump2(n, k-2)
-    dupes = num_dupes_flop(x, y)
+    
+    results = {}
+    print(x.shape)
+    chunksize = len(x) // (threads)
+    
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        # change threads to appropriate number of workers for your system
+        futures = []
+        for i in range(threads):
+            strt = i * chunksize
+            stp = ((i + 1) * chunksize) if i != (threads - 1) else len(x)
+            print(x[strt:stp].shape)
+            
+            futures.append(executor.submit(flop_ehs_calc, x[strt:stp], y, turn_ehs_dict))
+        concurrent.futures.wait(futures)
 
-
-    if(new_file):
-        flop_dist = numpy.memmap('../results/prob_dist_FLOP.npy', mode = 'w+', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), n - k - 1))
-        flop_dist.flush()
-
-    prob_dist_fun(x, y, dist_view, cntrs, lbs, dupes,  False, 0 * (y.shape[0]-dupes))
-
-    return dupes
+        output = [f.result() for f in futures]
+        for i in output:
+            results.update(i)
+    return results
 
 @cython.boundscheck(False) 
 @cython.wraparound(False)
-cpdef turn_ehs(n, k, threads, new_file=False):
-    adjcntrs = numpy.load('../results/adjcntrs.npy', mmap_mode = 'c')
-    lbls = numpy.load('../results/lbls.npy', mmap_mode = 'c')
-
-    cdef float32[:, :] cntrs = adjcntrs
-    cdef int[:] lbs = lbls
-
-    cdef int16[:, :] x = nump2(n, 2)
-    cdef int16[:, :] y = nump2(n, k)
-
-    dupes = num_dupes(x, y)
-    
-    cdef unsigned long long one = 1
-    cdef unsigned long long keyy
-
-    cdef numpy.ndarray[float32, ndim=2] dist = numpy.memmap('../results/prob_dist_RIVER.npy', mode = 'c', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), 1))
-
-    cdef float32[:, :] dist_view = dist[:]
-
-    
+cpdef turn_ehs(n, k, river_ehs_dict, threads = 8):
+    x = nump2(n, 2)
     y = nump2(n, k-1)
-    dupes = num_dupes_turn(x, y)
-
-    if(new_file):
-        prob_dist = numpy.memmap('../results/prob_dist_TURN.npy', mode = 'w+', dtype = numpy.float32, shape = (x.shape[0] * (y.shape[0] - dupes), n - k - 2))
-        
-        prob_dist.flush()
-
-
-    prob_dist_fun(x, y, dist_view, cntrs, lbs, dupes, True, 0 * (y.shape[0]-dupes))
     
-    return dupes
+    results = {}
+    print(x.shape)
+    chunksize = len(x) // (threads)
+    
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        # change threads to appropriate number of workers for your system
+        futures = []
+        for i in range(threads):
+            strt = i * chunksize
+            stp = ((i + 1) * chunksize) if i != (threads - 1) else len(x)
+            print(x[strt:stp].shape)
+            
+            futures.append(executor.submit(turn_ehs_calc, x[strt:stp], y, river_ehs_dict))
+        concurrent.futures.wait(futures)
+
+        output = [f.result() for f in futures]
+        for i in output:
+            results.update(i)
+    return results
 
 
 @cython.boundscheck(False) 
@@ -1066,37 +991,28 @@ cdef num_dupes(int16[:, :] x, int16[:, :] y):
 
 @cython.boundscheck(False) 
 @cython.wraparound(False)
-def river_ehs(n, k, threads, new_file=False):
+def river_ehs(n, k, threads):
     x = nump2(n, 2)
     y = nump2(n, k)
 
-    dupes = num_dupes(x, y)
-    
+    results = {}
 
-    if(new_file):
-        z = numpy.memmap('../results/river.npy', mode = 'w+', dtype = numpy.int16, shape = ((y.shape[0] - dupes) * x.shape[0], 3))
-        z_f = numpy.memmap('../results/prob_dist_RIVER.npy', mode = 'w+', dtype = numpy.float32, shape = ((y.shape[0] - dupes) * x.shape[0], 1))
-        #mp = numpy.memmap('../results/map.npy', mode = 'w+', dtype = numpy.ulonglong, shape = ((y.shape[0] - dupes) * x.shape[0], 1))
-            
-        z.flush()
-        z_f.flush()
-        #mp.flush()
-
-    chunksize = len(x) // (threads-1)
+    chunksize = len(x) // (threads)
     
     with concurrent.futures.ProcessPoolExecutor() as executor:
         # change threads to appropriate number of workers for your system
         futures = []
-        for i in range(threads-1):
+        for i in range(threads):
             strt = i * chunksize
-            stp = ((i + 1) * chunksize) if i != (threads - 2) else len(x)
+            stp = ((i + 1) * chunksize) if i != (threads - 1) else len(x)
             
-            futures.append(executor.submit(do_calc, strt * (y.shape[0]-dupes) * 3 * 2, x[strt:stp], y, dupes))
+            futures.append(executor.submit(do_calc, x[strt:stp], y))
         concurrent.futures.wait(futures)
 
         output = [f.result() for f in futures]
-    
-    return dupes
+        for i in output:
+            results.update(i)
+    return results
 
 
 
