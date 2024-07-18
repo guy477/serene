@@ -99,10 +99,6 @@ cdef class PokerGame:
             self.position_pl[player.position] += player.prior_gains - player.tot_contributed_to_pot
 
         display_game_state(self.game_state, self.game_state.player_index)
-
-        for i in range(3):
-            print(f"{3-i}...", end = '\r')
-            time.sleep(1)
         
         print(f"\nPlayer {self.game_state.players[self.game_state.winner_index].position} wins the hand.")
         for i in range(5):

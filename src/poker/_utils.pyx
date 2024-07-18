@@ -418,10 +418,10 @@ def display_header(game_state, current_player):
     header = (
         f"______________________________________________________________________________\n"
         f"({current_player.position}): {format_hand(current_player.hand)} --- {'folded' if current_player.folded else 'active'}\n"
-        f"Last move: {last_move}\n"
         f"Board: {format_hand(game_state.board)}\n"
         f"Pot: {game_state.pot}\n"
         f"Chips: {current_player.chips}\n"
+        f"Last move: {last_move}\n"
         f"______________________________________________________________________________\n"
     )
     return header
@@ -429,7 +429,7 @@ def display_header(game_state, current_player):
 # Helper function to display the betting rounds
 def display_betting_rounds(game_state):
     betting_rounds = (
-        f'\n          {" " * game_state.cur_round_index * 20}|\n'
+        f'          {" " * game_state.cur_round_index * 20}|\n'
         f'          {" " * game_state.cur_round_index * 20}V\n'
         "        PREFLOP     ---      FLOP      ---      TURN      ---     RIVER"
     )
@@ -466,8 +466,6 @@ cdef display_game_state(object game_state, int player_index):
     
     current_player = game_state.get_current_player()
     folded = {plr.position for plr in game_state.players if plr.folded}
-
-    print(display_header(game_state, current_player))
     
     print(f"\nPOS      CARDS    POT CONTRIBS    STATUS     STACK     PRIOR GAINS")
     for i, player in enumerate(game_state.players):
@@ -479,6 +477,7 @@ cdef display_game_state(object game_state, int player_index):
     actions_dict, rounds = generate_actions_dict(game_state, folded)
     print(display_actions(actions_dict, rounds))
 
+    print(display_header(game_state, current_player))
 
 
 ####################################################################################################
