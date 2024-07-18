@@ -968,6 +968,25 @@ def _6_max_opening():
 
     return positions_to_solve, positions_dict
 
+def _2_max_opening():
+
+    ranges = {
+        ### NOTE: SB
+        "SB_OPEN": [],
+        "BB_SB_DEF": [('raise', 1.5)],
+        "SB_BB_3B_DEF": [('raise', 1.5)] + [('raise', 2.0)],
+        "BB_SB_4B_DEF": [('raise', 1.5)] + [('raise', 2.0)] + [('raise', 2.0)],
+    }
+
+    # Generate the positions to solve and their names
+    positions_to_solve = list(ranges.values())
+    position_names = list(ranges.keys())
+
+    # Create dictionary mapping each position to its name and range
+    positions_dict = {str(pos): name for name, pos in ranges.items()}
+
+    return positions_to_solve, positions_dict
+
 def _6_max_simple_postflop():
 
     # Unopened ranges (Early to Late)

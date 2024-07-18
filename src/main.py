@@ -1,7 +1,7 @@
 from poker.poker_game import PokerGame
 from poker.cfr import CFRTrainer
 import poker.ccluster as ccluster
-from poker._utils import LocalManager, _6_max_opening, _6_max_simple_postflop
+from poker._utils import LocalManager, _6_max_opening, _2_max_opening, _6_max_simple_postflop
 
 import os
 from multiprocessing import Manager
@@ -33,10 +33,10 @@ def train():
     bet_sizing = [(1.5, 2.0,), (.33, 1,), (), ()]
 
     # How many players to solve for
-    num_players = 6
+    num_players = 2
 
     # Fetch action space of preflop positions
-    positions_to_solve, positions_dict = _6_max_opening()
+    positions_to_solve, positions_dict = _2_max_opening()
 
     # All heads-up preflop positions to a depth of three-bet defense
     positions_to_solve = positions_to_solve # [:3] # Train Only SB v BB  # [:8] # Train SB v BB; SB v BTN; BB v BTN 
@@ -55,7 +55,7 @@ def train():
 
     # Actions by folded or all-in players dont count toward depth
     # -> Choose depth to have action end on starting player
-    cfr_depth = 1
+    cfr_depth = 4
     
     # Depth at which to start Monte Carlo Simulation.
     monte_carlo_depth = 9999
@@ -100,8 +100,8 @@ def train():
 
 
 def play():
-    num_players = 6
-    num_ai_players = 6
+    num_players = 2
+    num_ai_players = 2
 
     # pot relative bet-sizings for preflop, flop, turn, and river
     bet_sizing = [(1.5, 2.0,), (.5, 1,), (.40, .82, 1.2,), (.75, 1.2, 2,)]
@@ -132,7 +132,7 @@ def play():
     cfr_trainer = CFRTrainer(num_cfr_iterations, 1, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
 
     # The earliest positions solved have the broadest node coverage (to support the later positions)
-    local_manager = LocalManager('../results/6/1/UTG_BB_3B_DEF/pickles/')
+    local_manager = LocalManager('../results/2/4/BB_SB_4B_DEF/pickles/')
     num_hands = 5
     game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer, local_manager, SUITS, VALUES)
     

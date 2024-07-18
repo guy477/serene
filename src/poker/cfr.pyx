@@ -340,14 +340,15 @@ cdef class CFRTrainer:
         cdef int action_index
         cdef double opp_contribution, regret
         cdef bint monte_carlo = depth >= self.monte_carlo_depth
-        cdef bint prune = depth >= self.prune_depth
         cdef list available_actions = game_state.get_current_player().get_available_actions(game_state)
         
         cdef bint merge_criteria = depth == 0
+        cdef bint prune_criteria = depth >= self.prune_depth
+        
         cdef object player_hash = cur_player.hash(game_state)
 
-        regret_sum = local_manager.get_regret_sum().get_set(player_hash, defaultdict(self.default_double), prune, merge_criteria)
-        strategy_sum = local_manager.get_strategy_sum().get_set(player_hash, defaultdict(self.default_double), prune, merge_criteria)
+        regret_sum = local_manager.get_regret_sum().get_set(player_hash, defaultdict(self.default_double), prune_criteria, merge_criteria)
+        strategy_sum = local_manager.get_strategy_sum().get_set(player_hash, defaultdict(self.default_double), prune_criteria, merge_criteria)
 
         if game_state.is_terminal_river() or depth >= max_depth or probs[cur_player_index] < self.prune_probability_threshold:
             self.progress_gamestate_to_showdown(game_state)
