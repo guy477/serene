@@ -1,14 +1,11 @@
-
 from poker.poker_game import PokerGame
 from poker.cfr import CFRTrainer
 import poker.ccluster as ccluster
 from poker._utils import LocalManager, _6_max_opening, _6_max_simple_postflop
 
+import os
 from multiprocessing import Manager
-import pickle
 
-import ast
-import time
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -22,25 +19,8 @@ from sklearn.cluster import MiniBatchKMeans
 
 
 def train():
-    num_players = 6
-
-    # pot relative bet-sizings for preflop, flop, turn, and river
-    # bet_sizing = [(1.5, 5), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
-    
-    # bet_sizing = [(1.5, ), (), (), ()]
-
-    bet_sizing = [(1.5, 2.0,), (.33, 1,), (), ()]
-
-    # bet_sizing = [(1.5, ), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
-
-    # bet_sizing = [(1.5, ), (.33, .70), (.40, .82, 1.2), (.75, 1.2, 2)]
-
-    positions_to_solve, positions_dict = _6_max_opening()
-
-    # Train Only SB v BB:
-    positions_to_solve = positions_to_solve[2:3]
-
-    # set the deck (if you use a restricted deck, the evaluation will incorrectly evaluate against a full deck)
+##########
+    # set the deck (if you use a restricted deck, the evaluation will assumed a full deck)
     SUITS = ['C', 'D', 'H', 'S']
     VALUES = [ '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A']
 
@@ -49,39 +29,79 @@ def train():
     small_blind = 5
     big_blind = 10
 
-    # Pretty sure this is deprecated.. just leave it at 1.
+    # pot relative bet-sizings for preflop, flop, turn, and river
+    bet_sizing = [(1.5, 2.0,), (.33, 1,), (), ()]
+
+    # How many players to solve for
+    num_players = 6
+
+    # Fetch action space of preflop positions
+    positions_to_solve, positions_dict = _6_max_opening()
+
+    # All heads-up preflop positions to a depth of three-bet defense
+    positions_to_solve = positions_to_solve # [:3] # Train Only SB v BB  # [:8] # Train SB v BB; SB v BTN; BB v BTN 
+
+    # Specify the number of times to iteratate over `positions_to_solve`
+    num_smoothing_iterations = 1
+    positions_to_solve = positions_to_solve * num_smoothing_iterations
+
+##########
+
+    # Pretty sure this is deprecated.. just leave it at 1
     num_showdown_simulations = 1
 
-    # Specify the number of times to iteratate over `positions_to_solve`.
-    ## Fun Fact: This is one way to construct a blueprint strategy.
-    num_smoothing_iterations = 1
-
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 500
-    cfr_depth = 3
+    num_cfr_iterations = 2500
+
+    # Actions by folded or all-in players dont count toward depth
+    # -> Choose depth to have action end on starting player
+    cfr_depth = 1
     
     # Depth at which to start Monte Carlo Simulation.
     monte_carlo_depth = 9999
 
-    # Depth at which to start pruning regret and strategy sums.
-    prune_depth = 4
+    # Depth at which to start pruning regret and strategy sums
+    prune_depth = 9999
     # Chance-probability at which to start declaring a node "terminal"
     prune_probability = 1e-8
 
-    # Train the AI player using the CFR algorithm
-    # local_manager = LocalManager('dat/pickles/regret_sum_S1_3k_D11_P10.pkl', 'dat/pickles/strategy_sum_S1_3k_D11_P10.pkl')
-    local_manager = LocalManager('dat/_tmp/_regret_sum.pkl', 'dat/_tmp/_strategy_sum.pkl')
-    
-    cfr_trainer = CFRTrainer(num_cfr_iterations, num_showdown_simulations, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
-    strategy_list, _local_manager = cfr_trainer.train(local_manager, positions_to_solve * num_smoothing_iterations, save_pickle = True) # TODO add pickle paths to regret/strat solves.
-    plot_hands(strategy_list, SUITS, VALUES, positions_dict)
+##########
 
-    local_manager.save('dat/pickles/regret_sum_SB_PROBFIX.pkl', 'dat/pickles/strategy_sum_SB_PROBFIX.pkl')
+    # Create a training environment and train the model using CFR
+    cfr_trainer = CFRTrainer(num_cfr_iterations, num_showdown_simulations, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
+    
+    for i, fast_forward_actions in enumerate(positions_to_solve):
+        current_position = positions_dict[str(fast_forward_actions)]
+
+        # Define environment directory for current position
+        base_path = f'../results/{num_players}/{cfr_depth}/{current_position}'
+        pkl_path = base_path + '/pickles/'
+
+        # Load current blueprint strategy
+        local_manager = LocalManager(pkl_path)
+        
+        ## train our hand matrix on the given fast_forward_action space
+        local_manager = cfr_trainer.train(local_manager, [fast_forward_actions], save_pickle = True)
+        
+        ## leverage local_manager to source strategy_list
+        strategy_list = cfr_trainer.get_average_strategy_dump(fast_forward_actions, local_manager)
+        
+        ## Plot the results
+        plot_hands(current_position, strategy_list, SUITS, VALUES, base_path)
+        
+        if i + 1 < len(positions_to_solve):
+            ## Copy current local_manager to next position
+            next_base_path = f'../results/{num_players}/{cfr_depth}/{positions_dict[str(positions_to_solve[i + 1])]}'
+            next_pkl_path = next_base_path + '/pickles/'
+            local_manager.base_path = next_pkl_path
+            
+            ## Save current pkls to new directory.
+            local_manager.save()
 
 
 def play():
     num_players = 6
-    num_ai_players = 0
+    num_ai_players = 6
 
     # pot relative bet-sizings for preflop, flop, turn, and river
     bet_sizing = [(1.5, 2.0,), (.5, 1,), (.40, .82, 1.2,), (.75, 1.2, 2,)]
@@ -96,28 +116,31 @@ def play():
     big_blind = 10
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 500
-    cfr_depth = 2
+    num_cfr_iterations = 2500
+    cfr_depth = 1
     
-    # Depth at which to start Monte Carlo Simulation.
+    # Depth at which to start Monte Carlo Simulation
     monte_carlo_depth = 9999
 
-    # Depth at which to start pruning regret and strategy sums.
-    prune_depth = 2
+    # Depth at which to start pruning regret and strategy sums
+    prune_depth = 9999
     # Chance-probability at which to start declaring a node "terminal"
     prune_probability = 1e-8
 
     
     # The cfr_trainer will handle blueprint strategy management. Strategies are saved to disk, so we can just define a new CFR trainer
-    # For an AI player who will play in realtime.
     cfr_trainer = CFRTrainer(num_cfr_iterations, 1, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
 
-    local_manager = LocalManager('dat/_tmp/_regret_sum.pkl', 'dat/_tmp/_strategy_sum.pkl')
+    # The earliest positions solved have the broadest node coverage (to support the later positions)
+    local_manager = LocalManager('../results/6/1/SB_BB_3B_DEF/pickles/')
     num_hands = 100
     game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer, local_manager, SUITS, VALUES)
-    # # Play the game
+    
+    # Play the game
     game.play_game(num_hands)
     print('\n\n')
+
+#########################
 
 def hand_position(hand, ranks):
     ranks = list(reversed(ranks))
@@ -138,15 +161,17 @@ def hand_position(hand, ranks):
     else:
         raise ValueError("Invalid hand format")
 
-def plot_hands(strategy_list=None, suits=None, ranks=None, positions_dict={}):
-    if strategy_list:
-        strategy_df = pd.DataFrame(strategy_list)
-        strategy_df.columns = ['Position', 'Betting History', 'Hand', 'Strategy']
-        strategy_df['Betting History'] = strategy_df['Betting History'].apply(lambda x: str(x))
-        strategy_df.to_csv('../results/strategy.csv', index=False)
-    else:
-        strategy_df = pd.read_csv('../results/strategy.csv')
-        strategy_df['Strategy'] = strategy_df['Strategy'].apply(ast.literal_eval)
+def plot_hands(position_name, strategy_list, suits=None, ranks=None, base_path = ''):
+
+    strategy_df = pd.DataFrame(strategy_list)
+    strategy_df.columns = ['Position', 'Betting History', 'Hand', 'Strategy', 'Reach Probability']
+    strategy_df['Betting History'] = strategy_df['Betting History'].apply(lambda x: str(x))
+    
+    os.makedirs(f'{base_path}/csv_extracts/', exist_ok=True)
+    os.makedirs(f'{base_path}/charts/', exist_ok=True)
+
+    strategy_df.to_csv(f'{base_path}/csv_extracts/{position_name}_RANGE.csv', index=False)
+    
 
     strategy_df.drop_duplicates(subset = ['Position', 'Betting History', 'Hand'], keep = 'last', inplace=True)
     strategy_df = strategy_df[strategy_df['Strategy'] != {}]
@@ -204,6 +229,9 @@ def plot_hands(strategy_list=None, suits=None, ranks=None, positions_dict={}):
 
         for idx, row in strategy_proportions.iterrows():
             hand = position_df.loc[idx, 'Hand']
+            reach_probability = position_df.loc[idx, 'Reach Probability']
+            opacity = 0.6 + 0.4 * reach_probability if reach_probability > 0.2 else 0.05 + 0.55 * reach_probability
+
             try:
                 pos = hand_position(hand, ranks)
             except ValueError:
@@ -221,7 +249,7 @@ def plot_hands(strategy_list=None, suits=None, ranks=None, positions_dict={}):
             bottom = 0
             for action, value in row_items:
                 if value > 0:
-                    ax.bar(0, value, bottom=bottom, color=color_map[action])
+                    ax.bar(0, value, bottom=bottom, color=color_map[action], alpha=min(opacity, 1))
                     bottom += value
 
         total_positions = len(strategy_proportions)
@@ -235,15 +263,11 @@ def plot_hands(strategy_list=None, suits=None, ranks=None, positions_dict={}):
 
         plt.tight_layout()
         plt.subplots_adjust(wspace=0.2, hspace=0.4)
-        plt.suptitle(f'Strategy for Position: {positions_dict.get(action_space, action_space)}', fontsize=13, x=.95, y=.9, rotation=-90)        
-        plt.savefig(f'../results/charts/{positions_dict.get(action_space, action_space)}_Range.png')
+        plt.suptitle(f'Strategy for Position: {position_name}', fontsize=13, x=.95, y=.9, rotation=-90)        
+        plt.savefig(f'{base_path}/charts/{position_name}_Range.png')
         plt.close()
     
 if __name__ == "__main__":
     # cluster()
     train()
     # play()
-
-    # local_manager = LocalManager('dat/_tmp/_regret_sum.pkl', 'dat/_tmp/_strategy_sum.pkl')
-
-    # print(local_manager.get_strategy_sum().table)

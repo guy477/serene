@@ -79,7 +79,7 @@ cdef class PokerGame:
                 fast_forward_actions = build_fast_forward_actions(self.game_state.action_space)
                 player_hand_str_tuple = card_tuple_to_str_tuple(ulong_to_card_tuple(self.game_state.get_current_player().hand))
 
-                _, local_manager = self.strategy_trainer.train(self.local_manager, [fast_forward_actions], [player_hand_str_tuple])
+                local_manager = self.strategy_trainer.train(self.local_manager, [fast_forward_actions], [player_hand_str_tuple])
                 
                 strategy = self.strategy_trainer.get_average_strategy(self.game_state.get_current_player(), self.game_state, local_manager)
 

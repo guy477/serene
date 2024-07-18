@@ -26,6 +26,10 @@ cdef class CFRTrainer:
     
     cdef progress_gamestate_to_showdown(self, GameState game_state, float epsilon = *)
 
+    cpdef get_average_strategy_dump(self, fast_forward_actions, local_manager)
+
+    cpdef generate_hands(self)
+
     cpdef train(self, local_manager, list positions_to_solve = *, list hands = *, bint save_pickle=*)
 
     cdef fast_forward_gamestate(self, object hand, GameState game_state, list fast_forward_actions, LocalManager local_manager, int attempts = *)

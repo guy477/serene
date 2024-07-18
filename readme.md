@@ -3,69 +3,49 @@
 
 # Texas Hold'em CFR
 
-This repository contains a long-running personal project of mine that explores Texas Hold'em solvers using my personal 'research' build of CFR written in Cython 0.29.28 (Python 3.8.8) for my Macbook Pro M1.
+This repository explores Texas Hold'em solvers using a custom build of Counter Factual Regret Minimization (CFR) written in Cython for Macbook Pro M1.
 
 - **Note:** The code is poorly written and maintained.
 - **Note:** The code is not optimized for interpretability.
 
-## Things It Does (sort of)
-- Blueprint Training (solve positions iteratively to build a solution index)\*
-- Counter Factual Regret Minimization
-- Self/Human-play in Retro Style
-- Currently loaded with a very-VERY rough preflop solve (depth 5, 1000 iterations)
-    - i.e. the model risks going hay wire 5 moves after the first non-folding action.
-    - **See [results/charts/](results/charts)**
+## Features
+- Blueprint Training: Solve positions iteratively to build a solution index.
+- Counter Factual Regret Minimization (CFR).
+- Action space traversal and lookups (cfr.fast_forward_gamestate).
+- Self/Human-play in Retro Style (poker_game.play_game).
 
+## Planned Enhancements
+- Implement postflop abstractions. (Done, but is based on lossy heuristics)
+- Optimize and debug CFR functionalities.
+- Log hands for analysis on GTO Wizard.
+- Improve GameState and betting history management.
+- Refine preflop blueprint construction.
+- Refine postflop blueprint construction.
+- Build an interactive API for playing/testing.
 
-```* = WIP```
-
-## Things to do (maybe)
-- [ ] Implement postflop abstractions (**Solve heads-up river positions and back into optimal strategies/ranges**)
-    - [x] See _util.pyx.handtype(...)
-- [ ] Optimize and debug cfr.fast_forward_gamestate
-- [ ] Optimize GameState.betting_history 
-    - Dynamic lists of 'objects' is not good
-- [ ] Build out LocalManager
-    - [ ] Load/Save blueprint based on action space
-    - [ ] Perform gamestate abstraction based on the player hash.
-    - [x] OPTIMIZE
-- [ ] Formalize preflop blueprint construction process
-    - Prune depth == Blueprint strategy depth.
-    - Blueprints, or strategies, can be chunked and loaded dynamically through the LocalManager. Even abstraction can be handled here.
-- [ ] Build out interactive API (for playing/testing)
-.
-.
-.
-- [x] Optimize _utils.dynamic_merge_dicts() 
-    - Should still investigate multiple accumulators
-- [x] Environment to play the AI
-    - [x] Barebones
-- [x] Adjust pruning logic to feed back to the global regret and strategy sums. 
 ## Example
 
-
-The following is a range chart that displays how often the (UTG) should open raise 1.5x the pot (1.5bb * 1.5 = 2.25bb) in 6-Max Texas Hold'em. Iterations Search depth and gamestate hashing are heavily restricted due to memory limitations and performance constraints. Regardless, the sampled range below reflects a loose version of what you might see on GTO Wizard.
+The following is a range chart that displays how often the (UTG) should open raise 1.5x the pot (1.5bb * 1.5 = 2.25bb) in 6-Max Texas Hold'em. Iterations search depth and gamestate hashing are restricted due to memory limitations and performance constraints. The sampled range reflects a loose version of what might be seen on GTO Wizard.
 
 ![Preflop UTG Example](results/EX%20Preflop%20UTG%20Open%206%20Max.png)
 
 ## Installation
-To install the current implementation, please follow the steps below:
 
-**Note:** The current implementation was built on a Macbook Pro M1.
+To install and run the project, follow these steps:
 
 1. **Install Anaconda Package Manager for Python.**
 
 2. **Create the Anaconda Environment:**
     ```sh
-    conda create --name Serene python=3.8.8 numpy pandas cython scikit-learn tqdm matplotlib psutil
+    conda create --name serene python=3.8.8 numpy pandas cython scikit-learn tqdm matplotlib psutil
     ```
 
 3. **Activate the Anaconda Environment:**
     ```sh
-    conda activate Serene
+    conda activate serene
     ```
 
-4. **Clone and navigate to source folder:**
+4. **Clone and navigate to the source folder:**
     ```sh
     git clone https://github.com/guy477/serene.git
     cd serene/src

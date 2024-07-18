@@ -176,6 +176,10 @@ cdef class Player:
                 if chips > raise_amount and (raise_amount > (current_bet + self.contributed_to_pot)):
                     # Represent the raise as a proportion rather than the actual amount.
                     ret.append(('raise', i))
+            
+            if ret[-1][0] != 'raise' and current_bet < (chips//3):
+                ## then we know the only bet we can make is all-in
+                ret.append(('all-in', 0))
         else:
             ret.remove(('call', 0))
 

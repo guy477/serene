@@ -14,9 +14,9 @@ cdef public dict VALUES_INDEX = {'2': 0, '3': 1, '4': 2, '5': 3, '6': 4, '7': 5,
 ### NOTE: Load abstraction pickles at the global level..
 ### These are aggressive abstractions keyed by an already aggressive heuristic.
 ### TODO: Make this better. The resulting strategy is only as good as the abstraction. 
-pickle_path_river = 'dat/pickles/post_flop_abstractions/river_abstraction_test.pkl'
-pickle_path_turn = 'dat/pickles/post_flop_abstractions/turn_abstraction_test.pkl'
-pickle_path_flop = 'dat/pickles/post_flop_abstractions/flop_abstraction_test.pkl'
+pickle_path_river = '../results/_post_flop_abstractions/river_abstraction_test.pkl'
+pickle_path_turn = '../results/_post_flop_abstractions/turn_abstraction_test.pkl'
+pickle_path_flop = '../results/_post_flop_abstractions/flop_abstraction_test.pkl'
 
 cdef dict river_abstraction, turn_abstraction, flop_abstraction
 
@@ -41,8 +41,9 @@ import hashlib
 
 
 cdef class LocalManager:
-    def __init__(self, pkl_path_regret = 'regret_sum.pkl', pkl_path_strategy = 'strategy_sum.pkl'):
-        self.load(pkl_path_regret, pkl_path_strategy)
+    def __init__(self, base_path = 'dat/_tmp'):
+        self.base_path = base_path
+        self.load()
     
     def get_regret_sum(self):
         return self.regret_sum
@@ -60,25 +61,26 @@ cdef class LocalManager:
         for key, value in shared_dict.items():
             hash_table.set(key, value)
 
-    def save(self, regret_sum_path, strategy_sum_path):
-        print(f"Saving regret sum to {regret_sum_path} and strategy sum to {strategy_sum_path}")
-        with open(regret_sum_path, 'wb') as f:
+    def save(self):
+        print(f"Saving to {self.base_path}")
+        os.makedirs(self.base_path, exist_ok=True)
+        with open(self.base_path + '/regret_sum.pkl', 'wb') as f:
             pickle.dump(convert_defaultdict(self.regret_sum.table), f)
 
-        with open(strategy_sum_path, 'wb') as f:
+        with open(self.base_path + '/strategy_sum.pkl', 'wb') as f:
             pickle.dump(convert_defaultdict(self.strategy_sum.table), f)
     
-    def load(self, regret_sum_path, strategy_sum_path):
-        print(f"Loading regret sum from {regret_sum_path} and strategy sum from {strategy_sum_path}")
+    def load(self):
+        print(f"Loading from {self.base_path}.")
         try:
-            with open(regret_sum_path, 'rb') as f:
+            with open(self.base_path + '/regret_sum.pkl', 'rb') as f:
                 self.regret_sum = HashTable(pickle.load(f))
         except Exception as e:
             print(f"Error loading regret sum: {e}")
             self.regret_sum = HashTable({})
 
         try:
-            with open(strategy_sum_path, 'rb') as f:
+            with open(self.base_path + '/regret_sum.pkl', 'rb') as f:
                 self.strategy_sum = HashTable(pickle.load(f))
         except Exception as e:
             print(f"Error loading regret sum: {e}")
@@ -192,7 +194,7 @@ cdef class HashTable:
     def get_hashed(self, hashed_key):
         return self.table[hashed_key]
 
-    def get_set(self, key, default=None, prune = True, merge = False):
+    def get_set(self, key, default=None, prune = None, merge = None):
         cdef bytes hashed_key = hash_key_sha256(key)
         
         if hashed_key not in self.table:
@@ -372,7 +374,7 @@ cdef tuple card_tuple_to_str_tuple(tuple cards):
     return tuple([int_to_card(card) for card in cards])
 
 cdef str format_hand(unsigned long long hand):
-    return " ".join(ulong_to_card_tuple(hand))
+    return " ".join(card_tuple_to_str_tuple(ulong_to_card_tuple(hand)))
 
 
 ####################################################################################################
@@ -384,7 +386,7 @@ import os
 
 # Helper function to clear the console
 def clear_console():
-    input('press enter to clear')
+    # input('press enter to clear')
     os.system('clear')
 
 # Helper function to format player contributions
@@ -902,14 +904,13 @@ cpdef cy_evaluate_cpp(cards, num_cards):
 
 
 
+def fold_list(count):
+    return [('fold', 0)] * count
 
+def call_list(count):
+    return [('call', 0)] * count
 
 def _6_max_opening():
-    def fold_list(count):
-        return [('fold', 0)] * count
-
-    def call_list(count):
-        return [('call', 0)] * count
 
     ranges = {
         ### NOTE: SB
@@ -968,17 +969,15 @@ def _6_max_opening():
     return positions_to_solve, positions_dict
 
 def _6_max_simple_postflop():
+
     # Unopened ranges (Early to Late)
-    POSTFLOP_EXAMPLE = [('raise', 1.5)] + [('fold', 0)] * 4 + [('raise', 2.0)] + [('call', 0)] * 5 + [('PUBLIC', 1), ('PUBLIC', 2), ('PUBLIC', 4)] + [('call', 0)] * 2 # HJ three-bet vs. UTG open
+    ranges = {"SB_BB_3B_DEF_POSTFLOP": fold_list(4) + [('raise', 1.5)] + [('raise', 2.0)] + call_list(4) + call_list(1)} # add additional call for SB action. result in post flop
 
-    positions_to_solve = [
-        POSTFLOP_EXAMPLE,
-    ]
+    # Generate the positions to solve and their names
+    positions_to_solve = list(ranges.values())
+    position_names = list(ranges.keys())
 
-    position_names = [
-        "POSTFLOP_EXAMPLE", 
-    ]
-    
-    positions_dict = {str(pos): name for pos, name in zip(positions_to_solve, position_names)}
+    # Create dictionary mapping each position to its name and range
+    positions_dict = {str(pos): name for name, pos in ranges.items()}
 
     return positions_to_solve, positions_dict

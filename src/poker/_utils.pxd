@@ -33,6 +33,7 @@ cdef class HashTable:
     cdef public dict to_prune
 
 cdef class LocalManager:
+    cdef public str base_path
     cdef public HashTable regret_sum
     cdef public HashTable strategy_sum
 
