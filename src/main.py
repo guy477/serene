@@ -132,8 +132,8 @@ def play():
     cfr_trainer = CFRTrainer(num_cfr_iterations, 1, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
 
     # The earliest positions solved have the broadest node coverage (to support the later positions)
-    local_manager = LocalManager('../results/6/1/SB_BB_3B_DEF/pickles/')
-    num_hands = 100
+    local_manager = LocalManager('../results/6/1/UTG_BB_3B_DEF/pickles/')
+    num_hands = 5
     game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer, local_manager, SUITS, VALUES)
     
     # Play the game
@@ -269,5 +269,5 @@ def plot_hands(position_name, strategy_list, suits=None, ranks=None, base_path =
     
 if __name__ == "__main__":
     # cluster()
-    train()
-    # play()
+    # train()
+    play()

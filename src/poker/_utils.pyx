@@ -951,7 +951,7 @@ def _6_max_opening():
         "CO_UTG_DEF": [('raise', 1.5)] + fold_list(1),
         "BTN_UTG_DEF": [('raise', 1.5)] + fold_list(2),
         "SB_UTG_DEF": [('raise', 1.5)] + fold_list(3),
-        "BB_DEF": [('raise', 1.5)] + fold_list(4),
+        "BB_UTG_DEF": [('raise', 1.5)] + fold_list(4),
         "UTG_MP_3B_DEF": [('raise', 1.5), ('raise', 2.0)] + fold_list(4),
         "UTG_CO_3B_DEF": [('raise', 1.5)] + fold_list(1) + [('raise', 2.0)] + fold_list(3),
         "UTG_BTN_3B_DEF": [('raise', 1.5)] + fold_list(2) + [('raise', 2.0)] + fold_list(2),
