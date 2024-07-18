@@ -101,7 +101,7 @@ def train():
 
 def play():
     num_players = 2
-    num_ai_players = 2
+    num_ai_players = 1
 
     # pot relative bet-sizings for preflop, flop, turn, and river
     bet_sizing = [(1.5, 2.0,), (.5, 1,), (.40, .82, 1.2,), (.75, 1.2, 2,)]

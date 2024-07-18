@@ -339,11 +339,12 @@ cdef class CFRTrainer:
         cdef dict strategy
         cdef int action_index
         cdef double opp_contribution, regret
-        cdef bint monte_carlo = depth >= self.monte_carlo_depth
         cdef list available_actions = game_state.get_current_player().get_available_actions(game_state)
-        
+
+        cdef bint monte_carlo = depth >= self.monte_carlo_depth
         cdef bint merge_criteria = depth == 0
         cdef bint prune_criteria = depth >= self.prune_depth
+        cdef bint depth_criteria = not cur_player.folded
         
         cdef object player_hash = cur_player.hash(game_state)
 
@@ -365,7 +366,7 @@ cdef class CFRTrainer:
                 new_probs = new_probs / total if total > 0 else new_probs.fill(1)
             
             new_probs[cur_player_index] *= strategy[action]
-            util[action] = self.cfr_traverse(new_game_state, new_probs, depth + (not cur_player.folded), max_depth, epsilon, local_manager)
+            util[action] = self.cfr_traverse(new_game_state, new_probs, depth + depth_criteria, max_depth, epsilon, local_manager)
 
         for i in range(num_players):
             node_util[i] = sum(strategy[action] * util[action][i] for action in available_actions)

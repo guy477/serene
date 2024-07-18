@@ -30,31 +30,26 @@ cdef class Player:
         cdef float raise_amount
         cdef object action
         cdef bint valid = 0
+        cdef list available_actions = self.get_available_actions(game_state)
 
         while valid == 0:
             if not self.folded:
-                user_input = self.get_user_input("Enter action (call, raise, all-in, fold): ")
                 
-                if user_input == "call":
-                    action = ("call", 0)
+                print('Available Actions:')
+                for index, action in enumerate(available_actions):
+                    print(f'{index}  -  {action}')
+                
+                user_input = self.get_user_input("Enter the index of the action to take.\nIndex: ")
+
+                try:
+                    # Checks if the input is an integer and in the list range.
+                    available_actions[int(user_input)]
                     valid = 1
-                elif user_input == "raise":
-                    user_input = self.get_user_input("Enter sizing: " + str(self.bet_sizing[game_state.cur_round_index]) + " : ")
-                    try:
-                        raise_amount = float(user_input)
-                    except Exception as e:
-                        print(str(e))
-                        continue
-                    action = ("raise", raise_amount)
-                    valid = 1
-                elif user_input == "all-in":
-                    action = ("all-in", 0)
-                    valid = 1
-                elif user_input == "fold":
-                    action = ("fold", 0)
-                    valid = 1
-                else:
-                    print("Invalid input.")
+                except:
+                    print('Invalid input. Please enter an integer value from the list above.')
+                    continue
+                
+                action = available_actions[int(user_input)]
             else:
                 valid = 1
                 action = ('call', 0)
