@@ -2,7 +2,6 @@ src/__pycache__/
 src/poker/__pycache__/
 src/results/
 src/build/
-src/poker/*.h
 *.csv
 *.so
 *.c

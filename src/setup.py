@@ -17,6 +17,7 @@ import shutil
 ##   This incentivises me to strictly seperate the build files from the source files.
 ##  i.e. in the source directory, I will only have the .pyx/.pxd files and the setup.py file.
 ##  The build directory will contain the .c/.h files and the .so files... as well as the pyx/pxd files
+
 class CustomBuildExt(build_ext):
     def build_extension(self, ext):
         # Call the original build_extension method
@@ -27,8 +28,30 @@ class CustomBuildExt(build_ext):
             source_dir = os.path.dirname(source)
             build_dir = os.path.join('build', source_dir)
             os.makedirs(build_dir, exist_ok=True)
-            if source.endswith('.c') or source.endswith('.h'):
+            if 'arrays.h' in source:
+                continue
+
+            if source.endswith('.c') or source.endswith('.h') or source.endswith('.cpp'):
                 shutil.move(source, os.path.join(build_dir, os.path.basename(source)))
+
+        # Move .so files to the build directory
+        so_filename = self.get_ext_filename(ext.name)
+        so_file = os.path.join(self.build_lib, so_filename)
+        so_build_dir = os.path.join('build', os.path.dirname(so_filename))
+        os.makedirs(so_build_dir, exist_ok=True)
+        shutil.move(so_file, os.path.join(so_build_dir, os.path.basename(so_file)))
+
+    def get_outputs(self):
+        outputs = super().get_outputs()
+        # Update the output paths to reflect the moved .so files
+        new_outputs = []
+        for output in outputs:
+            if output.endswith('.so'):
+                build_output = os.path.join('build', output)
+                new_outputs.append(build_output)
+            else:
+                new_outputs.append(output)
+        return new_outputs
 
 ## Define the exntensions to compile
 extensions = [
