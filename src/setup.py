@@ -28,6 +28,8 @@ class CustomBuildExt(build_ext):
             source_dir = os.path.dirname(source)
             build_dir = os.path.join('build', source_dir)
             os.makedirs(build_dir, exist_ok=True)
+
+            # skip eval's arrays.h file for version control
             if 'arrays.h' in source:
                 continue
 

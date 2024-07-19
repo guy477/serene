@@ -53,9 +53,6 @@ def train():
 
 ##########
 
-    # Pretty sure this is deprecated.. just leave it at 1
-    num_showdown_simulations = 1
-
     # **Number of iterations to run the CFR algorithm**
     num_cfr_iterations = 1000
 
@@ -74,7 +71,7 @@ def train():
 ##########
 
     # Create a training environment and train the model using CFR
-    cfr_trainer = CFRTrainer(num_cfr_iterations, num_showdown_simulations, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
+    cfr_trainer = CFRTrainer(num_cfr_iterations, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
     
     for i, fast_forward_actions in enumerate(positions_to_solve):
         current_position = positions_dict[str(fast_forward_actions)]
@@ -138,7 +135,7 @@ def play():
 
     
     # The cfr_trainer will handle blueprint strategy management. Strategies are saved to disk, so we can just define a new CFR trainer
-    cfr_trainer = CFRTrainer(num_cfr_iterations, 1, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
+    cfr_trainer = CFRTrainer(num_cfr_iterations, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
 
     # The earliest positions solved have the broadest node coverage (to support the later positions)
     local_manager = LocalManager('../results/2/4/BB_SB_4B_DEF/pickles/')
@@ -278,5 +275,5 @@ def plot_hands(position_name, strategy_list, suits=None, ranks=None, base_path =
     
 if __name__ == "__main__":
     # cluster()
-    train()
-    # play()
+    # train()
+    play()

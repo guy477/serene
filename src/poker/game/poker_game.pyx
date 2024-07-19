@@ -15,7 +15,7 @@ cdef list VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 
 cdef class PokerGame:
     def __init__(self, int num_players, int initial_chips, int num_ai_players, int small_blind, int big_blind, list bet_sizing, CFRTrainer cfr_trainer, LocalManager local_manager, list suits=SUITS, list values=VALUES):
         self.players = [Player(initial_chips, bet_sizing, True) for _ in range(num_players - num_ai_players)] + [Player(initial_chips, bet_sizing, False) for _ in range(num_ai_players)]
-        self.game_state = GameState(self.players, small_blind, big_blind, cfr_trainer.num_simulations, False, suits, values)
+        self.game_state = GameState(self.players, small_blind, big_blind, False, suits, values)
         
         self.strategy_trainer = cfr_trainer
         self.local_manager = local_manager

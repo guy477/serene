@@ -17,9 +17,8 @@ from cython.view cimport array
 set_start_method('spawn', force=True)
 
 cdef class CFRTrainer:
-    def __init__(self, int iterations, int num_simulations, int cfr_depth, int num_players, int initial_chips, int small_blind, int big_blind, list bet_sizing, list suits=SUITS, list values=VALUES, int monte_carlo_depth=9999, int prune_depth = 9999, double prune_probability = 1e-8, local_manager=None):
+    def __init__(self, int iterations, int cfr_depth, int num_players, int initial_chips, int small_blind, int big_blind, list bet_sizing, list suits=SUITS, list values=VALUES, int monte_carlo_depth=9999, int prune_depth = 9999, double prune_probability = 1e-8, local_manager=None):
         self.iterations = iterations
-        self.num_simulations = num_simulations
 
         self.cfr_depth = cfr_depth
 
@@ -38,7 +37,7 @@ cdef class CFRTrainer:
         self.monte_carlo_depth = monte_carlo_depth
     
     cpdef get_average_strategy_dump(self, fast_forward_actions, local_manager):
-        cdef GameState game_state = GameState([Player(self.initial_chips, self.bet_sizing, False) for _ in range(self.num_players)], self.small_blind, self.big_blind, self.num_simulations, True, self.suits, self.values)
+        cdef GameState game_state = GameState([Player(self.initial_chips, self.bet_sizing, False) for _ in range(self.num_players)], self.small_blind, self.big_blind, True, self.suits, self.values)
         aggregate_hand_dump = []
         hands = self.generate_hands()
         hands = [(card_str_to_int(hand[0]), card_str_to_int(hand[1])) for hand in hands]
@@ -161,7 +160,7 @@ cdef class CFRTrainer:
 
 
     def process_hand(self, hand, regret_global_accumulator, strategy_global_accumulator, calculated, fast_forward_actions, local_manager):
-        cdef GameState game_state = GameState([Player(self.initial_chips, self.bet_sizing, False) for _ in range(self.num_players)], self.small_blind, self.big_blind, self.num_simulations, True, self.suits, self.values) 
+        cdef GameState game_state = GameState([Player(self.initial_chips, self.bet_sizing, False) for _ in range(self.num_players)], self.small_blind, self.big_blind, True, self.suits, self.values) 
         # Fastforward to current node for debug purposes.
         avg_probs = np.zeros(self.num_players, dtype=np.float64)
 #############

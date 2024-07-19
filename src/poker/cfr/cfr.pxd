@@ -13,8 +13,6 @@ cdef class CFRTrainer:
     cdef int iterations
     cdef int cfr_depth
 
-    cdef int num_simulations
-
     cdef int num_players
     cdef int initial_chips
     cdef int small_blind

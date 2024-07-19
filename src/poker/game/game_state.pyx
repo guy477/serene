@@ -57,11 +57,11 @@ class PokerHandLogger:
 poker_logger = PokerHandLogger("poker_hand_history.log")
 
 cdef class GameState:
-    def __init__(self, list[Player] players, int small_blind, int big_blind, int num_simulations, bint silent=False, list suits=SUITS, list values=VALUES):
+    def __init__(self, list[Player] players, int small_blind, int big_blind, bint silent=False, list suits=SUITS, list values=VALUES):
         self.players = players
         self.small_blind = small_blind
         self.big_blind = big_blind
-        self.num_simulations = num_simulations
+
         self.suits = suits
         self.values = values
         self.silent = silent
@@ -127,31 +127,28 @@ cdef class GameState:
 
 
     cpdef void setup_postflop(self, str round_name):
-        # if self.is_terminal_river():
-        #     return
 
         self.cur_round_index += 1
+
         if round_name == "flop":
             for _ in range(3):
                 self.draw_card()
         else:
             self.draw_card()
+
         self.current_bet = 0
+
         for player in self.players:
             player.contributed_to_pot = 0
+        
         self.player_index = (self.dealer_position + 1) % len(self.players)
         self.last_raiser = -1
         self.num_actions = 0
 
     cdef bint handle_action(self, object action):
+        
         if self.is_terminal() or self.is_terminal_river():
             return True
-
-        # if self.get_current_player().folded or self.get_current_player().chips == 0:
-
-        #     self.player_index = (self.player_index + 1) % len(self.players)
-        #     return self.is_terminal()
-
 
         if self.get_current_player().take_action(self, action):
             self.last_raiser = self.player_index
@@ -178,10 +175,10 @@ cdef class GameState:
 
 
     cdef void showdown(self):
-        cdef unsigned long long player_hand, board_dupe
         cdef int best_score, player_score
-        cdef int remaining_players = sum(1 for player in self.players if not player.folded)
-        cdef list hands = [player.hand for player in self.players]  # Preallocate list of hands
+
+        cdef int remaining_players = len(self.players) - self.folded_players()
+        cdef list hands = [player.hand for player in self.players] 
         cdef Player winner
 
         if self.winner_index != -1:
@@ -193,27 +190,6 @@ cdef class GameState:
                     self.winner_index = i
                     break
         else:
-            # board_dupe = self.board
-            # deck_dupe = self.deck.clone()
-
-            # win_rate = [0] * len(self.players)
-            # for _ in range(self.num_simulations):
-                # self.board = board_dupe
-                # self.deck = deck_dupe.clone()
-                # self.deck.fisher_yates_shuffle()
-
-                # while self.num_board_cards() < 5:
-                #     self.draw_card()
-
-                # best_score = -1
-                # self.winner_index = -1
-
-                
-
-                # for i, player in enumerate(self.players):
-                #     player.hand = hands[i]  # Restore hands
-
-                # win_rate[self.winner_index] += 1
             for i, player in enumerate(self.players):
                 if player.folded:
                     continue
@@ -221,30 +197,24 @@ cdef class GameState:
                 if player.hand == 0:
                     player.hand = self.deck.pop() | self.deck.pop()
 
-                player_hand = player.hand | self.board
-                player_score = cy_evaluate(player_hand, 7)
+                player_score = cy_evaluate(player.hand | self.board, 7)
 
                 if player_score > best_score:
                     best_score = player_score
                     self.winner_index = i
-            # self.winner_index = win_rate.index(max(win_rate))
-            num_simulations = float(self.num_simulations)
-
-            # for i, player in enumerate(self.players):
-            #     player.expected_hand_strength = win_rate[i] / num_simulations
 
         winner = self.players[self.winner_index]
         winner.prior_gains += self.pot
         winner.chips += self.pot
 
-        self.log_current_hand(terminal=True)  # Log the hand here if terminal at river
-    
+        if not self.silent:
+            return
+
 #############################################
 
     cdef void progress_to_showdown(self):
-        ## Progress to a terminal state
-        # Case: progress_to_showdown called during CFR Training at a depth limit - with the prior action being a raise.
-        # TLDR: Get showdown utility to a true terminal state.
+        ## NOTE: Progress to a terminal state..
+        ###   TODO: Make this better.. ideally, move this to CFRTrainer and use monte-carlo search on prior iterations.
         action = ('call', 0) if self.cur_round_index != 0 else ('call', 0)
         while not self.step(action):
             continue
@@ -368,7 +338,7 @@ cdef class GameState:
 
     cpdef GameState clone(self):
         # Create a new GameState instance
-        cdef GameState new_state = GameState([Player(i.chips, i.bet_sizing, i.is_human) for i in self.players], self.small_blind, self.big_blind, self.num_simulations, self.silent, self.suits, self.values)
+        cdef GameState new_state = GameState([Player(i.chips, i.bet_sizing, i.is_human) for i in self.players], self.small_blind, self.big_blind, self.silent, self.suits, self.values)
         new_state.players = [self.players[i].clone() for i in range(len(self.players))]
         new_state.cur_round_index = self.cur_round_index
         new_state.dealer_position = self.dealer_position
@@ -427,10 +397,7 @@ cdef class GameState:
             print("")
 
             
-    cdef void log_current_hand(self, terminal=False):
-        if self.silent:
-            return
-        
+    cdef void log_current_hand(self, terminal=False):        
         seats = [(player.position, player.chips) for player in self.players]
         blinds = {
             "small blind": (self.players[(self.dealer_position + 1) % len(self.players)].position, self.small_blind),

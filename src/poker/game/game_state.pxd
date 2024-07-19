@@ -17,8 +17,6 @@ cdef class GameState:
 
     cdef public int small_blind
     cdef public int big_blind
-
-    cdef int num_simulations
     
     cdef int player_index
 
