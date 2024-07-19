@@ -1,3 +1,4 @@
+import os
 from setuptools import setup
 from Cython.Build import cythonize
 
@@ -23,8 +24,15 @@ extensions = [
     Extension("poker.cfr.cfr", ["poker/cfr/cfr.pyx"]),
 ]
 
+# Setup the build directory to store compiled files
+build_directory = os.path.join(os.path.dirname(__file__), "poker_c")
+
+# Ensure the build directory exists
+os.makedirs(build_directory, exist_ok=True)
+
 setup(
     name="poker",
-    ext_modules=cythonize(extensions, language_level=3, annotate=False),
-    include_dirs=[numpy.get_include()]
+    ext_modules=cythonize(extensions, language_level=3, annotate=False, build_dir=build_directory),
+    include_dirs=[numpy.get_include()],
+    script_args=["build_ext", "--build-lib", build_directory, "--build-temp", build_directory]
 )
