@@ -1,7 +1,8 @@
-from poker.poker_game import PokerGame
-from poker.cfr import CFRTrainer
-import poker.ccluster as ccluster
-from poker._utils import LocalManager, _6_max_opening, _2_max_opening, _6_max_simple_postflop
+from poker.game.poker_game import PokerGame
+from poker.cfr.cfr import CFRTrainer
+import poker._utils.ccluster as ccluster
+from poker._utils._utils import _6_max_opening, _2_max_opening, _6_max_simple_postflop
+from poker.core.local_manager import LocalManager
 
 import os
 from multiprocessing import Manager
@@ -51,11 +52,11 @@ def train():
     num_showdown_simulations = 1
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 2500
+    num_cfr_iterations = 1000
 
     # Actions by folded or all-in players dont count toward depth
     # -> Choose depth to have action end on starting player
-    cfr_depth = 4
+    cfr_depth = 1
     
     # Depth at which to start Monte Carlo Simulation.
     monte_carlo_depth = 9999
@@ -101,7 +102,7 @@ def train():
 
 def play():
     num_players = 2
-    num_ai_players = 1
+    num_ai_players = 2
 
     # pot relative bet-sizings for preflop, flop, turn, and river
     bet_sizing = [(1.5, 2.0,), (.5, 1,), (.40, .82, 1.2,), (.75, 1.2, 2,)]
@@ -116,8 +117,11 @@ def play():
     big_blind = 10
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 2500
-    cfr_depth = 1
+    num_cfr_iterations = 5000
+
+    # Leave this at 1 if your blueprint is not fully solved to the depth specified
+    #   (i.e. the 6-player solve is missing 4-bets, re-raises by more than 1 player, etc.)
+    cfr_depth = 3
     
     # Depth at which to start Monte Carlo Simulation
     monte_carlo_depth = 9999
@@ -133,7 +137,7 @@ def play():
 
     # The earliest positions solved have the broadest node coverage (to support the later positions)
     local_manager = LocalManager('../results/2/4/BB_SB_4B_DEF/pickles/')
-    num_hands = 5
+    num_hands = 10
     game = PokerGame(num_players, initial_chips, num_ai_players, small_blind, big_blind, bet_sizing, cfr_trainer, local_manager, SUITS, VALUES)
     
     # Play the game
@@ -269,5 +273,5 @@ def plot_hands(position_name, strategy_list, suits=None, ranks=None, base_path =
     
 if __name__ == "__main__":
     # cluster()
-    # train()
-    play()
+    train()
+    # play()
