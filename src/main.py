@@ -1,10 +1,15 @@
+import sys
+import os
+# Add the build directory to the system path
+sys.path.insert(0, os.path.abspath('build'))
+
 from poker.game.poker_game import PokerGame
 from poker.cfr.cfr import CFRTrainer
 import poker._utils.ccluster as ccluster
 from poker._utils._utils import _6_max_opening, _2_max_opening, _6_max_simple_postflop
 from poker.core.local_manager import LocalManager
 
-import os
+
 from multiprocessing import Manager
 
 import numpy as np

@@ -8,6 +8,29 @@ import numpy
 from setuptools import setup, Extension
 from Cython.Build import cythonize
 
+
+from setuptools.command.build_ext import build_ext
+import shutil
+
+
+## NOTE: Cython is a Python api to C. Python != Cython != C.
+##   This incentivises me to strictly seperate the build files from the source files.
+##  i.e. in the source directory, I will only have the .pyx/.pxd files and the setup.py file.
+##  The build directory will contain the .c/.h files and the .so files... as well as the pyx/pxd files
+class CustomBuildExt(build_ext):
+    def build_extension(self, ext):
+        # Call the original build_extension method
+        super().build_extension(ext)
+
+        # Move .c and .h files to the build directory
+        for source in ext.sources:
+            source_dir = os.path.dirname(source)
+            build_dir = os.path.join('build', source_dir)
+            os.makedirs(build_dir, exist_ok=True)
+            if source.endswith('.c') or source.endswith('.h'):
+                shutil.move(source, os.path.join(build_dir, os.path.basename(source)))
+
+## Define the exntensions to compile
 extensions = [
     Extension("poker._utils.eval.eval", ["poker/_utils/eval/eval.pyx"]),
     Extension("poker._utils.ccluster.ccluster", ["poker/_utils/ccluster/ccluster.pyx"]),
@@ -24,10 +47,32 @@ extensions = [
     Extension("poker.cfr.cfr", ["poker/cfr/cfr.pyx"]),
 ]
 
+build_dir = "build"
 
+## Compile files to the build directory using CustomBuildExt to segregate file types
 setup(
     name="poker",
     ext_modules=cythonize(extensions, language_level=3, annotate=False),
     include_dirs=[numpy.get_include()],
-    # script_args=["build_ext", "--build-lib", build_directory, "--build-temp", build_directory]
+    cmdclass={'build_ext': CustomBuildExt},
+    options={
+        'build_ext': {
+            'build_lib': 'build',
+            'build_temp': os.path.join('build', 'temp'),
+        }
+    },
+    script_args=['build_ext', '--build-lib', 'build', '--build-temp', os.path.join('build', 'temp')]
 )
+
+# Copy the source files (pyx/pxd) to the build directory (.c, .h, .o, .so)
+def copy_tree(src, dst):
+    shutil.copytree(src, dst, dirs_exist_ok=True)
+
+src_dir = os.path.dirname(os.path.abspath(__file__))
+dst_dir = os.path.join(src_dir, build_dir)
+
+copy_tree(src_dir + '/poker', dst_dir + '/poker')
+
+
+## NOTE: Cython isn't really intended for this sort of use case which is why the this setup file is so hacky.
+## Ideally, this entire project would be converted to C; however, for now, Cython is a good middle ground at the expense of a hacky project structure.
