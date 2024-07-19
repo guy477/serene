@@ -13,11 +13,7 @@ from setuptools.command.build_ext import build_ext
 import shutil
 
 
-## NOTE: Cython is a Python api to C. Python != Cython != C.
-##   This incentivises me to strictly seperate the build files from the source files.
-##  i.e. in the source directory, I will only have the .pyx/.pxd files and the setup.py file.
-##  The build directory will contain the .c/.h files and the .so files... as well as the pyx/pxd files
-
+## NOTE: This will move all .c, .h, and .so files from the source directory to the build directory
 class CustomBuildExt(build_ext):
     def build_extension(self, ext):
         # Call the original build_extension method
@@ -99,5 +95,4 @@ dst_dir = os.path.join(src_dir, build_dir)
 copy_tree(src_dir + '/poker', dst_dir + '/poker')
 
 
-## NOTE: Cython isn't really intended for this sort of use case which is why the this setup file is so hacky.
-## Ideally, this entire project would be converted to C; however, for now, Cython is a good middle ground at the expense of a hacky project structure.
+## NOTE: I'm sure there's a better way to do this
