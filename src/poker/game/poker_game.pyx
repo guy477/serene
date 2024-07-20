@@ -81,7 +81,7 @@ cdef class PokerGame:
 
                 local_manager = self.strategy_trainer.train(self.local_manager, [fast_forward_actions], [player_hand_str_tuple])
                 
-                strategy = self.strategy_trainer.get_average_strategy(self.game_state.get_current_player(), self.game_state, local_manager)
+                strategy = self.strategy_trainer.cfr.get_average_strategy(self.game_state.get_current_player(), self.game_state, local_manager)
 
                 print(strategy)
                 action = select_random_action(strategy)
