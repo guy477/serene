@@ -1,6 +1,6 @@
 from .._utils._utils cimport *
 
-from ..cfr.cfr cimport CFRTrainer
+from ..cfr_trainer.cfr_trainer cimport CFRTrainer
 from ..core.local_manager cimport LocalManager
 from .player cimport Player
 from .game_state cimport GameState

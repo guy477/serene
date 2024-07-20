@@ -66,7 +66,9 @@ extensions = [
     Extension("poker.game.player", ["poker/game/player.pyx"]),
     Extension("poker.game.poker_game", ["poker/game/poker_game.pyx"]),
     
-    Extension("poker.cfr.cfr", ["poker/cfr/cfr.pyx"]),
+    Extension("poker.cfr_trainer.cfr.cfr", ["poker/cfr_trainer/cfr/cfr.pyx"]),
+    Extension("poker.cfr_trainer.cfr_trainer", ["poker/cfr_trainer/cfr_trainer.pyx"]),
+    
 ]
 
 build_dir = "build"

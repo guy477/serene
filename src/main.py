@@ -4,7 +4,7 @@ import os
 sys.path.insert(0, os.path.abspath('build'))
 
 from poker.game.poker_game import PokerGame
-from poker.cfr.cfr import CFRTrainer
+from poker.cfr_trainer.cfr_trainer import CFRTrainer
 import poker._utils.ccluster as ccluster
 from poker._utils._utils import _6_max_opening, _2_max_opening, _6_max_simple_postflop
 from poker.core.local_manager import LocalManager
@@ -267,5 +267,5 @@ def plot_hands(position_name, strategy_list, suits=None, ranks=None, base_path =
     
 if __name__ == "__main__":
     # cluster()
-    # train()
-    play()
+    train()
+    # play()
