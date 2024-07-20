@@ -267,5 +267,5 @@ def plot_hands(position_name, strategy_list, suits=None, ranks=None, base_path =
     
 if __name__ == "__main__":
     # cluster()
-    train()
-    # play()
+    # train()
+    play()
