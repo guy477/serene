@@ -39,7 +39,7 @@ cdef class Player:
                 for index, action in enumerate(available_actions):
                     print(f'{index}  -  {action}')
                 
-                user_input = self.get_user_input("Enter the index of the action to take.\nIndex: ")
+                user_input = input("Enter the index of the action to take.\nIndex: ")
 
                 try:
                     # Checks if the input is an integer and in the list range.
@@ -65,7 +65,7 @@ cdef class Player:
         game_state.action_space[game_state.cur_round_index].append((self.position, action))
 
         if self.folded:
-            return 0
+            return raize
 
         if action[0] == "call":
             call_amount = game_state.current_bet - self.contributed_to_pot
@@ -77,19 +77,23 @@ cdef class Player:
             self.contributed_to_pot += call_amount
             self.tot_contributed_to_pot += call_amount
 
-        elif action[0] == "raise" or action[0] == "all-in":
+        elif action[0] == "raise" or action[0] == "all-in" or action[0] == "blinds":
 
             if action[0] == "raise":
                 bet_amount = int((action[1]) * (game_state.pot))
                 
-            else:
+            elif action[0] == "all-in":
                 bet_amount = self.chips
+
+            elif action[0] == "blinds":
+                bet_amount = action[1]
+
 
             if bet_amount < game_state.current_bet:
                 if bet_amount != self.chips:
                     game_state.debug_output()
                     raise ValueError("Raise amount must be at least equal to the current bet or an all-in.")
-            else:
+            elif action[0] != "blinds":
                 raize = True
 
             if bet_amount > self.chips:
@@ -100,23 +104,6 @@ cdef class Player:
             game_state.current_bet = (bet_amount + self.contributed_to_pot)
             self.contributed_to_pot += (bet_amount)
             self.tot_contributed_to_pot += (bet_amount)
-            
-
-        elif action[0] == "blinds":
-            bet_amount = action[1]
-
-            if bet_amount > self.chips:
-                bet_amount = self.chips
-
-            self.chips -= (bet_amount)
-            game_state.pot += (bet_amount)
-            self.contributed_to_pot += (bet_amount)
-            
-            ### NOTE: by ignoring the forced contributions we don't negatively impact the self's regret calculation.
-            ### TODO: is there a better place to do this for consistency? or is this the exact reason i made blinds distinct from raises? reality may have never known.
-            self.tot_contributed_to_pot += (bet_amount)
-
-            game_state.current_bet = bet_amount
 
         elif action[0] == "fold":
             self.folded = True
@@ -129,9 +116,6 @@ cdef class Player:
 
     cpdef void add_card(self, unsigned long long card):
         self.hand |= card
-
-    cpdef str get_user_input(self, prompt):
-        return input(prompt)
 
     cpdef list get_available_actions(self, GameState game_state):
         if game_state.is_terminal_river():
@@ -220,13 +204,9 @@ cdef class Player:
     cpdef void reset(self):
         self.hand = 0
         self.folded = False
-        # if self.chips == 0:
         self.expected_hand_strength = 1
         self.chips = 1000
 
-        ## Assigned by gamestate on initialization
-        # self.position = ''
-        # self.player_index = 0
         
         self.contributed_to_pot = 0
         self.tot_contributed_to_pot = 0

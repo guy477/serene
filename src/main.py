@@ -21,9 +21,6 @@ from scipy.special import comb
 from sklearn.cluster import MiniBatchKMeans
 
 
-
-
-
 def train():
 ##########
     # set the deck (if you use a restricted deck, the evaluation will assumed a full deck)
@@ -59,19 +56,17 @@ def train():
     # Actions by folded or all-in players dont count toward depth
     # -> Choose depth to have action end on starting player
     cfr_depth = 1
-    
-    # Depth at which to start Monte Carlo Simulation.
-    monte_carlo_depth = 9999
 
     # Depth at which to start pruning regret and strategy sums
     prune_depth = 9999
+    
     # Chance-probability at which to start declaring a node "terminal"
     prune_probability = 1e-8
 
 ##########
 
     # Create a training environment and train the model using CFR
-    cfr_trainer = CFRTrainer(num_cfr_iterations, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
+    cfr_trainer = CFRTrainer(num_cfr_iterations, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, prune_depth, prune_probability)
     
     for i, fast_forward_actions in enumerate(positions_to_solve):
         current_position = positions_dict[str(fast_forward_actions)]
@@ -124,9 +119,6 @@ def play():
     # Leave this at 1 if your blueprint is not fully solved to the depth specified
     #   (i.e. the 6-player solve is missing 4-bets, re-raises by more than 1 player, etc.)
     cfr_depth = 3
-    
-    # Depth at which to start Monte Carlo Simulation
-    monte_carlo_depth = 9999
 
     # Depth at which to start pruning regret and strategy sums
     prune_depth = 9999
@@ -135,7 +127,7 @@ def play():
 
     
     # The cfr_trainer will handle blueprint strategy management. Strategies are saved to disk, so we can just define a new CFR trainer
-    cfr_trainer = CFRTrainer(num_cfr_iterations, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, monte_carlo_depth, prune_depth, prune_probability)
+    cfr_trainer = CFRTrainer(num_cfr_iterations, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, prune_depth, prune_probability)
 
     # The earliest positions solved have the broadest node coverage (to support the later positions)
     local_manager = LocalManager('../results/2/4/BB_SB_4B_DEF/pickles/')
@@ -275,5 +267,5 @@ def plot_hands(position_name, strategy_list, suits=None, ranks=None, base_path =
     
 if __name__ == "__main__":
     # cluster()
-    # train()
-    play()
+    train()
+    # play()

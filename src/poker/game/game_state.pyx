@@ -8,67 +8,22 @@ from libc.stdlib cimport RAND_MAX
 import logging
 import time
 
-class PokerHandLogger:
-    def __init__(self, log_file):
-        self.logger = logging.getLogger('PokerHandLogger')
-        self.logger.setLevel(logging.DEBUG)
-        handler = logging.FileHandler(log_file)
-        handler.setFormatter(logging.Formatter('%(message)s'))
-        self.logger.addHandler(handler)
-        self.hand_count = 0
-
-    def log_hand(self, hand_data):
-        self.hand_count += 1
-        self.logger.info(hand_data)
-
-    def generate_hand_log(self, hand_id, game_type, limit, date_time, dealer_position, seats, blinds, hole_cards, actions, board, showdown, summary):
-        hand_log = []
-        hand_log.append(f"Hand #{hand_id} - {game_type} ({limit}) - {date_time} UTC")
-        hand_log.append(f"Firestone 6-max Seat #{dealer_position} is the button")
-        for seat, (player, chips) in enumerate(seats):
-            hand_log.append(f"Seat {seat + 1}: {player} (${chips:.2f})")
-        for blind, (player, amount) in blinds.items():
-            hand_log.append(f"{player} posts the {blind} ${amount:.2f}")
-        hand_log.append("*** HOLE CARDS ***")
-        for player, cards in hole_cards.items():
-            if cards:
-                hand_log.append(f"Dealt to {player} [{cards[0]} {cards[1]}]")
-            else:
-                hand_log.append(f"Dealt to {player} [XX XX]")
-        for round_name, round_actions in actions.items():
-            if round_actions:
-                hand_log.append(f"*** {round_name.upper()} ***")
-                for action in round_actions:
-                    hand_log.append(f"{action}")
-        if board:
-            hand_log.append(f"Board {' '.join(board)}")
-        if showdown:
-            hand_log.append("*** SHOW DOWN ***")
-            for player, cards, description in showdown:
-                if cards:
-                    hand_log.append(f"{player} shows [{cards[0]} {cards[1]}] ({description})")
-                else:
-                    hand_log.append(f"{player} shows [XX XX] ({description})")
-        hand_log.append("*** SUMMARY ***")
-        for player, result in summary.items():
-            hand_log.append(result)
-        return '\n'.join(hand_log)
-
-poker_logger = PokerHandLogger("poker_hand_history.log")
-
 cdef class GameState:
     def __init__(self, list[Player] players, int small_blind, int big_blind, bint silent=False, list suits=SUITS, list values=VALUES):
+        self.silent = silent
+        self.hand_id = 0
+
+
         self.players = players
         self.small_blind = small_blind
         self.big_blind = big_blind
 
         self.suits = suits
         self.values = values
-        self.silent = silent
-        self.hand_id = 0
         self.deck = Deck(self.suits, self.values)  # Initialize the Deck object
         self.positions = self.generate_positions(len(self.players))
         self.action_space = [[], [], [], []]
+
         self.assign_positions()
         self.reset()
 
@@ -124,8 +79,6 @@ cdef class GameState:
                 player.folded = True
 
 
-
-
     cpdef void setup_postflop(self, str round_name):
 
         self.cur_round_index += 1
@@ -145,6 +98,7 @@ cdef class GameState:
         self.last_raiser = -1
         self.num_actions = 0
 
+
     cdef bint handle_action(self, object action):
         
         if self.is_terminal() or self.is_terminal_river():
@@ -163,8 +117,11 @@ cdef class GameState:
 
         return self.is_terminal()
     
+
     cpdef bint step(self, action):
+
         if self.handle_action(action):
+            ## handle_action returns true at terminal states
             if self.num_board_cards() == 0:
                 self.setup_postflop('flop')
             elif self.cur_round_index < 3: # 0-pre; 1-flop; 2-turn; 3-river.
@@ -175,33 +132,23 @@ cdef class GameState:
 
 
     cdef void showdown(self):
-        cdef int best_score, player_score
 
-        cdef int remaining_players = len(self.players) - self.folded_players()
-        cdef list hands = [player.hand for player in self.players] 
+        cdef int best_score, player_score, i
         cdef Player winner
 
         if self.winner_index != -1:
             return  # Avoid redundant processing
 
-        if remaining_players == 1:
-            for i, player in enumerate(self.players):
-                if not player.folded:
-                    self.winner_index = i
-                    break
-        else:
-            for i, player in enumerate(self.players):
-                if player.folded:
-                    continue
+        for i, player in enumerate(self.players):
+                
+            if player.folded:
+                continue
 
-                if player.hand == 0:
-                    player.hand = self.deck.pop() | self.deck.pop()
+            player_score = cy_evaluate(player.hand | self.board, 7)
 
-                player_score = cy_evaluate(player.hand | self.board, 7)
-
-                if player_score > best_score:
-                    best_score = player_score
-                    self.winner_index = i
+            if player_score > best_score:
+                best_score = player_score
+                self.winner_index = i
 
         winner = self.players[self.winner_index]
         winner.prior_gains += self.pot
@@ -213,14 +160,14 @@ cdef class GameState:
 #############################################
 
     cdef void progress_to_showdown(self):
+        
         ## NOTE: Progress to a terminal state..
         ###   TODO: Make this better.. ideally, move this to CFRTrainer and use monte-carlo search on prior iterations.
+        ###  SEE: cfr/cfr.pyx:progress_gamestate_to_showdown
         action = ('call', 0) if self.cur_round_index != 0 else ('call', 0)
         while not self.step(action):
             continue
         
-        
-
         ## Deal out remaining cards
         # NOTE: Showdown function automatically simulates drawing cards.. but we need to validate it works.
         while self.num_board_cards() < 5:
@@ -230,12 +177,15 @@ cdef class GameState:
         
         self.showdown()
 
+
+    # TODO: simplify/optimize
     cpdef bint is_terminal(self):
         if (((self.num_actions >= len(self.players)) and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or
             (self.active_players() == 1 or self.allin_players() == self.active_players())):
             return True
         return False
 
+    # TODO: simplify/optimize
     cpdef bint is_terminal_river(self):
         if (self.cur_round_index >= 4 or
             (self.board_has_five_cards() and self.is_terminal()) or
@@ -243,8 +193,10 @@ cdef class GameState:
             return True
         return False
 
+
     cpdef Player get_current_player(self):
         return self.players[self.player_index]
+
 
     cdef int allin_players(self):
         cdef int allin = 0
@@ -440,3 +392,59 @@ cdef class GameState:
                 positions.append('MP2')
             return positions
     
+
+
+
+
+#########################
+
+
+
+
+class PokerHandLogger:
+    def __init__(self, log_file):
+        self.logger = logging.getLogger('PokerHandLogger')
+        self.logger.setLevel(logging.DEBUG)
+        handler = logging.FileHandler(log_file)
+        handler.setFormatter(logging.Formatter('%(message)s'))
+        self.logger.addHandler(handler)
+        self.hand_count = 0
+
+    def log_hand(self, hand_data):
+        self.hand_count += 1
+        self.logger.info(hand_data)
+
+    def generate_hand_log(self, hand_id, game_type, limit, date_time, dealer_position, seats, blinds, hole_cards, actions, board, showdown, summary):
+        hand_log = []
+        hand_log.append(f"Hand #{hand_id} - {game_type} ({limit}) - {date_time} UTC")
+        hand_log.append(f"Firestone 6-max Seat #{dealer_position} is the button")
+        for seat, (player, chips) in enumerate(seats):
+            hand_log.append(f"Seat {seat + 1}: {player} (${chips:.2f})")
+        for blind, (player, amount) in blinds.items():
+            hand_log.append(f"{player} posts the {blind} ${amount:.2f}")
+        hand_log.append("*** HOLE CARDS ***")
+        for player, cards in hole_cards.items():
+            if cards:
+                hand_log.append(f"Dealt to {player} [{cards[0]} {cards[1]}]")
+            else:
+                hand_log.append(f"Dealt to {player} [XX XX]")
+        for round_name, round_actions in actions.items():
+            if round_actions:
+                hand_log.append(f"*** {round_name.upper()} ***")
+                for action in round_actions:
+                    hand_log.append(f"{action}")
+        if board:
+            hand_log.append(f"Board {' '.join(board)}")
+        if showdown:
+            hand_log.append("*** SHOW DOWN ***")
+            for player, cards, description in showdown:
+                if cards:
+                    hand_log.append(f"{player} shows [{cards[0]} {cards[1]}] ({description})")
+                else:
+                    hand_log.append(f"{player} shows [XX XX] ({description})")
+        hand_log.append("*** SUMMARY ***")
+        for player, result in summary.items():
+            hand_log.append(result)
+        return '\n'.join(hand_log)
+
+poker_logger = PokerHandLogger("poker_hand_history.log")

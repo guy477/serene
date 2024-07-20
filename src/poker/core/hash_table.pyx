@@ -25,13 +25,13 @@ with open(pickle_path_flop, 'rb') as f:
 
 cpdef double default_double():
     ### 
-    ### NOTE Hacky fix to de-reference the CFTrainer.default_double modeul.
+    ### NOTE Hacky fix to de-reference the CFTrainer.default_double module.
     ### NOTE Global modules are not available to multiproceeses. But we can
-    ### NOTE Package this one and send it in. For simplicity, CFTrainer will
-    ### NOTE keep its own default_double and convert before offloading to disk.
+    ### NOTE Package this one and send it in. 
     ###
     return 0.0
 
+###
 
 cdef class HashTable:
     """
@@ -59,11 +59,11 @@ cdef class HashTable:
 
 
     def __getitem__(self, key):
-        cdef bytes hashed_key = hash_key_sha256(key)
+        cdef bytes hashed_key = abstract_key(key)
         return self.table[hashed_key]
 
     def __setitem__(self, key, value):
-        cdef bytes hashed_key = hash_key_sha256(key)
+        cdef bytes hashed_key = abstract_key(key)
         if isinstance(value, tuple) and len(value) == 3:
             # value: tuple((tuple information_set, int pruned, int is_blueprint))
             self.table[hashed_key] = value[0]
@@ -76,18 +76,18 @@ cdef class HashTable:
 
 
     def __contains__(self, key):
-        cdef bytes hashed_key = hash_key_sha256(key)
+        cdef bytes hashed_key = abstract_key(key)
         return hashed_key in self.table
 
     def get(self, key, default = default_double):
-        cdef bytes hashed_key = hash_key_sha256(key)
+        cdef bytes hashed_key = abstract_key(key)
         return self.table.get(hashed_key, default)
 
     def get_hashed(self, hashed_key):
         return self.table[hashed_key]
 
     def get_set(self, key, default=None, prune = None, merge = None):
-        cdef bytes hashed_key = hash_key_sha256(key)
+        cdef bytes hashed_key = abstract_key(key)
         
         if hashed_key not in self.table:
             self.set(hashed_key, default if default is not None else default_double)
@@ -133,7 +133,7 @@ cdef class HashTable:
 
 #########################
 
-cdef bytes hash_key_sha256(object key):
+cdef bytes abstract_key(object key):
     """Hash a tuple continaing game_state information using SHA-256 and return the hexadecimal representation as bytes."""
     
     key_hand_tuple = ulong_to_card_tuple(key[0])
@@ -159,9 +159,10 @@ cdef bytes hash_key_sha256(object key):
         new_key = str((abstraction, key_position, key_available_actions, key_action_space))
     else:
         new_key = str((abstract_hand(key_hand_tuple[0], key_hand_tuple[1]), key_position, key_available_actions, key_action_space))
-
+           
     return hashlib.sha256(new_key.encode('utf-8')).digest()
 
+#########################
 
 # Make the defaultdict environment agnostic
 def convert_defaultdict(d):
@@ -177,3 +178,4 @@ def convert_defaultdict(d):
         return {k: convert_defaultdict(v) for k, v in d.items()}
     else:
         return d
+

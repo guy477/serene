@@ -18,7 +18,6 @@ cdef class Player:
     cpdef object get_action(self, GameState game_state)
     cpdef bint take_action(self, GameState game_state, object action)
     cpdef list get_available_actions(self, GameState game_state)
-    cpdef str get_user_input(self, prompt)
     
     cpdef void add_card(self, unsigned long long card)
     cpdef void reset(self)
