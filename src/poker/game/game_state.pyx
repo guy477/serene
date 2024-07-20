@@ -180,8 +180,7 @@ cdef class GameState:
 
     # TODO: simplify/optimize
     cpdef bint is_terminal(self):
-        if (((self.num_actions >= len(self.players)) and (self.last_raiser == -1 or self.last_raiser == self.player_index)) or
-            (self.active_players() == 1 or self.allin_players() == self.active_players())):
+        if (((self.num_actions >= len(self.players)) and (self.last_raiser == -1 or self.last_raiser == self.player_index))):
             return True
         return False
 

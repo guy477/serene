@@ -121,7 +121,6 @@ cdef class CFRTrainer:
     def process_hand(self, hand, regret_global_accumulator, strategy_global_accumulator, calculated, fast_forward_actions, local_manager):
         
         cdef GameState game_state = GameState([Player(self.initial_chips, self.bet_sizing, False) for _ in range(self.num_players)], self.small_blind, self.big_blind, True, self.suits, self.values) 
-        avg_probs = np.zeros(self.num_players, dtype=np.float64)
 
         ffw_probs = self.fast_forward_gamestate(hand, game_state, fast_forward_actions, local_manager)
         if ffw_probs == 'ERROR':
@@ -152,7 +151,6 @@ cdef class CFRTrainer:
         for iter_num in tqdm(range(self.iterations)):
 
             ffw_probs = self.fast_forward_gamestate(hand, game_state, fast_forward_actions, local_manager)
-            avg_probs += ffw_probs
             
             if ffw_probs[game_state.player_index] < self.prune_probability_threshold:
                 break # pretty sure the ffw_probs is deterministic.
@@ -160,8 +158,7 @@ cdef class CFRTrainer:
 
             self.cfr_traverse(game_state.clone(), ffw_probs, 0, self.cfr_depth, local_manager)
         
-        # NOTE: in the case of a pruned node, the ffw_probs will be set to 0
-        ffw_probs = avg_probs / (self.iterations)
+
 
         player = game_state.get_current_player()
         player_hash = player.hash(game_state)

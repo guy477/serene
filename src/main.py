@@ -114,11 +114,11 @@ def play():
     big_blind = 10
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 5000
+    num_cfr_iterations = 2500
 
     # Leave this at 1 if your blueprint is not fully solved to the depth specified
     #   (i.e. the 6-player solve is missing 4-bets, re-raises by more than 1 player, etc.)
-    cfr_depth = 3
+    cfr_depth = 4
 
     # Depth at which to start pruning regret and strategy sums
     prune_depth = 9999

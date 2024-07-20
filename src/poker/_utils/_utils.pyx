@@ -116,7 +116,7 @@ import os
 
 # Helper function to clear the console
 def clear_console():
-    # input('press enter to clear')
+    input('press enter to clear')
     os.system('clear')
 
 # Helper function to format player contributions
