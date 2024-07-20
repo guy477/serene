@@ -14,6 +14,7 @@ import shutil
 
 
 ## NOTE: This will move all .c, .h, and .so files from the source directory to the build directory
+## TODO: Instead of doing this weird juggle.. we can copy the source files to the build directory first, then build there.
 class CustomBuildExt(build_ext):
     def build_extension(self, ext):
         # Call the original build_extension method

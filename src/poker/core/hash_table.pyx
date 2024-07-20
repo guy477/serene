@@ -3,23 +3,6 @@ from collections import defaultdict
 import hashlib
 import pickle
 
-### NOTE: Load abstraction pickles at the global level..
-### These are aggressive abstractions keyed by an already aggressive heuristic.
-### TODO: Make this better. The resulting strategy is only as good as the abstraction. 
-pickle_path_river = '../results/_post_flop_abstractions/river_abstraction_test.pkl'
-pickle_path_turn = '../results/_post_flop_abstractions/turn_abstraction_test.pkl'
-pickle_path_flop = '../results/_post_flop_abstractions/flop_abstraction_test.pkl'
-
-cdef dict river_abstraction, turn_abstraction, flop_abstraction
-
-with open(pickle_path_river, 'rb') as f:
-    river_abstraction = dict(pickle.load(f))
-
-with open(pickle_path_turn, 'rb') as f:
-    turn_abstraction = dict(pickle.load(f))
-
-with open(pickle_path_flop, 'rb') as f:
-    flop_abstraction = dict(pickle.load(f))
 
 #########################
 
@@ -31,32 +14,13 @@ cpdef double default_double():
     ###
     return 0.0
 
-###
+#########################
 
 cdef class HashTable:
-    """
-    HashTable class implementing a hash table with SHA-256 hashed keys.
-    
-    This class provides an option to mark items for pruning and a method to
-    remove all items marked for pruning.
-    
-    - `__init__(self)`: Initialize the hash table with an optional default value.
-    - `__getitem__(self, key)`: Retrieve the value associated with the given key.
-    - `__setitem__(self, key, value)`: Set the value for the given key. Value should be a tuple (actual_value, to_prune).
-    - `__delitem__(self, key)`: Delete the item associated with the given key.
-    - `__contains__(self, key)`: Check if the key exists in the table.
-    - `get(self, key, default=defaultdict(float))`: Get the value for the key, ignoring the prune flag.
-    - `update(self, other)`: Update the hash table with items from another dictionary.
-    - `clear(self)`: Clear all items in the hash table.
-    - `items(self)`: Get all items in the hash table.
-    - `__len__(self)`: Get the number of items in the hash table.
-    - `prune(self)`: Remove all items with `to_prune` set to `True`.
-    """
     def __init__(self, shared_dict):
         self.table = shared_dict
         self.to_merge = {}
         self.to_prune = {}
-
 
     def __getitem__(self, key):
         cdef bytes hashed_key = abstract_key(key)
@@ -74,10 +38,13 @@ cdef class HashTable:
         else:
             raise ValueError("Value must be a tuple (actual_value, to_prune)")
 
-
     def __contains__(self, key):
         cdef bytes hashed_key = abstract_key(key)
         return hashed_key in self.table
+
+    def __len__(self):
+        return len(self.table)
+
 
     def get(self, key, default = default_double):
         cdef bytes hashed_key = abstract_key(key)
@@ -121,15 +88,32 @@ cdef class HashTable:
         with open(f'{base_path}/{name}.pkl', 'wb') as f:
             pickle.dump(self.table, f)
 
-    def __len__(self):
-        return len(self.table)
-
     def prune(self):
         for key in self.to_prune:
             if key not in self.to_merge:
                 del self.table[key]
                         
         self.to_prune.clear()
+
+#########################
+
+### NOTE: Load abstraction pickles at the global level..
+### These are aggressive abstractions keyed by an already aggressive heuristic.
+### TODO: Make this better. The resulting strategy is only as good as the abstraction. 
+pickle_path_river = '../results/_post_flop_abstractions/river_abstraction_test.pkl'
+pickle_path_turn = '../results/_post_flop_abstractions/turn_abstraction_test.pkl'
+pickle_path_flop = '../results/_post_flop_abstractions/flop_abstraction_test.pkl'
+
+cdef dict river_abstraction, turn_abstraction, flop_abstraction
+
+with open(pickle_path_river, 'rb') as f:
+    river_abstraction = dict(pickle.load(f))
+
+with open(pickle_path_turn, 'rb') as f:
+    turn_abstraction = dict(pickle.load(f))
+
+with open(pickle_path_flop, 'rb') as f:
+    flop_abstraction = dict(pickle.load(f))
 
 #########################
 
@@ -146,6 +130,8 @@ cdef bytes abstract_key(object key):
         [action for action in sublist if action[0] != "PUBLIC"]
         for sublist in key_action_space
     ]
+
+    # some arbitrarily defined value.
     abstraction_harshness = .01
 
     if key_round_index == 1: # flop:

@@ -13,12 +13,6 @@ cdef class LocalManager:
     def get_strategy_sum(self):
         return self.strategy_sum
 
-    def set_regret_sum_table(self, regret_sum_other):
-        self.regret_sum.table = regret_sum_other
-
-    def set_strategy_sum_table(self, strategy_sum_other):
-        self.strategy_sum.table = strategy_sum_other
-    
     def merge_dicts(self, hash_table, shared_dict):
         for key, value in shared_dict.items():
             hash_table.set(key, value)
