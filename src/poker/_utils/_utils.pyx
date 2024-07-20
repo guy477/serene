@@ -14,7 +14,7 @@ cdef public dict VALUES_INDEX = {'2': 0, '3': 1, '4': 2, '5': 3, '6': 4, '7': 5,
 
 cpdef dynamic_merge_dicts(local_manager_table, global_accumulator):
     
-    for player_hash_local in tqdm(local_manager_table.to_merge):
+    for player_hash_local in local_manager_table.to_merge:
         inner_dict = local_manager_table.get_hashed(player_hash_local)
         if player_hash_local in global_accumulator:
             existing_inner_dict = global_accumulator[player_hash_local]

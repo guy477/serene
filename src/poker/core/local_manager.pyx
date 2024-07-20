@@ -18,7 +18,7 @@ cdef class LocalManager:
             hash_table.set(key, value)
 
     def save(self):
-        print(f"Saving to {self.base_path}")
+        # print(f"Saving to {self.base_path}")
         os.makedirs(self.base_path, exist_ok=True)
         
         self.regret_sum.dump(self.base_path, 'regret_sum')

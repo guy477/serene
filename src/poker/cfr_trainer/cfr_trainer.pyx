@@ -12,6 +12,7 @@ from tqdm import tqdm
 
 
 from multiprocessing import Pool, Manager, set_start_method
+from concurrent.futures import ProcessPoolExecutor, wait, FIRST_COMPLETED
 
 
 # No more shared memory >:(
@@ -46,67 +47,60 @@ cdef class CFRTrainer:
         rng = random.Random(42)  # Use any seed value you prefer
         rng.shuffle(hands)
 
-        for i, fast_forward_action in enumerate(positions_to_solve):
+        for i, fast_forward_action in tqdm(enumerate(positions_to_solve)):
             
             local_manager = self.parallel_train(hands, fast_forward_action, local_manager, save_pickle)
 
             if save_pickle:
                 local_manager.save()  
 
-        print(f'Time taken: {time.time() - FUNCTION_START_TIME}')
-
         return local_manager
 
 
-    def parallel_train(self, hands, fast_forward_actions, local_manager, save_pickle):#(psutil.cpu_count(logical=True) -1) * 2
-
-        ### Managed Objects
+    def parallel_train(self, hands, fast_forward_actions, local_manager, save_pickle):
+        # Managed Objects
         manager = Manager()
         regret_global_accumulator = manager.dict()
         strategy_global_accumulator = manager.dict()
         calculated = manager.dict()
 
-        def process_batch(batch_hands):                                                                        # NOTE: Since we _spawn_ each pooled process, local_manager gets copied to each child process. If the blueprint gets too large, we make local manager read only and global; then only update a local copy of the explorable nodes.
+        def process_batch(batch_hands):
             hands = [(hand, regret_global_accumulator, strategy_global_accumulator, calculated, fast_forward_actions, local_manager) for hand in batch_hands]
-            with Pool(processes = psutil.cpu_count(logical=True) - 1) as pool: #psutil.cpu_count(logical=True) - 1
-                try:
-                    pool.starmap(self.process_hand_wrapper, hands)
-                except Exception as e:
-                    pool.terminate()
-                    raise
-                finally:
-                    pool.close()
-                    pool.join()
+            futures = []
+            for hand_args in hands:
+                futures.append(executor.submit(self.process_hand_wrapper, *hand_args))
+            # Wait for all futures to complete
+            wait(futures, return_when=FIRST_COMPLETED)
+            # Handle exceptions
+            for future in futures:
+                if future.exception() is not None:
+                    raise future.exception()
 
-        batch_size = (psutil.cpu_count(logical=True) - 1)
+        # Calculate the number of processes
+        num_processes = psutil.cpu_count(logical=True)
+        batch_size = num_processes * 2  # Set batch size equal to the number of processors
 
-        num_batches = (len(hands) + batch_size - 1) // batch_size
+        with ProcessPoolExecutor(max_workers=num_processes) as executor:
+            num_batches = (len(hands) + batch_size - 1) // batch_size  # Calculate number of batches
 
-        for i in tqdm(range(num_batches)):
-            start_index = i * batch_size
-            end_index = min(start_index + batch_size, len(hands))
-            batch_hands = hands[start_index:end_index]
+            for i in tqdm(range(num_batches)):
+                start_index = i * batch_size
+                end_index = min(start_index + batch_size, len(hands))
+                batch_hands = hands[start_index:end_index]
 
-            process_batch(batch_hands)
+                process_batch(batch_hands)
 
-            # Migrate local solutions to global solutions
-            local_manager.get_regret_sum().update(dict(regret_global_accumulator))
-            local_manager.get_strategy_sum().update(dict(strategy_global_accumulator))
-            
-            if save_pickle:
-                local_manager.save()  
+                # Migrate local solutions to global solutions
+                local_manager.get_regret_sum().update(dict(regret_global_accumulator))
+                local_manager.get_strategy_sum().update(dict(strategy_global_accumulator))
+                
+                if save_pickle:
+                    local_manager.save()  
 
-            #############
-            regret_complexity_calculation = (len(regret_global_accumulator))/len(batch_hands)
-            strategy_complexity_calculation = (len(strategy_global_accumulator))/len(batch_hands)
-            print(f'Update Complexity: {regret_complexity_calculation if self.cfr.cfr_depth > 1 else 1}')
-            print(f'Update Complexity: {strategy_complexity_calculation if self.cfr.cfr_depth > 1 else 1}')
-            #############
-
-            # Clear local solutions for next run
-            regret_global_accumulator.clear()
-            strategy_global_accumulator.clear()
-            gc.collect()
+                # Clear local solutions for next run
+                regret_global_accumulator.clear()
+                strategy_global_accumulator.clear()
+                gc.collect()
 
         return local_manager
 
@@ -117,8 +111,6 @@ cdef class CFRTrainer:
 
     def process_hand(self, hand, regret_global_accumulator, strategy_global_accumulator, calculated, fast_forward_actions, local_manager):
         
-        
-
         cdef GameState game_state = GameState([Player(self.initial_chips, self.bet_sizing, False) for _ in range(self.num_players)], self.small_blind, self.big_blind, True, self.suits, self.values) 
 
         ffw_probs = self.fast_forward_gamestate(hand, game_state, fast_forward_actions, local_manager)
@@ -127,27 +119,27 @@ cdef class CFRTrainer:
             return
 
         #############
-        print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-')
-        print(f'TRAINING: ({game_state.get_current_player().position}) --- {abstract_hand(hand[0], hand[1])}')
-        print(fast_forward_actions)
-        print(f'Regret Complexity: {len(local_manager.get_regret_sum())}')
-        print(f'Strategy Complexity: {len(local_manager.get_strategy_sum())}')
+        # print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-')
+        # print(f'TRAINING: ({game_state.get_current_player().position}) --- {abstract_hand(hand[0], hand[1])}')
+        # print(fast_forward_actions)
+        # print(f'Regret Complexity: {len(local_manager.get_regret_sum())}')
+        # print(f'Strategy Complexity: {len(local_manager.get_strategy_sum())}')
         # print()
         #############
 
-        player = game_state.get_current_player()
-        strategy = self.cfr.get_average_strategy(player, game_state, local_manager)
-        player_hash = player.hash(game_state)
+        
 
         #############
-        print(player_hash)
-        print(f"Init Regret Sum: {local_manager.get_regret_sum().get(player_hash, defaultdict(self.default_double))}")
-        print(f"Init Strategy Sum: {local_manager.get_strategy_sum().get(player_hash, defaultdict(self.default_double))}")
-        print(f"Init Average Strategy For Hand {abstract_hand(hand[0], hand[1])}: {strategy}")
+        # player = game_state.get_current_player()
+        # strategy = self.cfr.get_average_strategy(player, game_state, local_manager)
+        # player_hash = player.hash(game_state)
+        # print(player_hash)
+        # print(f"Init Regret Sum: {local_manager.get_regret_sum().get(player_hash, defaultdict(self.default_double))}")
+        # print(f"Init Strategy Sum: {local_manager.get_strategy_sum().get(player_hash, defaultdict(self.default_double))}")
+        # print(f"Init Average Strategy For Hand {abstract_hand(hand[0], hand[1])}: {strategy}")
         #############
 
-        total_fails = 0
-        for iter_num in tqdm(range(self.iterations)):
+        for _ in range(self.iterations):
 
             ffw_probs = self.fast_forward_gamestate(hand, game_state, fast_forward_actions, local_manager)
             
@@ -159,23 +151,24 @@ cdef class CFRTrainer:
         
 
 
-        player = game_state.get_current_player()
-        player_hash = player.hash(game_state)
+        
 
 
         #############
+        player = game_state.get_current_player()
+        # player_hash = player.hash(game_state)
         ## NOTE: Output traversal strategy for current node.
-        strategy = self.cfr.get_strategy(player.get_available_actions(game_state), ffw_probs, game_state, player, local_manager)
-        regret = local_manager.get_regret_sum()[player_hash]
-        print(f"Node Reach Probability: {list(ffw_probs)[game_state.player_index]}")
-        print(player_hash)
+        # strategy = self.cfr.get_strategy(player.get_available_actions(game_state), ffw_probs, game_state, player, local_manager)
+        # regret = local_manager.get_regret_sum()[player_hash]
+        # print(f"Node Reach Probability: {list(ffw_probs)[game_state.player_index]}")
+        # print(player_hash)
 
-        print(f"Post Strategy For Hand {abstract_hand(hand[0], hand[1])}: {strategy}")
-        print(f"Post Regret Sums For Hand {abstract_hand(hand[0], hand[1])}: {regret}")
+        # print(f"Post Strategy For Hand {abstract_hand(hand[0], hand[1])}: {strategy}")
+        # print(f"Post Regret Sums For Hand {abstract_hand(hand[0], hand[1])}: {regret}")
         #############
         ## NOTE: Average strategy is for the user
         strategy = self.cfr.get_average_strategy(player, game_state, local_manager)
-        print(f"Post Average Strategy For Hand {abstract_hand(hand[0], hand[1])}: {strategy}")
+        # print(f"Post Average Strategy For Hand {abstract_hand(hand[0], hand[1])}: {strategy}")
         #############
 
         ### Prune local regret and strategy sums to save memory at the global level.
@@ -271,7 +264,7 @@ cdef class CFRTrainer:
             ffw_probs = self.fast_forward_gamestate(hand, game_state, fast_forward_actions, local_manager)
             
             player = game_state.get_current_player()
-            strategy = self.get_average_strategy(player, game_state, local_manager)
+            strategy = self.cfr.get_average_strategy(player, game_state, local_manager)
             cur_hand_dump = (player.position, fast_forward_actions, abstract_hand(hand[0], hand[1]), strategy, ffw_probs[game_state.player_index])
             aggregate_hand_dump.append(cur_hand_dump)
 
