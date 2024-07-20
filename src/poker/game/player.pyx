@@ -214,8 +214,6 @@ cdef class Player:
         ### NOTE: This shouldnt accumulate to insane values, right?
         # self.prior_gains = 0
     
-    cpdef object hash(self, GameState game_state):
-        ### NOTE/TODO: Add "player type" that can be referenced in LocalManager to give a unique regret/strategy for the unique player type.
-        hsh = (self.hand, game_state.board, self.position, game_state.cur_round_index, tuple(self.get_available_actions(game_state)), tuple(game_state.action_space))
-        
-        return hsh
+    cpdef list hash(self, GameState game_state):
+        ### NOTE/TODO: Add "player type" that can be referenced in LocalManager to give a unique regret/strategy for the unique player type.        
+        return [self.hand, game_state.board, self.position, game_state.cur_round_index, self.get_available_actions(game_state), game_state.action_space]

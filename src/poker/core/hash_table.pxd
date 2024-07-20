@@ -6,5 +6,5 @@ cdef class HashTable:
     cdef public dict to_merge
     cdef public dict to_prune
 
-cdef bytes abstract_key(object key)
+cdef bytes abstract_key(list key)
 cpdef double default_double()

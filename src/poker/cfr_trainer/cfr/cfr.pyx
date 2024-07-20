@@ -37,7 +37,7 @@ cdef class CFR:
         cdef int num_players = len(game_state.players)
         cdef int cur_player_index = game_state.player_index
         cdef Player cur_player = game_state.get_current_player()
-        cdef object player_hash = cur_player.hash(game_state)
+        cdef list player_hash = cur_player.hash(game_state)
         cdef list available_actions = game_state.get_current_player().get_available_actions(game_state)
         
         cdef double[:] node_util = array(shape=(num_players,), itemsize=sizeof(double), format="d")

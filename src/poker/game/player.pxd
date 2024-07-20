@@ -22,4 +22,4 @@ cdef class Player:
     cpdef void add_card(self, unsigned long long card)
     cpdef void reset(self)
     cpdef Player clone(self)
-    cpdef object hash(self, GameState game_state)
+    cpdef list hash(self, GameState game_state)
