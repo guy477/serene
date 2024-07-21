@@ -7,16 +7,17 @@ import gc, time
 import itertools
 
 
-from collections import defaultdict
 from tqdm import tqdm
 
 
 from multiprocessing import Pool, Manager, set_start_method
 from concurrent.futures import ProcessPoolExecutor, wait, FIRST_COMPLETED
 
-
 # No more shared memory >:(
 set_start_method('spawn', force=True)
+
+num_processes = psutil.cpu_count(logical=True)
+executor = ProcessPoolExecutor(max_workers=num_processes)
 
 cdef class CFRTrainer:
 
@@ -76,31 +77,28 @@ cdef class CFRTrainer:
                 if future.exception() is not None:
                     raise future.exception()
 
-        # Calculate the number of processes
-        num_processes = psutil.cpu_count(logical=True)
         batch_size = num_processes * 2  # Set batch size equal to the number of processors
+    
+        num_batches = (len(hands) + batch_size - 1) // batch_size  # Calculate number of batches
 
-        with ProcessPoolExecutor(max_workers=num_processes) as executor:
-            num_batches = (len(hands) + batch_size - 1) // batch_size  # Calculate number of batches
+        for i in tqdm(range(num_batches)):
+            start_index = i * batch_size
+            end_index = min(start_index + batch_size, len(hands))
+            batch_hands = hands[start_index:end_index]
 
-            for i in tqdm(range(num_batches)):
-                start_index = i * batch_size
-                end_index = min(start_index + batch_size, len(hands))
-                batch_hands = hands[start_index:end_index]
+            process_batch(batch_hands)
 
-                process_batch(batch_hands)
+            # Migrate local solutions to global solutions
+            local_manager.get_regret_sum().update(dict(regret_global_accumulator))
+            local_manager.get_strategy_sum().update(dict(strategy_global_accumulator))
+            
+            if save_pickle:
+                local_manager.save()  
 
-                # Migrate local solutions to global solutions
-                local_manager.get_regret_sum().update(dict(regret_global_accumulator))
-                local_manager.get_strategy_sum().update(dict(strategy_global_accumulator))
-                
-                if save_pickle:
-                    local_manager.save()  
-
-                # Clear local solutions for next run
-                regret_global_accumulator.clear()
-                strategy_global_accumulator.clear()
-                gc.collect()
+            # Clear local solutions for next run
+            regret_global_accumulator.clear()
+            strategy_global_accumulator.clear()
+            # gc.collect()
 
         return local_manager
 
@@ -155,7 +153,7 @@ cdef class CFRTrainer:
 
 
         #############
-        player = game_state.get_current_player()
+        # player = game_state.get_current_player()
         # player_hash = player.hash(game_state)
         ## NOTE: Output traversal strategy for current node.
         # strategy = self.cfr.get_strategy(player.get_available_actions(game_state), ffw_probs, game_state, player, local_manager)
@@ -167,7 +165,7 @@ cdef class CFRTrainer:
         # print(f"Post Regret Sums For Hand {abstract_hand(hand[0], hand[1])}: {regret}")
         #############
         ## NOTE: Average strategy is for the user
-        strategy = self.cfr.get_average_strategy(player, game_state, local_manager)
+        # strategy = self.cfr.get_average_strategy(player, game_state, local_manager)
         # print(f"Post Average Strategy For Hand {abstract_hand(hand[0], hand[1])}: {strategy}")
         #############
 

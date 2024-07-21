@@ -11,7 +11,6 @@ cdef class CFR:
     
     def __init__(self, int cfr_depth, int prune_depth = 9999, double prune_probability = 1e-8):
         self.cfr_depth = cfr_depth
-
         self.prune_depth = prune_depth
         self.prune_probability_threshold = prune_probability
 

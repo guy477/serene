@@ -178,19 +178,16 @@ cdef class GameState:
         self.showdown()
 
 
-    # TODO: simplify/optimize
     cpdef bint is_terminal(self):
-        if (((self.num_actions >= len(self.players)) and (self.last_raiser == -1 or self.last_raiser == self.player_index))):
-            return True
-        return False
+        return (self.num_actions >= len(self.players) and 
+                (self.last_raiser == -1 or self.last_raiser == self.player_index))
 
-    # TODO: simplify/optimize
+
     cpdef bint is_terminal_river(self):
-        if (self.cur_round_index >= 4 or
-            (self.board_has_five_cards() and self.is_terminal()) or
-            self.active_players() == 1 or self.allin_players() == self.active_players()):
-            return True
-        return False
+        return (self.cur_round_index >= 4 or 
+                (self.board_has_five_cards() and self.is_terminal()) or 
+                self.active_players() == 1 or 
+                self.allin_players() == self.active_players())
 
 
     cpdef Player get_current_player(self):
@@ -198,33 +195,26 @@ cdef class GameState:
 
 
     cdef int allin_players(self):
-        cdef int allin = 0
-        for player in self.players:
-            if player.chips == 0 and not player.folded:
-                allin += 1
-        return allin
+        return sum(1 for player in self.players if player.chips == 0 and not player.folded)
+
 
     cdef int active_players(self):
-        cdef int alive = 0
-        for player in self.players:
-            if not player.folded:
-                alive += 1
-        return alive
+        return sum(1 for player in self.players if not player.folded)
+
 
     cdef int folded_players(self):
-        cdef int folded = 0
-        for player in self.players:
-            if player.folded:
-                folded += 1
-        return folded
+        return sum(1 for player in self.players if player.folded)
+
 
     cdef void draw_card(self):
         cdef unsigned long long new_card = self.deck.pop()
         self.action_space[self.cur_round_index].append(('PUBLIC', ('PUBLIC', new_card)))
         self.board |= new_card
 
+
     cdef bint board_has_five_cards(self):
         return self.num_board_cards() == 5
+
 
     cdef int num_board_cards(self):
         cdef int count = 0
@@ -234,9 +224,11 @@ cdef class GameState:
             temp_board >>= 1
         return count
 
+
     cdef void assign_positions(self):
         for i in range(len(self.players)):
             self.players[i].assign_position(self.positions[i], i)
+
 
 
 #############################################
