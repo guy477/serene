@@ -9,7 +9,7 @@ cdef class CFR:
     cdef double prune_probability_threshold
     cdef int cfr_depth
     
-    cdef progress_gamestate_to_showdown(self, GameState game_state)
+    cdef progress_gamestate_to_showdown(self, GameState game_state, LocalManager local_manager)
 
     cdef double[:] cfr_traverse(self, GameState game_state, double[:] probs, int depth, LocalManager local_manager)
 

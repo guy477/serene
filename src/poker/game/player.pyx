@@ -152,7 +152,7 @@ cdef class Player:
             for i in self.bet_sizing[cur_round_index]:
                 raise_amount = int(pot * i)
                 # If we have enough chips to raise, the suggested raise is strictly larger than the current gamestate bet + our current contribution to the pot.
-                if chips > raise_amount and (raise_amount > (current_bet + self.contributed_to_pot)):
+                if chips > raise_amount and (raise_amount > (current_bet)):
                     # Represent the raise as a proportion rather than the actual amount.
                     ret.append(('raise', i))
             

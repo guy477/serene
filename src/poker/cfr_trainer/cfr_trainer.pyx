@@ -14,9 +14,9 @@ from multiprocessing import Pool, Manager, set_start_method
 from concurrent.futures import ProcessPoolExecutor, wait, FIRST_COMPLETED
 
 # No more shared memory >:(
-set_start_method('spawn', force=True)
+# set_start_method('spawn', force=True)
 
-num_processes = psutil.cpu_count(logical=True)
+num_processes = psutil.cpu_count(logical=True) - 1
 executor = ProcessPoolExecutor(max_workers=num_processes)
 
 cdef class CFRTrainer:
@@ -48,7 +48,7 @@ cdef class CFRTrainer:
         rng = random.Random(42)  # Use any seed value you prefer
         rng.shuffle(hands)
 
-        for i, fast_forward_action in tqdm(enumerate(positions_to_solve)):
+        for i, fast_forward_action in enumerate(positions_to_solve):
             
             local_manager = self.parallel_train(hands, fast_forward_action, local_manager, save_pickle)
 
@@ -218,7 +218,7 @@ cdef class CFRTrainer:
         # Set probability space for CFR traversal
         new_probs = np.ones(self.num_players, dtype=np.float64)
 
-        for action in fast_forward_actions:
+        for i, action in enumerate(fast_forward_actions):
             if action[0] == 'PUBLIC':
                 # Add custom card to the board and update action space
                 game_state.board |= action[1]
@@ -233,6 +233,20 @@ cdef class CFRTrainer:
             new_probs[game_state.player_index] *= strategy[action]
 
             if game_state.step(action) and game_state.cur_round_index < 4:
+
+                # # Normalize probabilities
+                # total = np.sum(new_probs)
+                # if total > 0:
+                #     for i in range(self.num_players):
+                #         new_probs[i] /= total
+                # else:
+                #     for i in range(self.num_players):
+                #         new_probs[i] = 1
+                
+                # There are no public actions following the action space, or the next action is not a public card
+                if i + 1 >= len(fast_forward_actions) or fast_forward_actions[i+1][0] != 'PUBLIC':
+                    # then dont clear the board nor add the cards back to the deck.
+                    continue
                 # Handle the end of the round
                 ignore_cards = [new_action for new_action in game_state.action_space[game_state.cur_round_index] if new_action[0] == 'PUBLIC']
 
@@ -241,14 +255,7 @@ cdef class CFRTrainer:
                     game_state.deck.add(new_action[1][1])
                     game_state.action_space[game_state.cur_round_index].remove(new_action)
 
-                # Normalize probabilities
-                total = np.sum(new_probs)
-                if total > 0:
-                    for i in range(self.num_players):
-                        new_probs[i] /= total
-                else:
-                    for i in range(self.num_players):
-                        new_probs[i] = 1
+
 
         return new_probs
 
@@ -260,6 +267,9 @@ cdef class CFRTrainer:
         for hand in tqdm(hands):
 
             ffw_probs = self.fast_forward_gamestate(hand, game_state, fast_forward_actions, local_manager)
+            if game_state.cur_round_index >= 1 and 'PUBLIC' not in str(fast_forward_actions):
+                # Set a random post-flop state for this fast_forward_actions
+                fast_forward_actions = build_fast_forward_actions(game_state.action_space)
             
             player = game_state.get_current_player()
             strategy = self.cfr.get_average_strategy(player, game_state, local_manager)

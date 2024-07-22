@@ -295,6 +295,97 @@ def _2_max_opening():
 
     return positions_to_solve, positions_dict
 
+
+def _2_max_postflop(base_game_state, initial_chips, bet_sizing, small_blind, big_blind, suits, values):
+
+    ranges = {
+        ### NOTE: SB
+        "SB_OPEN": [],
+        "BB_SB_DEF": [('raise', 1.5)],
+        "BB_SB_DEF_C": [('raise', 1.5)] + call_list(1),
+        "BB_SB_DEF_C_C": [('raise', 1.5)] + call_list(2),
+        "BB_SB_DEF_R1_C": [('raise', 1.5)] + call_list(1) + [('raise', .5)],
+        "BB_SB_DEF_R2_C": [('raise', 1.5)] + call_list(1) + [('raise', 1)],
+        
+        "SB_BB_3B_DEF": [('raise', 1.5)] + [('raise', 2.0)],
+        "SB_BB_3B_DEF_C": [('raise', 1.5)] + [('raise', 2.0)] + call_list(1),
+        "SB_BB_3B_DEF_C_C": [('raise', 1.5)] + [('raise', 2.0)] + call_list(2),
+        "SB_BB_3B_DEF_R1_C": [('raise', 1.5)] + [('raise', 2.0)] + call_list(1) + [('raise', .5)],
+        "SB_BB_3B_DEF_R2_C": [('raise', 1.5)] + [('raise', 2.0)] + call_list(1) + [('raise', 1)],
+        
+        "BB_SB_4B_DEF": [('raise', 1.5)] + [('raise', 2.0)] + [('raise', 2.0)],
+        "BB_SB_4B_DEF_C": [('raise', 1.5)] + [('raise', 2.0)] + [('raise', 2.0)] + call_list(1),
+        "BB_SB_4B_DEF_C_C": [('raise', 1.5)] + [('raise', 2.0)] + [('raise', 2.0)] + call_list(2),
+        "BB_SB_4B_DEF_R1_C": [('raise', 1.5)] + [('raise', 2.0)] + [('raise', 2.0)] + call_list(1) + [('raise', .5)],
+        "BB_SB_4B_DEF_R2_C": [('raise', 1.5)] + [('raise', 2.0)] + [('raise', 2.0)] + call_list(1) + [('raise', 1)]
+    }
+
+    # Recursive function to generate all action spaces
+    def generate_action_spaces(game_state, all_actions_list, all_actions_dict):
+        if game_state.is_terminal_river():
+            return
+        cur_player = game_state.get_current_player()
+        available_actions = cur_player.get_available_actions(game_state)
+
+        for possible_action in available_actions:
+            cloned_game_state = game_state.clone()
+            if cloned_game_state.step(possible_action):  # Check for terminal state
+                cloned_game_state.action_space = [
+                    [action for action in sublist if action[0] != "PUBLIC" and action[0] != 'blinds']
+                    for sublist in cloned_game_state.action_space
+                ]
+            
+            if cloned_game_state.is_terminal_river():
+                continue
+
+            action_space_tuple = tuple(tuple(sublist) for sublist in cloned_game_state.action_space)
+            if action_space_tuple not in all_actions_dict:
+                all_actions_dict[action_space_tuple] = True
+                all_actions_list.append(action_space_tuple)
+            
+            # Recursive call
+            generate_action_spaces(cloned_game_state, all_actions_list, all_actions_dict)
+
+    def tuples_to_list(input_data):
+        flattened_list = []
+        if isinstance(input_data, (tuple, list)):
+            for item in input_data:
+                if isinstance(item, (tuple, list)):
+                    for itm in item:                      
+                        flattened_list.append(itm[1])
+                else:
+                    flattened_list.append(item)
+        else:
+            flattened_list.append(input_data)
+        return flattened_list
+    
+
+    base_game_state.action_space = [
+                    [action for action in sublist if action[1][0] != "PUBLIC" and action[1][0] != 'blinds']
+                    for sublist in base_game_state.action_space
+                ]
+    all_actions_list = []
+    all_actions_dict = {}
+    initial_action_space_tuple = tuple(tuple(sublist) for sublist in base_game_state.action_space)
+    all_actions_dict[initial_action_space_tuple] = True
+    all_actions_list.append(initial_action_space_tuple)
+
+    generate_action_spaces(base_game_state, all_actions_list, all_actions_dict)
+    all_actions_list = [tuples_to_list(sublist) for sublist in all_actions_list]
+
+    # Generate the positions to solve and their names
+    position_names = list(ranges.keys())
+
+    # Create dictionary mapping each position to its name and range
+    positions_dict = {str(pos): name for name, pos in ranges.items()}
+
+    for actions in all_actions_list:
+        if str(actions) not in positions_dict:
+            positions_dict[str(actions)] = str(actions)
+
+    return all_actions_list, positions_dict
+
+
 def _6_max_simple_postflop():
 
     # Unopened ranges (Early to Late)

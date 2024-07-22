@@ -11,16 +11,26 @@ cdef class CFR:
     
     def __init__(self, int cfr_depth, int prune_depth = 9999, double prune_probability = 1e-8):
         self.cfr_depth = cfr_depth
+
         self.prune_depth = prune_depth
         self.prune_probability_threshold = prune_probability
 
 
-    cdef progress_gamestate_to_showdown(self, GameState game_state):
+    cdef progress_gamestate_to_showdown(self, GameState game_state, LocalManager local_manager):
         ###
         ### wrapper; i considered performing monte-carlo sampling for a number of iterations
         ###    But i figured that would be too much too soon.
         ### TODO Investigate the feasibility of montecarlo terminal sampling
         ###
+
+        cdef list available_actions
+        
+        # Get to first terminal state by sampling the average path.
+        # while not (game_state.is_terminal() or game_state.is_terminal_river()):
+        #     available_actions = game_state.get_current_player().get_available_actions(game_state)
+        #     strategy = self.get_average_strategy(game_state.get_current_player(), game_state, local_manager)
+        #     game_state.step(select_random_action(strategy))
+
         game_state.progress_to_showdown() # will call to terminal node (flop, turn, river, showdown)
 
 
@@ -50,7 +60,7 @@ cdef class CFR:
         strategy_sum = local_manager.get_strategy_sum().get_set(player_hash, defaultdict(self.default_double), prune_criteria, merge_criteria)
 
         if game_state.is_terminal_river() or depth >= self.cfr_depth or probs[cur_player_index] < self.prune_probability_threshold:
-            self.progress_gamestate_to_showdown(game_state)
+            self.progress_gamestate_to_showdown(game_state, local_manager)
             return self.calculate_utilities(game_state, game_state.winner_index)
 
         util = {action: np.zeros(num_players, dtype=np.float64) for action in available_actions}
@@ -58,10 +68,16 @@ cdef class CFR:
 
         for action in available_actions:
             new_game_state = game_state.clone()
-            new_probs[:] = probs
+            
             if new_game_state.step(action):
-                total = np.sum(new_probs)
-                new_probs = new_probs / total if total > 0 else new_probs.fill(1)
+                new_probs[:] = probs  
+                # total = np.sum(probs)
+                # if total > 0:
+                #     new_probs[:] = probs               
+                #     new_probs = new_probs / total 
+                # else:
+                #     for i in range(num_players):
+                #         new_probs[i] = 1
             
             new_probs[cur_player_index] *= strategy[action]
             util[action] = self.cfr_traverse(new_game_state, new_probs, depth + depth_criteria, local_manager)
@@ -88,8 +104,8 @@ cdef class CFR:
         num_players = len(game_state.players)
         utilities = np.zeros(num_players, dtype=np.float64)
 
-        rake = game_state.pot * .05
-        rake = rake // 1 if rake < 6 else 6
+        rake = game_state.pot * .05 # 5% rake
+        rake = min(rake//1, 3) # .3BB rake cap (500nl heads up)
         pot = game_state.pot - rake
 
         for i, p in enumerate(game_state.players):
@@ -133,16 +149,14 @@ cdef class CFR:
             for action in available_actions:
                 strategy[action] = uniform_prob
                 strategy_sum[action] += probs[current_player] * uniform_prob
-        elif all(x <= 0 for x in regrets):  # only negative regret
+        else: # all(x <= 0 for x in regrets):  # only negative regret; or pos+neg = 0
             min_regret = min(regrets)
             positive_regrets = [regret - min_regret for regret in regrets]
             total_positive_regrets = sum(positive_regrets)
             for action, positive_regret in zip(available_actions, positive_regrets):
                 strategy[action] = positive_regret / total_positive_regrets
                 strategy_sum[action] += probs[current_player] * strategy[action]
-        else:
-            raise ValueError('Unexpected regret combination. Please see "get_strategy"')
-
+        
         return strategy
 
 
@@ -173,7 +187,7 @@ cdef class CFR:
             uniform_prob = 1 / len(available_actions)
             for action in average_strategy:
                 average_strategy[action] = uniform_prob
-        elif all([x <= 0 for x in regrets]):  # only negative regret
+        else: # all([x <= 0 for x in regrets]):  # all(x <= 0 for x in regrets):  # only negative regret; or pos+neg = 0
             # Convert negative regrets to positive values by adding the minimum regret value to each
             min_regret = min(regrets)
             positive_regrets = [regret - min_regret for regret in regrets]

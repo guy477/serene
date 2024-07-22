@@ -3,22 +3,22 @@ import os
 # Add the build directory to the system path
 sys.path.insert(0, os.path.abspath('build'))
 
+from poker.game.game_state import GameState
+from poker.game.player import Player
 from poker.game.poker_game import PokerGame
 from poker.cfr_trainer.cfr_trainer import CFRTrainer
 import poker._utils.ccluster as ccluster
-from poker._utils._utils import _6_max_opening, _2_max_opening, _6_max_simple_postflop
+from poker._utils._utils import _6_max_opening, _2_max_opening, _6_max_simple_postflop, _2_max_postflop
 from poker.core.local_manager import LocalManager
 
 
-from multiprocessing import Manager
-
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
-from scipy.special import comb
-from sklearn.cluster import MiniBatchKMeans
+
 
 
 def train():
@@ -33,28 +33,46 @@ def train():
     big_blind = 10
 
     # pot relative bet-sizings for preflop, flop, turn, and river
-    bet_sizing = [(1.5, 2.0,), (.33, 1,), (), ()]
+    bet_sizing = [(1.5, 2.0,), (.5, 1,), (.40, .82, 1.2,), (.75, 1.2, 2,)]
 
     # How many players to solve for
     num_players = 2
+    
+    base_game_state = GameState([Player(initial_chips, bet_sizing, False) for _ in range(2)], small_blind, big_blind, True, SUITS, VALUES)
+    base_game_state.setup_preflop()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     # Fetch action space of preflop positions
-    positions_to_solve, positions_dict = _2_max_opening()
+    positions_to_solve, positions_dict = _2_max_postflop(base_game_state, initial_chips, bet_sizing, small_blind, big_blind, SUITS, VALUES) #_2_max_opening()
 
+    print(positions_to_solve)
+    print(len(positions_to_solve))
     # All heads-up preflop positions to a depth of three-bet defense
     positions_to_solve = positions_to_solve # [:3] # Train Only SB v BB  # [:8] # Train SB v BB; SB v BTN; BB v BTN 
 
     # Specify the number of times to iteratate over `positions_to_solve`
     num_smoothing_iterations = 1
-    positions_to_solve = positions_to_solve * num_smoothing_iterations
 
 ##########
 
     # **Number of iterations to run the CFR algorithm**
-    num_cfr_iterations = 1000
+    num_cfr_iterations = 2500
 
     # Actions by folded or all-in players dont count toward depth
-    # -> Choose depth to have action end on starting player
     cfr_depth = 1
 
     # Depth at which to start pruning regret and strategy sums
@@ -64,37 +82,51 @@ def train():
     prune_probability = 1e-8
 
 ##########
+    # Load pkl containing blueprint you want
+    base_path = f'../results/{num_players}/{cfr_depth}/{positions_dict[str(positions_to_solve[0])]}'
+    # base_path = f'../results/2/1/BB_SB_4B_DEF'
+    pkl_path = base_path + '/pickles/'
 
+    # Load current blueprint strategy
+    local_manager = LocalManager(pkl_path)
+
+    save_interval = 1 #num_smoothing_iterations // 10
     # Create a training environment and train the model using CFR
     cfr_trainer = CFRTrainer(num_cfr_iterations, cfr_depth, num_players, initial_chips, small_blind, big_blind, bet_sizing, SUITS, VALUES, prune_depth, prune_probability)
-    
-    for i, fast_forward_actions in enumerate(positions_to_solve):
-        current_position = positions_dict[str(fast_forward_actions)]
+    for i in tqdm(list(range(num_smoothing_iterations))):
 
-        # Define environment directory for current position
-        base_path = f'../results/{num_players}/{cfr_depth}/{current_position}'
-        pkl_path = base_path + '/pickles/'
+        for position_number, fast_forward_actions in enumerate(positions_to_solve):
 
-        # Load current blueprint strategy
-        local_manager = LocalManager(pkl_path)
-        
-        ## train our hand matrix on the given fast_forward_action space
-        local_manager = cfr_trainer.train(local_manager, [fast_forward_actions], save_pickle = True)
-        
-        ## leverage local_manager to source strategy_list
-        strategy_list = cfr_trainer.get_average_strategy_dump(fast_forward_actions, local_manager)
-        
-        ## Plot the results
-        plot_hands(current_position, strategy_list, SUITS, VALUES, base_path)
-        
-        if i + 1 < len(positions_to_solve):
+            
+            ## train our hand matrix on the given fast_forward_action space
+            local_manager = cfr_trainer.train(local_manager, [fast_forward_actions], save_pickle = True)
+ 
+
+            # if i + 1 < len(positions_to_solve):
             ## Copy current local_manager to next position
-            next_base_path = f'../results/{num_players}/{cfr_depth}/{positions_dict[str(positions_to_solve[i + 1])]}'
+            positions_to_solve_2 = positions_to_solve * 2
+            next_base_path = f'../results/{num_players}/{cfr_depth}/{positions_dict[str(positions_to_solve_2[position_number + 1])]}'
             next_pkl_path = next_base_path + '/pickles/'
             local_manager.base_path = next_pkl_path
             
             ## Save current pkls to new directory.
             local_manager.save()
+
+            
+            if (i + 1) % save_interval:
+                continue
+
+            ## leverage local_manager to source strategy_list
+            strategy_list = cfr_trainer.get_average_strategy_dump(fast_forward_actions, local_manager)
+            
+            current_position = positions_dict[str(fast_forward_actions)]
+
+            # Define environment directory for current position
+            base_path = f'../results/{num_players}/{cfr_depth}/{current_position}'
+            ## Plot the results
+            plot_hands(current_position, strategy_list, SUITS, VALUES, base_path)
+            
+
 
 
 def play():
